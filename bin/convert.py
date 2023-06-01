@@ -1,5 +1,5 @@
 import argparse
-import msprot
+import mstool
 
 description = "Change a file format between pdb and dms"
 
@@ -14,7 +14,7 @@ def parse_args():
     parser.add_argument("--ff",
         nargs   = "*",
         default = [],
-        help    = "all-atom forcefield. defaults: $msprot/FF/charmm36/charmm36.xml and $msprot/FF/charmm36/water.xml")
+        help    = "all-atom forcefield. defaults: $mstool/FF/charmm36/charmm36.xml and $mstool/FF/charmm36/water.xml")
 
     parser.add_argument("--ff_add",
         nargs   = "*",
@@ -30,7 +30,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    u = msprot.Universe(args.input, ff=args.ff, ff_add=args.ff_add, create_bonds=args.bonds)
+    u = mstool.Universe(args.input, ff=args.ff, ff_add=args.ff_add, create_bonds=args.bonds)
     u.write(args.output)
 
 if __name__ == '__main__':

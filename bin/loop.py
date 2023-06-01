@@ -1,5 +1,5 @@
 import os
-import msprot
+import mstool
 import argparse
 import shutil
 import numpy as np
@@ -46,7 +46,7 @@ def parse_args():
     parser.add_argument("--mapping",
         nargs   = "*",
         default = [],
-        help    = "mapping information of molecules. defaults: $msprot/mapping/martini.protein.c36m.dat and $msprot/mapping/martini.lipid.c36.dat")
+        help    = "mapping information of molecules. defaults: $mstool/mapping/martini.protein.c36m.dat and $mstool/mapping/martini.lipid.c36.dat")
 
     parser.add_argument("--mapping_add",
         nargs   = "*",
@@ -86,26 +86,26 @@ def main():
     os.mkdir(args.workdir)
     
     ### Read and save a protein structure
-    u = msprot.Universe(args.protein)
+    u = mstool.Universe(args.protein)
     u.atoms.bfactor = 1.0
     u.write(args.workdir + '/step1_input.dms')
     u.write(args.workdir + '/step1_input.pdb')
     
-    u   = msprot.Universe(args.workdir + '/step1_input.dms')
-    seq = msprot.Seq(fasta=args.fasta)
+    u   = mstool.Universe(args.workdir + '/step1_input.dms')
+    seq = mstool.Seq(fasta=args.fasta)
     
     ### Fix mutations
     if args.mutate:
-        u = msprot.Mutate(u, seq)
+        u = mstool.Mutate(u, seq)
         u.write(args.workdir + '/step1_mutate.dms')
         u.write(args.workdir + '/step1_mutate.pdb')
     else:
         u.write(args.workdir + '/step1_mutate.dms')
         u.write(args.workdir + '/step1_mutate.pdb')
-    u = msprot.Universe(args.workdir + '/step1_mutate.dms')
+    u = mstool.Universe(args.workdir + '/step1_mutate.dms')
     
     ### Map 
-    cg = msprot.Map(structure   = args.workdir + '/step1_mutate.dms', 
+    cg = mstool.Map(structure   = args.workdir + '/step1_mutate.dms', 
                     mapping     = args.mapping, 
                     mapping_add = args.mapping_add,
                     BB2CA       = True,
@@ -114,7 +114,7 @@ def main():
     
     ### Map - reference
     if args.ref != 'None':
-        refcg = msprot.Map(structure = args.ref,
+        refcg = mstool.Map(structure = args.ref,
                            mapping = args.mapping,
                            mapping_add = args.mapping_add,
                            BB2CA = True,
@@ -126,7 +126,7 @@ def main():
     
 
     ### Fill
-    newcg = msprot.Fill(structure   = args.workdir + '/step2.dms',
+    newcg = mstool.Fill(structure   = args.workdir + '/step2.dms',
                         sequence    = args.fasta,
                         mapping     = args.mapping,
                         mapping_add = args.mapping_add,
@@ -134,17 +134,17 @@ def main():
 
     
     ### Martini
-    martini = msprot.ReadMartini()
-    msprot.MartinizeDMS(args.workdir + '/step3.dms', martini=martini, output=args.workdir + '/step3.ff.dms')
-    msprot.dumpsql(args.workdir + '/step3.ff.dms')
+    martini = mstool.ReadMartini()
+    mstool.MartinizeDMS(args.workdir + '/step3.dms', martini=martini, output=args.workdir + '/step3.ff.dms')
+    mstool.dumpsql(args.workdir + '/step3.ff.dms')
     
     ### From now on, step3.ff.dms is the reference dms
-    u = msprot.Universe(args.workdir + '/step3.ff.dms')
+    u = mstool.Universe(args.workdir + '/step3.ff.dms')
     
     
     # --------------------------------------------------------------------------------------------------#
     ### openMM system
-    system, dms = msprot.DMS2openmm(
+    system, dms = mstool.DMS2openmm(
             dms = args.workdir + '/step3.ff.dms',
             nonbondedMethod = 'CutoffNonPeriodic',
             soft = args.soft,
@@ -162,15 +162,15 @@ def main():
     else:
         print('Soft interactions are turned off')
     
-    print('Initial: {:+.2f} kJ/mol'.format(msprot.getEnergy(simulation)))
+    print('Initial: {:+.2f} kJ/mol'.format(mstool.getEnergy(simulation)))
     simulation.minimizeEnergy()
-    print('EM:      {:+.2f} kJ/mol'.format(msprot.getEnergy(simulation)))
+    print('EM:      {:+.2f} kJ/mol'.format(mstool.getEnergy(simulation)))
     
     numpypositions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True) * 10
     u.setpositions(numpypositions)
     u.write(args.workdir + '/step4.dms')
     u.write(args.workdir + '/step4.pdb')
-    msprot.dumpsql(args.workdir + '/step4.dms')
+    mstool.dumpsql(args.workdir + '/step4.dms')
     
     if args.ref != 'None':
     
@@ -191,7 +191,7 @@ def main():
     
     # --------------------------------------------------------------------------------------------------#
     ### openMM system
-    system, dms = msprot.DMS2openmm(
+    system, dms = mstool.DMS2openmm(
             dms = args.workdir + '/step3.ff.dms',
             nonbondedMethod = 'CutoffNonPeriodic',
             soft = False).make()
@@ -203,9 +203,9 @@ def main():
     
     print('-------------------------------')
     print('Regular Energy Minimization')
-    print('Initial: {:+.2f} kJ/mol'.format(msprot.getEnergy(simulation2)))
+    print('Initial: {:+.2f} kJ/mol'.format(mstool.getEnergy(simulation2)))
     simulation2.minimizeEnergy()
-    print('EM:      {:+.2f} kJ/mol'.format(msprot.getEnergy(simulation2)))
+    print('EM:      {:+.2f} kJ/mol'.format(mstool.getEnergy(simulation2)))
     numpypositions = simulation2.context.getState(getPositions=True).getPositions(asNumpy=True) * 10
     u.setpositions(numpypositions)
     u.write(args.workdir + '/step5.dms')
@@ -216,12 +216,12 @@ def main():
     
     print('-------------------------------')
     print('Short NVT')
-    print('Initial: {:+.2f} kJ/mol'.format(msprot.getEnergy(simulation2)))
+    print('Initial: {:+.2f} kJ/mol'.format(mstool.getEnergy(simulation2)))
     simulation2.reporters.append(PDBReporter(args.workdir + '/step6.trj.pdb', 10))
     simulation2.reporters.append(StateDataReporter(args.workdir + '/step6.csv', 10, 
             step=True, potentialEnergy=True, temperature=True))
     simulation2.step(1000)
-    print('EM:      {:+.2f} kJ/mol'.format(msprot.getEnergy(simulation2)))
+    print('EM:      {:+.2f} kJ/mol'.format(mstool.getEnergy(simulation2)))
     
     numpypositions = simulation2.context.getState(getPositions=True).getPositions(asNumpy=True) * 10
     u.setpositions(numpypositions)

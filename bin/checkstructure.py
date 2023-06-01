@@ -1,5 +1,5 @@
 import argparse
-import msprot
+import mstool
 
 # Execute from the Python interpreter.
 # run the code inside the if statement when the program is run directly by the Python interpreter. 
@@ -26,7 +26,7 @@ def parse_args():
     parser.add_argument("--mapping",
         nargs   = "*",
         default = [],
-        help    = "cis/trans/chiral information of molecules. defaults:  $msprot/mapping/martini.protein.c36m.dat and $msprot/mapping/martini.lipid.c36.dat")
+        help    = "cis/trans/chiral information of molecules. defaults:  $mstool/mapping/martini.protein.c36m.dat and $mstool/mapping/martini.lipid.c36.dat")
 
     parser.add_argument("--mapping_add",
         nargs   = "*",
@@ -41,7 +41,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    msprot.CheckStructure(structure=args.input, mapping=args.mapping, mapping_add=args.mapping_add, log=args.log)
+    mstool.CheckStructure(structure=args.input, mapping=args.mapping, mapping_add=args.mapping_add, log=args.log)
 
 if __name__ == '__main__':
     main()

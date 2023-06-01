@@ -1,5 +1,5 @@
 import argparse
-import msprot
+import mstool
 
 # Execute from the Python interpreter.
 # run the code inside the if statement when the program is run directly by the Python interpreter. 
@@ -46,7 +46,7 @@ def parse_args():
     parser.add_argument("--mapping",
         nargs   = "*",
         default = [],
-        help    = "cis/trans/chiral information of molecules. defaults: $msprot/mapping/martini.protein.c36m.dat and $msprot/mapping/martini.lipid.c36.dat")
+        help    = "cis/trans/chiral information of molecules. defaults: $mstool/mapping/martini.protein.c36m.dat and $mstool/mapping/martini.lipid.c36.dat")
 
     parser.add_argument("--mapping_add",
         nargs   = "*",
@@ -56,7 +56,7 @@ def parse_args():
     parser.add_argument("--ff",
         nargs   = "*",
         default = [],
-        help    = "all-atom forcefield. defaults: $msprot/FF/charmm36/charmm36.xml and $msprot/FF/charmm36/water.xml")
+        help    = "all-atom forcefield. defaults: $mstool/FF/charmm36/charmm36.xml and $mstool/FF/charmm36/water.xml")
 
     parser.add_argument("--ff_add",
         nargs   = "*",
@@ -74,7 +74,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    msprot.REM(structure=args.input, out=args.output, protein=args.protein, refposre=args.refposre,
+    mstool.REM(structure=args.input, out=args.output, protein=args.protein, refposre=args.refposre,
         rock=args.rock, rockrcut=args.rockrcut, rockKbond=args.rockKbond, rockresname='ROCK', 
         rcut=args.rcut, pbc=args.pbc,
         A=args.A, C=args.C,
@@ -83,7 +83,7 @@ def main():
         Kchiral=args.Kchiral, Kpeptide=args.Kpeptide, Kcistrans=args.Kcistrans,
         fcx=args.fcx, fcy=args.fcy, fcz=args.fcz, bfactor_posre=args.bfactor_posre)
 
-    msprot.CheckStructure(structure=args.output, mapping=args.mapping, mapping_add=args.mapping_add)
+    mstool.CheckStructure(structure=args.output, mapping=args.mapping, mapping_add=args.mapping_add)
 
 if __name__ == '__main__':
     main()

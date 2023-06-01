@@ -1,5 +1,5 @@
 import argparse
-import msprot
+import mstool
 import sqlite3
 
 description = "dump a DMS file into a SQL file"
