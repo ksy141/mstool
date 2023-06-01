@@ -347,7 +347,10 @@ class REM:
         modeller = Modeller(modeller_combined[0][0], modeller_combined[0][1])
         for i in range(1, len(modeller_combined)):
             modeller.add(modeller_combined[i][0], modeller_combined[i][1])
-        modeller.topology.setPeriodicBoxVectors(pdb.topology.getPeriodicBoxVectors())
+
+        if pbc:
+            modeller.topology.setPeriodicBoxVectors(pdb.topology.getPeriodicBoxVectors())
+
         self.final = modeller
         print(self.final.topology)
 
