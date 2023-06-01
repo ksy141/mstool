@@ -1,0 +1,11 @@
+# 1.9.6.1c7
+# simulation
+# Simulation started on Wed Mar 22 08:16:05 2023
+
+# sum_i q_i = -0.000511, sum_i q_i^2 = 12.799977
+# N atoms = 1536
+# N dof =  4605 ( 4608 )
+# N groups = 1536
+
+#    0:time (ps)  1:E   (kcal/mol)  2:E_p (kcal/mol)  3:E_k (kcal/mol)  4:E_c (kcal/mol)  5:E_x (kcal/mol)  6:E_f (kcal/mol)  7:P   (bar)  8:V   (A^3)  9:T     (K)
+          0.0000   -2.32759510e+02   -2.32759510e+02    0.00000000e+00    0.00000000e+00    0.00000000e+00   -1.04183038e-01     -161.622   512000.000        0.000

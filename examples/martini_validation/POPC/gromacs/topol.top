@@ -1,0 +1,11 @@
+#include "/Users/siyoungkim/Desktop/msprot-1.0.0/FF/martini2.2/martini_v2.2.itp"
+#include "/Users/siyoungkim/Desktop/msprot-1.0.0/FF/martini2.2/martini_v2.0_ions.itp"
+#include "/Users/siyoungkim/Desktop/msprot-1.0.0/FF/martini2.2/POPC.itp"
+
+[ system ]
+MARTINI
+
+[ molecules ]
+POPC    32
+W      466
+

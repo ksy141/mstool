@@ -1,0 +1,5 @@
+HEADER    
+TITLE     MDANALYSIS FRAME 0: Created by PDBWriter
+CRYST1  100.000  100.000  100.000  90.00  90.00  90.00 P 1           1
+ATOM      1  BB  ALA X 184      47.346 -47.321  63.451  1.00  0.00      X    B
+END

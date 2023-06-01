@@ -1,0 +1,7 @@
+HEADER    
+TITLE     MDANALYSIS FRAME 0: Created by PDBWriter
+CRYST1  100.000  100.000  100.000  90.00  90.00  90.00 P 1           1
+ATOM      1  BB  ARG X 152      24.636 -10.631  41.607  1.00  0.00      X    B
+ATOM      2  SC1 ARG X 152      22.580  -8.827  43.087  1.00  0.00      X    S
+ATOM      3  SC2 ARG X 152      19.903  -9.888  44.910  1.00  0.00      X    S
+END

@@ -1,0 +1,27 @@
+; MARTINI (martini22) Coarse Grained topology file for "ALA"
+; Created by py version 2.6 
+; Using the following options:  -f ALA/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name ALA -nt
+; Sequence:
+; A
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+ALA             1
+
+[ atoms ]
+    1    P4     1   ALA    BB     1  0.0000 ; C
+
+[ bonds ]
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals

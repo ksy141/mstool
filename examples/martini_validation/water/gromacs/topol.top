@@ -1,0 +1,10 @@
+#include "martini_v2.2.itp"
+
+[ system ]
+; name
+Martini system
+
+[ molecules ]
+; name        number
+W 512
+

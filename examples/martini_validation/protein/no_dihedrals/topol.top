@@ -1,0 +1,10 @@
+#include "/Users/siyoungkim/Desktop/msprot-1.0.0/FF/martini2.2/martini_v2.2.itp"
+#include "Protein_A.itp"
+
+[ system ]
+; name
+Martini system from protein.gro
+
+[ molecules ]
+; name        number
+Protein_A 	 1

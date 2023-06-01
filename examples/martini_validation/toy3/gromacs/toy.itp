@@ -1,0 +1,19 @@
+[moleculetype]
+; molname      nrexcl
+  TOY          1
+
+[atoms]
+; id    type    resnr   residu  atom    cgnr    charge
+   1    Qa   1  TOY    PO4      1  -0.25
+   2    Na   1  TOY    GL1      2  -0.25
+   3    C1   1  TOY    C1A      3  +0.50 
+
+[bonds]
+;  i  j     funct   length  force.c.
+   1  2     1   0.47    1250
+   2  3     1   0.47    1250
+
+[angles]
+;  i  j  k  funct   angle   force.c.
+   1  2  3  2   120.0   100.0
+

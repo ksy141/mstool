@@ -1,0 +1,12 @@
+#include "martini_v2.2.itp"
+#include "ti.itp"
+#include "tp.itp"
+
+
+[ system ]
+MARTINI
+
+[ molecules ]
+TI 256
+TP 256
+

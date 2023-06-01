@@ -1,0 +1,26 @@
+[moleculetype]
+; molname      nrexcl
+  TI           1
+
+[atoms]
+; id    type    resnr   residu  atom    cgnr    charge
+   1    Qa   1  TI    PO4      1  -0.25
+   2    Na   1  TI    GL1      2  -0.25
+   3    C1   1  TI    C1A      3  +0.50 
+   4    C2   1  TI    C2A      4  +0.00 
+
+[bonds]
+;  i  j     funct   length  force.c.
+   1  2     1   0.47    1250
+   2  3     1   0.47    1250
+   3  4     1   0.47    1250
+
+[angles]
+;  i  j  k  funct   angle   force.c.
+   1  2  3  2   120.0   5.0
+   2  3  4  2   120.0   5.0
+
+[dihedrals]
+; i j k l f  angle  force.c.
+  1 2 3 4 2  125.0  5.0
+

@@ -1,0 +1,10 @@
+#include "martini_v2.2.itp"
+#include "toy.itp"
+
+
+[ system ]
+MARTINI
+
+[ molecules ]
+TOY 512
+

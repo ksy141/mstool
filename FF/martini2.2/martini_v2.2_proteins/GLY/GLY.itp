@@ -1,0 +1,27 @@
+; MARTINI (martini22) Coarse Grained topology file for "GLY"
+; Created by py version 2.6 
+; Using the following options:  -f GLY/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name GLY -nt
+; Sequence:
+; G
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+GLY             1
+
+[ atoms ]
+    1    P5     1   GLY    BB     1  0.0000 ; C
+
+[ bonds ]
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals

@@ -1,0 +1,39 @@
+
+integrator               = md
+nsteps                   = 500000
+dt                       = 0.02
+
+nstlog                   = 1000
+nstenergy                = 1000
+nstxout-compressed       = 1000
+
+cutoff-scheme            = Verlet
+nstlist                  = 20
+ns_type                  = grid
+
+epsilon_r                = 15
+coulombtype              = reaction-field
+rcoulomb                 = 1.1
+vdw_type                 = cutoff
+vdw-modifier             = Potential-shift-verlet
+rvdw                     = 1.1
+
+tcoupl                   = v-rescale
+tc-grps                  = system
+tau_t                    = 1.0
+ref_t                    = 310
+
+; Pressure coupling:
+Pcoupl                   = Parrinello-Rahman
+Pcoupltype               = semiisotropic
+tau_p                    = 12.0
+compressibility          = 3e-4 3e-4
+ref_p                    = 1.0  1.0
+
+; GENERATE VELOCITIES FOR STARTUP RUN:
+gen_vel                  = yes
+gen_temp                 = 310
+gen_seed                 = -1
+
+refcoord_scaling         = com
+
