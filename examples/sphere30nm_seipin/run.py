@@ -1,7 +1,7 @@
-import msprot
+import mstool
 
-#msprot.Backmap('lipid/input_cg_lipid.dms', 'lipid/input_aa_lipid.dms', mapping='mapping.dat')
-msprot.REM(rock='protein/workdir/step9_final.dms', 
+#mstool.Backmap('lipid/input_cg_lipid.dms', 'lipid/input_aa_lipid.dms', mapping='mapping.dat')
+mstool.REM(rock='protein/workdir/step9_final.dms', 
            structure='lipid/input_aa_lipid.dms', 
            out='final.dms', 
            mapping='mapping.dat',

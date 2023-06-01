@@ -1,4 +1,4 @@
-import msprot
+import mstool
 import shutil
 import os
 
@@ -7,7 +7,7 @@ if os.path.exists(workdir):
     shutil.rmtree(workdir)
 os.mkdir(workdir)
 
-msprot.Backmap('cg.pdb', workdir + '/aa.pdb')
-msprot.REM(workdir + '/aa.pdb', workdir + '/aa_final.pdb')
-msprot.CheckStructure(workdir + '/aa_final.pdb')
+mstool.Backmap('cg.pdb', workdir + '/aa.pdb')
+mstool.REM(workdir + '/aa.pdb', workdir + '/aa_final.pdb')
+mstool.CheckStructure(workdir + '/aa_final.pdb')
 
