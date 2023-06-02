@@ -73,6 +73,9 @@ def addCisTransTorsions(u, Kcistrans, mapping, exclude=[]):
     N = 0
     for resname in set(u.atoms.resname):
         if resname in exclude: continue
+        if resname not in mapping.RESI.keys():
+            print(f'Warning: {resname} not in the mapping scheme - skipping CisTransTorsions for this residue')
+            continue
         for isomer in ['cis', 'trans']:
             atomset = mapping.RESI[resname][isomer]
             for atoms in atomset:
@@ -115,6 +118,9 @@ def addChiralTorsions(u, Kchiral, mapping, exclude=[]):
     N = 0
     for resname in set(u.atoms.resname):
         if resname in exclude: continue
+        if resname not in mapping.RESI.keys():
+            print(f'Warning: {resname} not in the mapping scheme - skipping ChiralTorsions for this residue')
+            continue
         chirals = mapping.RESI[resname]['chiral']
         for chiral in chirals:
             bA  = u.atoms.resname == resname
@@ -157,6 +163,10 @@ def addPosre(u, bfactor_posre, fcx, fcy, fcz):
     cef.addPerParticleParameter("hkx")
     cef.addPerParticleParameter("hky")
     cef.addPerParticleParameter("hkz")
+
+    if 'bfactor' not in u.atoms:
+        print('bfactor not in atoms; skipping Positional Restraints')
+        return cef
 
     bA = u.atoms.bfactor > bfactor_posre
     df = u.atoms[bA]
@@ -278,7 +288,7 @@ class REM:
         ff      = [], ff_add = [],
         Kchiral=300, Kpeptide=300, Kcistrans=300,
         fcx = 1000.0, fcy = 1000.0, fcz = 1000.0,
-        bfactor_posre = 0.5):
+        bfactor_posre = 0.5, add_bonds=True):
 
 
         ### NonbondedMethod
@@ -322,9 +332,10 @@ class REM:
             assert 0 == 1, 'Please provide a pdb or dms file'
 
 
-        ### Add bonds for non-protein residues in u
-        bonds, pdb = addBonds(u, xml, pdb)
 
+        ### Add bonds for non-protein residues in u
+        if add_bonds:
+            bonds, pdb = addBonds(u, xml, pdb)
 
         ### Combine systems (rock should be the first because of the bonds added later)
         modeller_combined = []
@@ -371,6 +382,7 @@ class REM:
                         force.addBond(*bond)
 
 
+
         ### Add posre
         if refposre:
             self.system.addForce(addRefPosre(u, refposre, fcx, fcy, fcz))
@@ -387,8 +399,8 @@ class REM:
 
         print("Adding Isomer Torsions - started")
         self.system.addForce(addPeptideTorsions(  u, Kpeptide))
-        self.system.addForce(addCisTransTorsions( u, Kcistrans, mapping, [rockresname]))
-        self.system.addForce(addChiralTorsions(   u, Kchiral,   mapping, [rockresname]))
+        self.system.addForce(addCisTransTorsions( u, Kcistrans, mapping, exclude=[rockresname]))
+        self.system.addForce(addChiralTorsions(   u, Kchiral,   mapping, exclude=[rockresname]))
         print("Adding Isomer Torsions - finished")
 
 
