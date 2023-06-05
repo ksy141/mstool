@@ -28,18 +28,11 @@ Currently, it only supports charmm36 forcefield. The names of atomistic atoms de
 ## How to use
 ```
 import mstool
-
-# input.pdb is a coarse-grained structure.
-# This will randomly place atomistic atoms near their corresponding coarse-grained bead.
-# If you want to add mapping schemes because your molecules are not defined in the default mapping schemes,
-# use mapping_add = ['your_new_mapping1.dat', 'your_new_mapping2.dat']
-# If you want to overwrite the default mapping schemes, use mapping = ['your_new_mapping1.dat', 'your_new_mapping2.dat'].
-mstool.Backmap('input.pdb', 'backmapped.pdb', mapping_add = [])
-
-# This will minimize a system. This is an important step as the above step just randomly ungroups atoms.
-# cis/trans/chiral information is read from the default mapping schemes. If you want to add mapping schemes for new molecules,
-# use mapping_add = ['your_new_mapping1.dat', 'your_new_mapping2.dat']
+mstool.Backmap('input.pdb',  'backmapped.pdb', mapping_add = [])
 mstool.REM('backmapped.pdb', 'output.pdb', mapping_add = [])
 ```
 
+`input.pdb` is a coarse-grained structure. This will randomly place atomistic atoms near their corresponding coarse-grained bead. If you want to add mapping schemes because your molecules are not defined in the default mapping schemes, use `mapping_add = ['your_new_mapping1.dat', 'your_new_mapping2.dat']`.
+If you want to overwrite the default mapping schemes, use `mapping = ['your_new_mapping1.dat', 'your_new_mapping2.dat']`.
 
+`REM` will minimize a system. This is an important step as the above step just randomly ungroups atoms. cis/trans/chiral information is read from the default mapping schemes. If you want to add mapping schemes for new molecules, use `mapping_add = ['your_new_mapping1.dat', 'your_new_mapping2.dat']`.
