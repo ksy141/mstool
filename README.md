@@ -9,7 +9,7 @@ conda install -c conda-forge openmm
 ```
 
 ## Installation
-No installation is required. Download the package and add PYTHONPATH.
+No installation is required. Download the package and add the path to PYTHONPATH.
 ```
 cd $HOME
 git clone https://github.com/ksy141/mstool.git
