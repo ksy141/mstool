@@ -23,7 +23,7 @@ export PYTHONPATH="$HOME:$PYTHONPATH"
 These are tailored toward martini. Not all Martini molecules are present. You should make a new file if you want to add molecules or your coarse-grained structures are not at martini resolution. Under each RESI `resname`, define a coarse-grained bead in a square bracket ([]) and its corresponding atomistic atoms. If a molecule has any isomers (cis/trans/chiral), define them in a square bracket. 
 
 ## Forcefield
-Currently, it only supports charmm36 forcefield. The names of atomistic atoms defined in the mapping schemes should match these defined in the forcefield. All of the standard C36 molecules are defined at `$HOME/mstool/FF/charmm36/charmm36.xml`, which will autmoatically read.
+Currently, it only supports charmm36 forcefield. The names of atomistic atoms defined in the mapping schemes should match these defined in the forcefield. All of the standard charmm36 molecules are defined at `$HOME/mstool/FF/charmm36/charmm36.xml`, which will be autmoatically read.
 
 ## How to use
 ```
