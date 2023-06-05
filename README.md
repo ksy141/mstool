@@ -3,7 +3,7 @@
 Multiscale Simulation Tools for Mapping, Backmapping, and Loop Modeling.
 
 ## Dependencies
-openmm, sqlite3, pandas, numpy. To install openmm
+openmm, sqlite3, pandas, numpy. To install openmm:
 ```
 conda install -c conda-forge openmm
 ```
