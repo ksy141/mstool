@@ -167,7 +167,7 @@ class Universe:
                 # if len(name) = 1,2,3, add space
                 if len(name) in [1,2,3]: name = f' {name:s}'
                 W.write(fmt['ATOM'].format(
-                    self.ltruncate_int(index, 5), name[:4], '', atom.resname[:4],
+                    self.ltruncate_int(index+1, 5), name[:4], '', atom.resname[:4],
                     atom.chain[:1], self.ltruncate_int(atom.resid, 4), '',
                     atom.x, atom.y, atom.z, 0.0, atom.bfactor,
                     atom.chain, ''))

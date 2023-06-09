@@ -20,7 +20,7 @@ mstool.REM(protein='protein/workdir/step9_final.pdb',
            ff_add='trio.xml', 
            pbc=False)
 
-mstool.CheckStructure(workdir + '/final.dms', log=workdir + '/log.txt')
+mstool.CheckStructure(workdir + '/final.dms', log=workdir + '/log.txt', mapping_add='mapping.dat')
 mstool.Universe(workdir + '/final.dms').write(workdir + '/final.pdb')
 
 
