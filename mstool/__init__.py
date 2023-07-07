@@ -21,4 +21,5 @@ from .utils.martinizedms import MartinizeDMS
 from .utils.openmmutils import *
 from .mutate import Mutate
 from .backmap import Backmap
+from .solvate_martini import SolvateMartini
 

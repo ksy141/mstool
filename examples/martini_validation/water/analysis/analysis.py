@@ -1,5 +1,6 @@
 import MDAnalysis as mda
 import matplotlib.pyplot as plt
+import numpy as np
 from   MDAnalysis.analysis.rdf import InterRDF
 
 u = {'gromacs': mda.Universe('../gromacs/W.pdb', '../gromacs/input.xtc'),
@@ -13,6 +14,7 @@ def VOL(u):
     for ts in u.trajectory[100:]:
         xyz = u.dimensions[0] * u.dimensions[1] * u.dimensions[2]
         data.append(xyz / u.atoms.n_atoms)
+    print(np.average(data))
     return data
 
 def RDF(u):
