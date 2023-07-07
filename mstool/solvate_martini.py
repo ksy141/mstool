@@ -1,16 +1,21 @@
 from   .utils.universe import Universe
-from   scipy.spatial   import distance_matrix
+from   .utils.distance import distance_matrix
 import numpy as np
 import pandas as pd
 
 class SolvateMartini:
-    def __init__(self, out, dimensions=None, structure=None, t=None, solventdr=4.93, removedr=5.0, waterslab=0.8, center=True):
+    def __init__(self, out, dimensions=None, structure=None, t=None, 
+    solventdr=4.93, removedr=5.0, waterslab=0.8, center=True):
         
         # make a water box
         if dimensions:
             u = Universe()
-            u.cell = np.array([[dimensions[0], 0, 0], [0, dimensions[1], 0], [0, 0, dimensions[2]]])
-            u.dimensions = np.array([dimensions[0], dimensions[1], dimensions[2], 90, 90, 90])
+            u.cell = np.array([[dimensions[0], 0, 0],
+                               [0, dimensions[1], 0], 
+                               [0, 0, dimensions[2]]])
+
+            u.dimensions = np.array([dimensions[0], dimensions[1], dimensions[2], 
+                                     90, 90, 90])
             wateru = self.solvate(u, solventdr, removedr, waterslab, center)
             wateru.write(out)
             return None
@@ -36,8 +41,9 @@ class SolvateMartini:
         assert zero_dims != 0, 'check your dimensions'
 
         # calculate a distance matrix between water atoms and solute atoms
-        # need to change it to pbc distance
-        dm = distance_matrix(wateru.atoms[['x','y','z']], u.atoms[['x','y','z']])
+        dm = distance_matrix(wateru.atoms[['x','y','z']].to_numpy(), 
+                             u.atoms[['x','y','z']].to_numpy(), 
+                             dimensions=pbc)
 
         # bA is a selection for the water atoms that overlap with solute atoms
         bA = np.any(dm < removedr, axis=1)
@@ -84,6 +90,4 @@ class SolvateMartini:
         wateru.cell = u.cell
 
         return wateru
-
-
 
