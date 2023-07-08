@@ -1,6 +1,7 @@
 from   openmm        import *
 from   openmm.app    import *
 from   openmm.unit   import *
+from   .openmmutils  import *
 from   .universe     import Universe
 from   .readmappings import ReadMappings
 from   .readxml      import ReadXML
