@@ -2,28 +2,142 @@ import os
 pwd = os.path.dirname(os.path.realpath(__file__))
 
 class ReadMartini:
+    '''Read martini forcefields. The default forcefield files read are
+    $mstool/FF/martini2.2/martini_v2.2.itp, 
+    $mstool/FF/martini2.2/martini_v2.0_ions.itp, 
+    $mstool/FF/martini2.2/martini_v2.2_proteins/proteins.itp, 
+    $mstool/FF/martini2.2/martini_v2.0_lipids_all_201506.itp.
+
+    To add files on top of the default,
+    use ff_add = [].
+
+    To override the default files,
+    use ff = [].
+
+    Martini forcefields are native to gromacs, which uses
+    kJ/mol, nm, kJ/mol/rad^2, ps, bar, unified atomic mass unit as its MD units.
+    Although, for angles, please note that angles are written in degress not in radians,
+    which will be internally converted to radians. This is due to user-friendliness.
+
+    Parameters
+    ----------
+    ff : list
+        A list of martini forcefield files. The default files read are
+        $mstool/FF/martini2.2/martini_v2.2.itp, 
+        $mstool/FF/martini2.2/martini_v2.0_ions.itp, 
+        $mstool/FF/martini2.2/martini_v2.2_proteins/proteins.itp, 
+        $mstool/FF/martini2.2/martini_v2.0_lipids_all_201506.itp.
+
+        To override the default files, use this.
+        e.g., ff = ['ff1.itp', 'ff2.itp']
+
+    ff_add : list
+        A list of *additional* martini forcefield files.
+        If there are duplicate moleculetypes, the parameters are updated with the latest one.
+        The default is [].
+
+    define : dict
+        Reads gromacs macro. Available keywords are:
+        #ifdef, #ifndef, #else, #end, #define.
+        e.g., define={'BILAYER_LIPIDHEAD_FC': '500.0', 'FLEXIBLE': 'True'}
+
+    Kc2b : float
+        The default is 10000.0.
+
+    Attributes
+    ----------
+    martini : dict
+        Contains all the information. The three 
+        `self.martini['moleculetypes']`, 
+
+    define : dict
+        gromacs macro.
+
+
+    Examples
+    --------
+    >>> m = mstool.ReadMartini(ff_add=['add_molecules.itp'], 
+    ...     define={'FLEXIBLE': 'True', 'MICELLE_LIPIDHEAD_FC: '300.0',
+    ...             'VESICLE_LIPIDTAIL_R': '100.0', 
+    ...             'BILAYER_LIPIDHEAD_FC': '200.0'})
+    >>> m.martini['moleculetypes']['POPC']
+    >>> m.martini['define']
+    '''
+
+
     def __init__(self,
         ff = [pwd + '/../../FF/martini2.2/martini_v2.2.itp',
               pwd + '/../../FF/martini2.2/martini_v2.0_ions.itp',
-              pwd + '/../../FF/martini2.2/POPC.itp',
-              pwd + '/../../FF/martini2.2/martini_v2.2_proteins/proteins.itp'],
-              #pwd + '/../../FF/martini2.2/martini_v2.0_lipids_all_201506.itp'],
-        ff_add = [],
+              pwd + '/../../FF/martini2.2/martini_v2.2_proteins/proteins.itp',
+              pwd + '/../../FF/martini2.2/martini_v2.0_lipids_all_201506.itp'],
+        ff_add = [], define = {},
         Kc2b   = 10000.0):
 
         self.Kc2b = Kc2b
+        if not isinstance(ff, list): ff = [ff]
         if not isinstance(ff_add, list): ff_add = [ff_add]
         self.ifiles = [*ff, *ff_add]
+        self.define = define
         self.collect()
+
 
     def collect(self):
         d = {}
         for ifile in self.ifiles:
             with open(ifile) as W:
+                
+                conditions = []
                 for line in W.readlines():
                     if line.startswith(';'): continue
-                    if not line.strip(): continue
                     line = line.split(';')[0].strip()
+                    if not line: continue
+
+
+                    ### Add ifiles
+                    if line.startswith('#include'):
+                        self.ifiles.append(line.split()[1])
+
+
+                    ######### ifdef ifndef define #########
+                    if line.startswith('#ifdef'):
+                        key = line.split()[1]
+                        if key in self.define.keys(): 
+                            conditions.append([key, True])
+                        else:
+                            conditions.append([key, False])
+                        continue
+
+                    if line.startswith('#ifndef'):
+                        key = line.split()[1]
+                        if key in self.define.keys():
+                            conditions.append([key, False])
+                        else:
+                            conditions.append([key, True])
+                        continue
+
+                    if line.startswith('#else'):
+                        conditions[-1][1] = not conditions[-1][1]
+                        continue
+
+                    if line.startswith('#end'):
+                        conditions.pop()
+                        continue
+
+                    if len(conditions) != 0:
+                        if conditions[-1][1]:
+                            pass
+                        else:
+                            continue
+
+                    if line.startswith('#define'):
+                        sl  = line.split()
+                        self.define[sl[1]] = ' '.join(sl[2:])
+                        continue
+
+                    for key, value in self.define.items():
+                        line = line.replace(key, value)
+                    #######################################
+
 
                     if '[' in line and ']' in line:
                         read = line.split('[')[1].split(']')[0].strip()
@@ -92,13 +206,13 @@ class ReadMartini:
                         resname = sl[0]
                         d['molecules'][resname] = {}
                         d['molecules'][resname]['nrexcl'] = int(sl[1])
-                        d['molecules'][resname]['atoms']  = {'id':[], 'type':[], 
-                                                             'name':[], 'q':[]}
-                        d['molecules'][resname]['bonds']          = []
-                        d['molecules'][resname]['angles']         = []
-                        d['molecules'][resname]['dihedrals']      = []
-                        d['molecules'][resname]['exclusions']     = []
-                        d['molecules'][resname]['virtual_sites3'] = []
+                        d['molecules'][resname]['atoms']  = {'id':[], 'type':[], 'name':[], 'q':[]}
+                        d['molecules'][resname]['bonds']               = []
+                        d['molecules'][resname]['angles']              = []
+                        d['molecules'][resname]['dihedrals']           = []
+                        d['molecules'][resname]['exclusions']          = []
+                        d['molecules'][resname]['virtual_sites3']      = []
+                        d['molecules'][resname]['position_restraints'] = []
 
                     if read == 'atoms':
                         sl = line.split()
@@ -199,6 +313,24 @@ class ReadMartini:
                             d['molecules'][resname]['virtual_sites3'].append([name1, name2, name3, name4, f, a, b, 0.1 * float(sl[7])])
                         except:
                             d['molecules'][resname]['virtual_sites3'].append([name1, name2, name3, name4, f, a, b])
+
+
+                    if read == 'position_restraints':
+                        sl  = line.split()
+                        id1 = int(sl[0])
+                        f   = int(float(sl[1]))
+
+                        if f == 1:
+                            kx = float(sl[2])
+                            ky = float(sl[3])
+                            kz = float(sl[4])
+                            d['molecules'][resname]['position_restraints'].append([id1, f, kx, ky, kz])
+
+                        else:
+                            g = int(sl[2])
+                            r = float(sl[3])
+                            k = float(sl[4])
+                            d['molecules'][resname]['position_restraints'].append([id1, f, g, r, k])
 
 
         self.martini = d

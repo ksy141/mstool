@@ -263,7 +263,7 @@ def addBonds(u, xml, pdb=None):
         return bond_records
 
 
-def addFlatBottomSphere(u, bfactor_posre, radius, rfb, R0=[0,0,0], fc):
+def addFlatBottomSphere(u, bfactor_posre, radius, rfb, R0=[0,0,0], fc=1000.0):
     '''Apply Flat-bottomed position restraints for sphere simulations
 
     | d - radius | < rfb  ---> pot = 0

@@ -37,8 +37,9 @@ class Universe:
         self.dimensions = [0, 0, 0, 90, 90, 90]       #triclinic_box
         self.bonds = []
         self.cols  = {'anum': -1, 'name': 'tbd', 'charge': 0.0, 'mass': 0.0,
-                      'type': 'tbd', 'nbtype': 0, 'resname': 'tbd', 'resid': 0,
-                      'chain': 'A', 'x': 0.0, 'y': 0.0, 'z': 0.0, 'bfactor': 0.0}
+                      'type': 'tbd', 'nbtype': 0, 'resname': 'tbd', 'resid': 0, 
+                      'segid': '', 'chain': 'A', 
+                      'x': 0.0, 'y': 0.0, 'z': 0.0, 'bfactor': 0.0}
 
 
         # Martini beads need to have anum; Otherwise, openMM will not run a simulation
@@ -138,6 +139,7 @@ class Universe:
                     data['y'].append(float(line[38:46]))
                     data['z'].append(float(line[46:54]))
                     data['bfactor'].append(float(line[60:66]))
+                    data['segid'].append(line[66:76])
         
         self.construct_from_dict(data)
 
@@ -547,3 +549,30 @@ class Universe:
             tri_vecs = triclinic_vectors(dim, dtype=np.float64)
             volume = tri_vecs[0, 0] * tri_vecs[1, 1] * tri_vecs[2, 2]
         return volume
+
+
+def Merge(*args):
+    '''Merge atomic groups.
+
+    Parameters
+    ----------
+    atoms : list
+        a list of pd.DataFrame atom objects
+
+    Returns
+    -------
+    u : Universe
+        a merged Universe.
+
+    Examples
+    --------
+    >>> u = mstool.Merge(u1.atoms, u2.atoms, u3.atoms)
+    >>> u.dimensions = u1.dimensions
+    >>> u.cell       = u1.cell
+    >>> u.write('final.pdb')
+    '''
+
+    u = Universe()
+    u.atoms = pd.concat(args, ignore_index=True)
+    return u
+

@@ -1,6 +1,6 @@
 from .version import __version__
 from .authors import __authors__
-from .utils.universe import Universe
+from .utils.universe import Universe, Merge
 from .utils.seq import Seq
 from .utils.readmappings import ReadMappings
 from .utils.readmartini import ReadMartini
@@ -19,6 +19,7 @@ from .loopmodeler import LoopModeler
 from .utils.dms2openmm import DMS2openmm
 from .utils.martinizedms import MartinizeDMS
 from .utils.openmmutils import *
+from .utils.util import *
 from .mutate import Mutate
 from .backmap import Backmap
 from .solvate_martini import *
