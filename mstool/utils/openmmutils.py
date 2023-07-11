@@ -1,4 +1,6 @@
 from openmm.unit import *
+from openmm.app  import *
+from openmm      import *
 
 def getEnergy(simulation):
     return simulation.context.getState(getEnergy=True).getPotentialEnergy()._value
@@ -11,6 +13,104 @@ def MembranePressure(system, P=1.0, T=310.0, r=0.0):
     system.addForce(MonteCarloMembraneBarostat(P*bar, r*bar*nanometer, T*kelvin,
             MonteCarloMembraneBarostat.XYIsotropic, MonteCarloMembraneBarostat.ZFree))
     return system
+
+
+def runMartiniEM(dms_in, out, pos_in=None, soft=False, A=200, C=50,
+    nonbondedCutoff=1.1, nonbondedMethod='CutoffPeriodic', T=310, dt=0.002):
+
+    from .dms2openmm import DMS2openmm
+    from .universe   import Universe
+
+    system, dms = DMS2openmm(
+            dms             = dms_in,
+            nonbondedMethod = nonbondedMethod,
+            nonbondedCutoff = nonbondedCutoff,
+            soft            = soft,
+            A               = A,
+            C               = C).make()
+    
+    ### PREPARE SIMS
+    integrator = LangevinMiddleIntegrator(T*kelvin, 1/picosecond, dt*picoseconds)
+    simulation = Simulation(dms.topology, system, integrator)
+
+    ### SET POSITIONS
+    if pos_in:
+        if pos_in.split('.')[-1] == 'dms':
+            simulation.context.setPositions(DesmondDMSFile(pos_in).positions)
+        elif pos_in.split('.')[-1] == 'pdb':
+            simulation.context.setPositions(PDBFile(pos_in).positions)
+    
+    else:
+        simulation.context.setPositions(DesmondDMSFile(dms_in).positions)
+    
+    ### RUN SIMS
+    print('-------------------------------')
+    if soft:
+        print('Soft interactions are turned on')
+    else:
+        print('Soft interactions are turned off')
+    
+    print('E0: %.3e kJ/mol' %getEnergy(simulation))
+    simulation.minimizeEnergy()
+    print('E1: %.3e kJ/mol' %getEnergy(simulation))
+    print('-------------------------------')
+
+    ### SAVE THE LAST FRAME
+    u = Universe(dms_in)
+    numpypositions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True) * 10
+    u.setpositions(numpypositions)
+    u.write(out)
+
+
+
+def runMartiniNPT(dms_in, out, pos_in=None, soft=False, A=200, C=50,
+    nonbondedCutoff=1.1, nonbondedMethod='CutoffPeriodic',
+    nsteps=10000, dcdfreq=1000, csvfreq=1000, dt=0.02, P=1.0, T=310, semiisotropic=False):
+
+    from .dms2openmm import DMS2openmm
+    from .universe   import Universe
+
+    system, dms = DMS2openmm(
+            dms             = dms_in,
+            nonbondedMethod = nonbondedMethod,
+            nonbondedCutoff = nonbondedCutoff,
+            soft            = soft,
+            A               = A,
+            C               = C).make()
+
+    ### ADD BAROSTAT
+    if semiisotropic:
+        system = MembranePressure(system, P=P, T=T)
+    else:
+        system = Pressure(system, P=P, T=T)
+    
+    ### PREPARE SIMS
+    integrator = LangevinMiddleIntegrator(T*kelvin, 1/picosecond, dt*picoseconds)
+    simulation = Simulation(dms.topology, system, integrator)
+
+    ### SET POSITIONS
+    if pos_in:
+        if pos_in.split('.')[-1] == 'dms':
+            simulation.context.setPositions(DesmondDMSFile(pos_in).positions)
+        elif pos_in.split('.')[-1] == 'pdb':
+            simulation.context.setPositions(PDBFile(pos_in).positions)
+    
+    else:
+        simulation.context.setPositions(DesmondDMSFile(dms_in).positions)
+
+    ### RUN SIMS
+    prefix = '.'.join(out.split('.')[:-1])
+    simulation.reporters.append(DCDReporter(      prefix + '.dcd', dcdfreq))
+    simulation.reporters.append(StateDataReporter(prefix + '.csv', csvfreq, step=True, potentialEnergy=True, temperature=True))
+    simulation.step(nsteps)
+
+    ### SAVE THE LAST FRAME
+    u = Universe(dms_in)
+    numpypositions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True) * 10
+    u.setpositions(numpypositions)
+    u.write(out)
+
+
 
 def addPeptideTorsions(u, Kpeptide):
     ctf = CustomTorsionForce("k*min(dtheta, 2*pi-dtheta)^2; dtheta = abs(theta-theta0); pi = 3.1415926535")

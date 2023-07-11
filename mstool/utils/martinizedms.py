@@ -94,6 +94,9 @@ class MartinizeDMS:
             universe.atoms.loc[index, 'mass']   = m
             universe.atoms.loc[index, 'type']   = t
 
+        # Martini beads need to have anum; Otherwise, openMM will not run a simulation
+        universe.atoms['anum'] = 6
+
         nbtypes = sorted(set(nbtypes))
         universe.t2n = {}
         universe.n2t = {}

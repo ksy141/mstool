@@ -5,7 +5,7 @@ import pandas as pd
 
 
 def solvate(u, out=None, 
-            solventdr=4.93, removedr=5.0, waterslab=0.8, waterchain='W', center=True):
+            solventdr=4.93, removedr=5.0, waterslab=0.8, waterchain='W', center=True, pbc=False):
     
     # if there is a zero, raise an error
     assert np.all(u.dimensions[0:3]), 'check your dimensions'
@@ -48,9 +48,14 @@ def solvate(u, out=None,
         return wateru
 
     # calculate a distance matrix between water atoms and solute atoms
-    dm = distance_matrix(wateru.atoms[['x','y','z']].to_numpy(), 
-                         u.atoms[['x','y','z']].to_numpy(), 
-                         dimensions=u.dimensions)
+    if pbc:
+        dm = distance_matrix(wateru.atoms[['x','y','z']].to_numpy(), 
+                             u.atoms[['x','y','z']].to_numpy(), 
+                             dimensions=u.dimensions)
+    else:
+        dm = distance_matrix(wateru.atoms[['x','y','z']].to_numpy(),
+                             u.atoms[['x','y','z']].to_numpy(),
+                             dimensions=None)
 
     # bA is a selection for the water atoms that overlap with solute atoms
     bA = np.any(dm < removedr, axis=1)
@@ -156,7 +161,7 @@ def ionize(u, out=None,
 def SolvateMartini(out=None, structure=None, t=None,
                    dimensions=None,
                    solventdr=4.93, removedr=5.0, waterslab=0.8, waterchain='W', center=True,
-                   conc = 0.15, pos = 'SOD', neg = 'CLA', waterresname='W', ionchain='Z'):
+                   conc = 0.15, pos = 'SOD', neg = 'CLA', waterresname='W', ionchain='Z', pbc=True):
         
     # make a water box
     if dimensions:
@@ -172,7 +177,10 @@ def SolvateMartini(out=None, structure=None, t=None,
     
     # provide a structure
     else:
-        u = Universe(structure)
+        if isinstance(structure, Universe):
+            u = structure
+        else:
+            u = Universe(structure)
 
         if t:
             # make new dimensions / cell based on solute particles
@@ -186,7 +194,7 @@ def SolvateMartini(out=None, structure=None, t=None,
             u.cell = np.array([[dim, 0, 0], [0, dim, 0], [0, 0, dim]])
 
     solvatedu = solvate(u, solventdr=solventdr, removedr=removedr, waterslab=waterslab,
-                        waterchain=waterchain, center=center)
+                        waterchain=waterchain, center=center, pbc=pbc)
 
     ionizedu  = ionize(solvatedu, out=out, conc=conc, pos=pos, neg=neg, 
                        waterresname=waterresname, ionchain=ionchain)

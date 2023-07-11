@@ -139,7 +139,7 @@ class Universe:
                     data['y'].append(float(line[38:46]))
                     data['z'].append(float(line[46:54]))
                     data['bfactor'].append(float(line[60:66]))
-                    data['segid'].append(line[66:76])
+                    #data['segid'].append(line[66:76])
         
         self.construct_from_dict(data)
 
