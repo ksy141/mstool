@@ -2,4 +2,6 @@
 workdir
 *.pyc
 __pycache__
+*.dcd
+*.xtc
 
