@@ -1,5 +1,5 @@
 from   .utils.universe import Universe
-from   .utils.distance import distance_matrix
+from   .lib.distance   import distance_matrix
 import numpy as np
 import pandas as pd
 
@@ -48,14 +48,10 @@ def solvate(u, out=None,
         return wateru
 
     # calculate a distance matrix between water atoms and solute atoms
-    if pbc:
-        dm = distance_matrix(wateru.atoms[['x','y','z']].to_numpy(), 
-                             u.atoms[['x','y','z']].to_numpy(), 
-                             dimensions=u.dimensions)
-    else:
-        dm = distance_matrix(wateru.atoms[['x','y','z']].to_numpy(),
-                             u.atoms[['x','y','z']].to_numpy(),
-                             dimensions=None)
+    dm = distance_matrix(wateru.atoms[['x','y','z']].to_numpy(dtype=np.float64), 
+                         u.atoms[['x','y','z']].to_numpy(dtype=np.float64),
+                         np.asarray(u.dimensions, dtype=np.float64),
+                         pbc)
 
     # bA is a selection for the water atoms that overlap with solute atoms
     bA = np.any(dm < removedr, axis=1)
@@ -70,7 +66,7 @@ def solvate(u, out=None,
 
 
 def ionize(u, out=None, 
-           conc = 0.15, pos='SOD', neg='CLA', waterresname='W', ionchain='Z'):
+           conc = 0.15, pos='NA', neg='CL', waterresname='W', ionchain='Z'):
     """Add ions at a given concentration.
     conc = ( N_positive_ion / 6.02e23 ) / ( V * 1e-27 ) = (N * 1e4) / (V * 6.02)
     """
@@ -161,7 +157,7 @@ def ionize(u, out=None,
 def SolvateMartini(out=None, structure=None, t=None,
                    dimensions=None,
                    solventdr=4.93, removedr=5.0, waterslab=0.8, waterchain='W', center=True,
-                   conc = 0.15, pos = 'SOD', neg = 'CLA', waterresname='W', ionchain='Z', pbc=True):
+                   conc = 0.15, pos = 'NA', neg = 'CL', waterresname='W', ionchain='Z', pbc=True):
         
     # make a water box
     if dimensions:

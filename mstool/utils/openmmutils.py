@@ -16,7 +16,8 @@ def MembranePressure(system, P=1.0, T=310.0, r=0.0):
 
 
 def runMartiniEM(dms_in, out, pos_in=None, soft=False, A=200, C=50,
-    nonbondedCutoff=1.1, nonbondedMethod='CutoffPeriodic', T=310, dt=0.002):
+    nonbondedCutoff=1.1, nonbondedMethod='CutoffPeriodic', T=310, dt=0.002,
+    addForces=[]):
 
     from .dms2openmm import DMS2openmm
     from .universe   import Universe
@@ -29,6 +30,10 @@ def runMartiniEM(dms_in, out, pos_in=None, soft=False, A=200, C=50,
             A               = A,
             C               = C).make()
     
+    ### ADD additional forces
+    for Force in addForces:
+        system.addForce(Force)
+
     ### PREPARE SIMS
     integrator = LangevinMiddleIntegrator(T*kelvin, 1/picosecond, dt*picoseconds)
     simulation = Simulation(dms.topology, system, integrator)
@@ -65,7 +70,8 @@ def runMartiniEM(dms_in, out, pos_in=None, soft=False, A=200, C=50,
 
 def runMartiniNPT(dms_in, out, pos_in=None, soft=False, A=200, C=50,
     nonbondedCutoff=1.1, nonbondedMethod='CutoffPeriodic',
-    nsteps=10000, dcdfreq=1000, csvfreq=1000, dt=0.02, P=1.0, T=310, semiisotropic=False):
+    nsteps=10000, dcdfreq=1000, csvfreq=1000, dt=0.02, P=1.0, T=310, semiisotropic=False,
+    addForces=[]):
 
     from .dms2openmm import DMS2openmm
     from .universe   import Universe
@@ -83,6 +89,10 @@ def runMartiniNPT(dms_in, out, pos_in=None, soft=False, A=200, C=50,
         system = MembranePressure(system, P=P, T=T)
     else:
         system = Pressure(system, P=P, T=T)
+
+    ### ADD additional forces
+    for Force in addForces:
+        system.addForce(Force)
     
     ### PREPARE SIMS
     integrator = LangevinMiddleIntegrator(T*kelvin, 1/picosecond, dt*picoseconds)
