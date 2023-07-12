@@ -11,10 +11,11 @@ export PYTHONPATH=$mstoolpath/lib-python:$PYTHONPATH
 
 ### MESSAGES TO USERS
 printf '\n\n\n...... Thank you for using mstool\n'
-echo   '...... In order to use mstool, add the below two lines in your shell ( ~/.bashrc, ~/.zshrc, or ~/.cshrc)'
-printf '\n\n'
-echo   "alias  mstool=$mstoolpath/"
-echo   "export PYTHONPATH=$mstoolpath/lib-python:\$PYTHONPATH"
+echo   '...... Adding mstool to the environment (~/.bashrc and ~/.zshrc)'
+echo   "alias  mstool=$mstoolpath/" >> ~/.bashrc
+echo   "export PYTHONPATH=$mstoolpath/lib-python:\$PYTHONPATH" >> ~/.bashrc
+echo   "alias  mstool=$mstoolpath/" >> ~/.zshrc
+echo   "export PYTHONPATH=$mstoolpath/lib-python:\$PYTHONPATH" >> ~/.zshrc
 printf '\n\n\n'
 
 echo   "...... mstool requires the following python packages:"
