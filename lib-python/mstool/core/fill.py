@@ -1,9 +1,8 @@
 import pandas as pd
 import numpy  as np
-from   .utils.universe     import Universe
-from   .utils.readmappings import ReadMappings
-from   .utils.seq          import Seq
-#from   .protein_sel    import *
+from   .universe     import Universe
+from   .readmappings import ReadMappings
+from   ..utils.seq   import Seq
 
 class Fill(Universe):
     def __init__(self, structure, sequence, out=None, mapping=[], mapping_add=[]):

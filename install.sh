@@ -1,0 +1,63 @@
+#!/bin/bash
+
+### THE CURRENT PATH
+mstoolpath=$(realpath .)
+
+
+### TEMPORARILY ADD PYTHONPATH TO THE ENVIRONMENT
+alias  mstool=$mstoolpath
+export PYTHONPATH=$mstoolpath/lib-python:$PYTHONPATH
+
+
+### MESSAGES TO USERS
+printf '\n\n\n...... Thank you for using mstool\n'
+echo   '...... In order to use mstool, add the below two lines in your shell ( ~/.bashrc, ~/.zshrc, or ~/.cshrc)'
+printf '\n\n'
+echo   "alias  mstool=$mstoolpath/"
+echo   "export PYTHONPATH=$mstoolpath/lib-python:\$PYTHONPATH"
+printf '\n\n\n'
+
+echo   "...... mstool requires the following python packages:"
+printf "openmm, sqlite3, cython, numpy, pandas\n\n\n"
+echo   "...... Testing whether these packages are installed"
+
+
+### TESTING PYTHON PACKAGES
+for package in openmm sqlite3 cython numpy pandas; do
+    if python -c "import $package" &> /dev/null; then
+        echo "$package is installed"
+    else
+        echo "$package is NOT installed"
+    fi
+done
+printf "\n\n\n"
+
+
+### CYTHON
+echo "...... mstool uses cython to calculate a distance matrix"
+echo "...... Building a cython distance matrix program"
+
+
+########## CMDLINE ##########
+cd lib-python/mstool/lib
+python setup.py build_ext --inplace &> /dev/null
+#############################
+
+
+if test -e *.so || test -e *.pyd; then
+    echo "Identifying lib-python/mstool/lib/*.so or lib-python/mstool/lib/*.pyd"
+    echo "distance.distance_matrix is successfully installed"
+else
+    echo "distance.distance_matrix is NOT successfully installed"
+    echo "You need to install this to make a martini system"
+    echo "Otherwise, it is fine without this"
+fi 
+
+
+########## CMDLINE ##########
+cd ../../../
+#############################
+
+
+printf '\n\n\n...... All done! Thank you for using mstool\n\n\n'
+

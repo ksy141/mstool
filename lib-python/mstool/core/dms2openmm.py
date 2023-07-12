@@ -6,7 +6,7 @@ from   openmm import *
 from   openmm.unit import *
 
 class DMS2openmm:
-    def __init__(self, dms, nonbondedMethod='CutoffPeriodic', nonbondedCutoff=1.1, soft=False, A=200.0, C=50.0):
+    def __init__(self, dms_in, nonbondedMethod='CutoffPeriodic', nonbondedCutoff=1.1, soft=False, A=200.0, C=50.0):
 
         ### Determine nonbondedMethod
         if nonbondedMethod   == 'CutoffPeriodic':
@@ -28,13 +28,13 @@ class DMS2openmm:
 
 
         ### read DMS 
-        self.conn = sqlite3.connect(dms, isolation_level=None, detect_types=sqlite3.PARSE_COLNAMES)
+        self.conn = sqlite3.connect(dms_in, isolation_level=None, detect_types=sqlite3.PARSE_COLNAMES)
 
 
         ### DMS to openMM
-        self.DesmondDMS = DesmondDMSFile(dms, verbose=False)
-        self.topology   = self.DesmondDMS.topology
-        self.system     = self.DesmondDMS.createSystem(
+        self.dms       = DesmondDMSFile(dms_in, verbose=False)
+        self.topology  = self.dms.topology
+        self.system    = self.dms.createSystem(
             nonbondedMethod = nbM,
             nonbondedCutoff = nonbondedCutoff * nanometer)
 
@@ -216,7 +216,7 @@ class DMS2openmm:
 
 
     def make(self):
-        return self.system, self.DesmondDMS
+        return self.system, self.dms
 
         
 
