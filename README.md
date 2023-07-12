@@ -3,27 +3,24 @@
 Multiscale Simulation Tools for Mapping, Backmapping, and Loop Modeling.
 
 ## Dependencies
-openmm, sqlite3, pandas, numpy. To install openmm:
+openmm, sqlite3, cython, pandas, numpy. To install openmm:
 ```
 conda install -c conda-forge openmm
 ```
 
 ## Installation
-No installation is required. Download the package and add the path to PYTHONPATH.
 ```
-cd $HOME
-git clone https://github.com/ksy141/mstool.git
-export PYTHONPATH="$HOME:$PYTHONPATH"
+$SHELL install.sh
 ```
 
 ## Mapping scheme
-`mstool` will automatically read default mapping files:
-`$HOME/mstool/mapping/martini.protein.dat` and `$HOME/mstool/mapping/martini.lipid.c36.dat`
+`mstool` will automatically read the default mapping files:
+`$mstool/mapping/martini.protein.dat` and `$mstool/mapping/martini.lipid.c36.dat`
 
-These are tailored toward martini. Not all Martini molecules are present. You should make a new file if you want to add molecules or your coarse-grained structures are not at martini resolution. Under each RESI `resname`, define a coarse-grained bead in a square bracket ([]) and its corresponding atomistic atoms. If a molecule has any isomers (cis/trans/chiral), define them in a square bracket. 
+These are tailored toward martini. Please note that only a few Martini molecules are present in these mapping files at this moment. You should make a new file if you want to add molecules or your coarse-grained structures are not at martini resolution. Under each RESI `resname`, define a coarse-grained bead in a square bracket ([]) and its corresponding atomistic atoms. If a molecule has any isomers (cis/trans/chiral), define them in a square bracket. 
 
 ## Forcefield
-Currently, it only supports charmm36 forcefield. The names of atomistic atoms defined in the mapping schemes should match these defined in the forcefield. All of the standard charmm36 molecules are defined at `$HOME/mstool/FF/charmm36/charmm36.xml`, which will be autmoatically read.
+Currently, it only supports charmm36 forcefield. The names of atomistic atoms defined in the mapping schemes should match these defined in the forcefield. All of the standard charmm36 molecules are defined at `$mstool/FF/charmm36/charmm36.xml`, which will be autmoatically read.
 
 ## How to use
 ```
