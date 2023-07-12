@@ -1,6 +1,6 @@
 import numpy as np
 from   scipy.spatial.distance import pdist
-from   .universe import Universe
+from   ..core.universe import Universe
 
 class Rock:
     def __init__(self, structure, out='ROCK', resname='ROCK', type='CT1', rcut=1.2, Kbond=5000.0, name='CROCK'):

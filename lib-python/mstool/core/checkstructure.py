@@ -1,8 +1,8 @@
 import os
 import numpy as np
-from  .universe import Universe
-from  .readmappings import ReadMappings
-from  .protein_sel  import three2one
+from  .universe           import Universe
+from  .readmappings       import ReadMappings
+from  ..utils.protein_sel import three2one
 
 class CheckStructure:
     def __init__(self, structure, mapping=[], mapping_add=[], log=None):

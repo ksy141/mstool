@@ -1,5 +1,5 @@
-from .utils.universe import Universe
-from .utils.seq import Seq
+from .universe import Universe
+from .seq      import Seq
 
 class Mutate(Universe):
     def __init__(self, structure, fasta, out=None):

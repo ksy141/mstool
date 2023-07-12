@@ -1,5 +1,5 @@
-from   .utils.universe import Universe
-from   .lib.distance   import distance_matrix
+from   .universe      import Universe
+from   ..lib.distance import distance_matrix
 import numpy as np
 import pandas as pd
 

@@ -59,5 +59,5 @@ cd ../../../
 #############################
 
 
-printf '\n\n\n...... All done! Thank you for using mstool\n\n\n'
+printf '\n\n\n...... All done! Thank you for using mstool\n\n\n\n'
 

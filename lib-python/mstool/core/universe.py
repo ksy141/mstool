@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy  as np
 import sqlite3
-from   .sqlcmd  import *
-from   .readxml import ReadXML
+from   ..utils.sqlcmd  import *
+from   .readxml        import ReadXML
 import os
 pd.set_option('display.max_rows', 500)
 

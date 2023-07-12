@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy  as np
-from   .universe import Universe
+from   .universe     import Universe
 from   .readmappings import ReadMappings
 
 class Map(Universe):

@@ -1,7 +1,6 @@
 import subprocess
 import os
 
-
 def make_mdp():
     with open('input.mdp', 'w') as W:
         W.write('''
@@ -135,11 +134,9 @@ def gmx_energy(c, p='topol.top'):
     subprocess.run('rm -rf energy.xvg input.mdp input.edr input.gro input.log input.tpr input.xtc mdout.mdp'.split())
 
 
-def change_dimensions(c, dimensions=[90]*6):
+def change_dimensions(c, dimensions=[10000.0]*3 + [90.0]*3):
     import MDAnalysis as mda
     u = mda.Universe(c)
     u.dimensions = dimensions
     u.atoms.write(c)
-
-
-
+    

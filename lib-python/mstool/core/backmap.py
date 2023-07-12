@@ -1,9 +1,9 @@
 import os
 import numpy as np
-from  .utils.universe import Universe
-#from  .utils.readxml  import ReadXML
-from  .utils.readmappings import ReadMappings
-from  .utils.protein_sel import three2one
+from  .universe           import Universe
+#from  .readxml           import ReadXML
+from  .readmappings       import ReadMappings
+from  ..utils.protein_sel import three2one
 
 
 class Backmap(Universe):

@@ -1,7 +1,7 @@
 import numpy as np
-from   .lipid import Lipid
-from   ..utils.util import fibo
-from   ..utils.universe import Universe
+from   .lipid          import Lipid
+from   ..utils.util    import fibo
+from   ..core.universe import Universe
 
 
 class Sphere(Lipid):

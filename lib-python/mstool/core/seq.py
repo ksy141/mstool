@@ -1,5 +1,5 @@
-from .protein_sel import *
-from .universe    import Universe
+from  ..utils.protein_sel import one2three, three2one
+from  .universe           import Universe
 import numpy as np
 
 class Seq:

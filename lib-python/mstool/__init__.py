@@ -1,26 +1,21 @@
 from .version import __version__
 from .authors import __authors__
-from .utils.universe import Universe, Merge
-from .utils.seq import Seq
-from .utils.readmappings import ReadMappings
-from .utils.readmartini import ReadMartini
-from .utils.map import Map
-from .utils.protein_sel import *
-from .utils.rem import REM
-from .utils.dump  import *
-from .utils.sqlcmd import *
-from .utils.gmx_energy import *
-from .utils.readxml import ReadXML
-from .utils.checkstructure import CheckStructure
-#from .fill_loops import FillLoops
-#from .fill_side  import FillSide
-from .fill import Fill
-from .loopmodeler import LoopModeler
-from .utils.dms2openmm import DMS2openmm
-from .utils.martinizedms import MartinizeDMS
-from .utils.openmmutils import *
-from .utils.util import *
-from .mutate import Mutate
-from .backmap import Backmap
-from .solvate_martini import *
 
+from .core.universe        import Universe, Merge
+from .core.rem             import REM
+from .core.readmappings    import ReadMappings
+from .core.readmartini     import ReadMartini
+from .core.readxml         import READXml
+from .core.backmap         import Backmap
+from .core.map             import Map
+from .core.checkstructure  import CheckStructure
+from .core.dms2openmm      import DMS2openmm
+from .core.martinizedms    import MartinizeDMS
+from .core.loopmodeler     import LoopModeler
+from .core.solvate_martini import *
+from .core.seq             import Seq
+
+from .utils.protein_sel    import three2one, one2three
+from .utils.dump           import dumpsql, dumpdf
+from .utils.gmx_energy     import gmx_energy
+from .utils.openmmutils    import *

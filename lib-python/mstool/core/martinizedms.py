@@ -1,8 +1,8 @@
 import sqlite3
-import math
-from   .universe    import Universe
-from   .sqlcmd      import *
-from   .protein_sel import *
+import numpy as np
+from   .universe           import Universe
+from   ..utils.sqlcmd      import *
+from   ..utils.protein_sel import *
 
 class MartinizeDMS:
     '''
@@ -210,7 +210,7 @@ class MartinizeDMS:
                     if func == 2:
                         # cosine function
                         self.cursor.execute(sql_insert_angle_harmcos_term.format(i1, i2, i3, self.angle_param))
-                        self.cursor.execute(sql_insert_angle_harmcos_param.format(atype, math.cos(t0 * math.pi / 180), k, self.angle_param))
+                        self.cursor.execute(sql_insert_angle_harmcos_param.format(atype, np.cos(t0 * np.pi / 180), k, self.angle_param))
 
                     if func == 1:
                         # harmonic function
@@ -291,7 +291,7 @@ class MartinizeDMS:
                     if func == 2:
                         # improper function
                         improper_param += 1
-                        # t0 = t0 - math.floor(t0 / 180) * 180
+                        # t0 = t0 - np.floor(t0 / 180) * 180
                         self.cursor.execute(sql_insert_improper_harm_term.format(i1, i2, i3, i4, improper_param))
                         self.cursor.execute(sql_insert_improper_harm_param.format(atype, t0, k * 0.5, improper_param))
 
@@ -402,7 +402,7 @@ class MartinizeDMS:
                     self.angle_param += 1
                     atype = f'BBB_{i1}_{i2}_{i3}'
                     self.cursor.execute(sql_insert_angle_harmcos_term.format(i1, i2, i3, self.angle_param))
-                    self.cursor.execute(sql_insert_angle_harmcos_param.format(atype, math.cos(t0 * math.pi / 180), k, self.angle_param))
+                    self.cursor.execute(sql_insert_angle_harmcos_param.format(atype, np.cos(t0 * np.pi / 180), k, self.angle_param))
 
 
             ### BBS angle
@@ -426,7 +426,7 @@ class MartinizeDMS:
                     self.angle_param += 1
                     atype = f'SBB_{i1}_{i2}_{i3}'
                     self.cursor.execute(sql_insert_angle_harmcos_term.format(i1, i2, i3, self.angle_param))
-                    self.cursor.execute(sql_insert_angle_harmcos_param.format(atype, math.cos(t0 * math.pi / 180), k, self.angle_param))
+                    self.cursor.execute(sql_insert_angle_harmcos_param.format(atype, np.cos(t0 * np.pi / 180), k, self.angle_param))
 
 
                 # BBS
@@ -445,5 +445,5 @@ class MartinizeDMS:
                     self.angle_param += 1
                     atype = f'BBS_{i1}_{i2}_{i3}'
                     self.cursor.execute(sql_insert_angle_harmcos_term.format(i1, i2, i3, self.angle_param))
-                    self.cursor.execute(sql_insert_angle_harmcos_param.format(atype, math.cos(t0 * math.pi / 180), k, self.angle_param))
+                    self.cursor.execute(sql_insert_angle_harmcos_param.format(atype, np.cos(t0 * np.pi / 180), k, self.angle_param))
 

@@ -1,12 +1,15 @@
 from   openmm        import *
 from   openmm.app    import *
 from   openmm.unit   import *
-from   .openmmutils  import *
+
 from   .universe     import Universe
 from   .readmappings import ReadMappings
 from   .readxml      import ReadXML
-from   .protein_sel  import three2one
-from   .rock         import Rock
+
+from   ..utils.protein_sel import three2one
+from   ..utils.rock        import Rock
+from   ..utils.openmmutils import *
+
 import numpy  as np
 import pandas as pd
 import sys

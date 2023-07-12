@@ -4,24 +4,25 @@ import shutil
 import numpy  as np
 import pandas as pd
 
-from   .mutate               import Mutate
-from   .fill                 import Fill
-from   .utils.readmappings   import ReadMappings
-from   .utils.universe       import Universe
-from   .utils.map            import Map
-from   .utils.readmartini    import ReadMartini
-from   .utils.martinizedms   import MartinizeDMS
-from   .utils.dump           import dumpsql
-from   .utils.openmmutils    import getEnergy
-from   .utils.dms2openmm     import DMS2openmm
-from   .utils.rem            import REM
-from   .utils.checkstructure import CheckStructure
-from   .utils.protein_sel    import three2one
-from   .backmap              import Backmap
+from   .mutate                import Mutate
+from   .fill                  import Fill
+from   .readmappings          import ReadMappings
+from   .universe              import Universe
+from   .map                   import Map
+from   .readmartini           import ReadMartini
+from   .martinizedms          import MartinizeDMS
+from   .dms2openmm            import DMS2openmm
+from   .rem                   import REM
+from   .checkstructure        import CheckStructure
+from   .backmap               import Backmap
 
-from   openmm.app            import *
-from   openmm                import *
-from   openmm.unit           import *
+from   ..utils.protein_sel    import three2one
+from   ..utils.dump           import dumpsql
+from   ..utils.openmmutils    import getEnergy
+
+from   openmm.app             import *
+from   openmm                 import *
+from   openmm.unit            import *
 
 class LoopModeler:
     def __init__(self, protein, fasta, ref=None, workdir='workdir', 
