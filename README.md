@@ -9,9 +9,22 @@ conda install -c conda-forge openmm
 ```
 
 ## Installation
+Simply run the below for installation.
 ```
 $SHELL install.sh
 ```
+
+The two actions are included in `install.sh`.
+1. Add `PYTHONPATH` to the environment (`~/.bashrc` and `~/.zshrc`) and `alias`.
+   ```
+   export PYTHONPATH=$mstoolpath/lib-python:\$PYTHONPATH
+   alias  mstool=$mstoolpath/
+   ```
+2. Build a distance matrix, which uses cython.
+   ```
+   cd $mstool/lib-python/mstool/lib
+   python setup.py build_ext --inplace
+   ```
 
 ## Mapping scheme
 `mstool` will automatically read the default mapping files:
