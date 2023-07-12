@@ -34,9 +34,9 @@ echo   "...... Testing whether these packages are installed"
 ### TESTING PYTHON PACKAGES
 for package in openmm sqlite3 cython numpy pandas; do
     if python -c "import $package" &> /dev/null; then
-        echo "$package is installed"
+        echo "$package can be found"
     else
-        echo "$package is NOT installed"
+        echo "$package can NOT be found"
     fi
 done
 printf "\n\n\n"
