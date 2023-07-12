@@ -28,7 +28,7 @@ echo   "export PYTHONPATH=$mstoolpath/lib-python:\$PYTHONPATH" >> ~/.zshrc
 ### MESSAGES TO USERS
 echo   "...... mstool requires the following python packages:"
 printf "openmm, sqlite3, cython, numpy, pandas\n\n\n\n"
-echo   "...... Testing whether these packages are installed"
+echo   "...... Testing whether these packages can be found"
 
 
 ### TESTING PYTHON PACKAGES
