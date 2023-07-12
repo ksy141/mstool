@@ -28,15 +28,15 @@ echo   "export PYTHONPATH=$mstoolpath/lib-python:\$PYTHONPATH" >> ~/.zshrc
 ### MESSAGES TO USERS
 echo   "...... mstool requires the following python packages:"
 printf "openmm, sqlite3, cython, numpy, pandas\n\n\n\n"
-echo   "...... Testing whether these packages can be found"
+echo   "...... Testing whether you have these packages"
 
 
 ### TESTING PYTHON PACKAGES
 for package in openmm sqlite3 cython numpy pandas; do
     if python -c "import $package" &> /dev/null; then
-        echo "$package can be found"
+        echo "$package is found"
     else
-        echo "$package can NOT be found"
+        echo "$package is NOT found"
     fi
 done
 printf "\n\n\n"
