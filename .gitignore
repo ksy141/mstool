@@ -8,4 +8,5 @@ build
 *.c
 *.so
 *.pyd
+.ipynb_checkpoints
 
