@@ -12,12 +12,20 @@ export PYTHONPATH=$mstoolpath/lib-python:$PYTHONPATH
 ### MESSAGES TO USERS
 printf '\n\n\n...... Thank you for using mstool\n'
 echo   '...... Adding mstool to the environment (~/.bashrc and ~/.zshrc)'
+echo   "alias  mstool=$mstoolpath/"
+echo   "export PYTHONPATH=$mstoolpath/lib-python:\$PYTHONPATH"
+printf '\n\n\n'
+
+
+########## CMDLINE ##########
 echo   "alias  mstool=$mstoolpath/" >> ~/.bashrc
 echo   "export PYTHONPATH=$mstoolpath/lib-python:\$PYTHONPATH" >> ~/.bashrc
 echo   "alias  mstool=$mstoolpath/" >> ~/.zshrc
 echo   "export PYTHONPATH=$mstoolpath/lib-python:\$PYTHONPATH" >> ~/.zshrc
-printf '\n\n\n'
+#############################
 
+
+### MESSAGES TO USERS
 echo   "...... mstool requires the following python packages:"
 printf "openmm, sqlite3, cython, numpy, pandas\n\n\n"
 echo   "...... Testing whether these packages are installed"
@@ -34,7 +42,7 @@ done
 printf "\n\n\n"
 
 
-### CYTHON
+### MESSAGES TO USERS
 echo "...... mstool uses cython to calculate a distance matrix"
 echo "...... Building a cython distance matrix program"
 
@@ -45,6 +53,7 @@ python setup.py build_ext --inplace &> /dev/null
 #############################
 
 
+### MESSAGES TO USERS
 if test -e *.so || test -e *.pyd; then
     echo "Identifying lib-python/mstool/lib/*.so or lib-python/mstool/lib/*.pyd"
     echo "distance.distance_matrix is successfully installed"
