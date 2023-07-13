@@ -5,7 +5,7 @@ from .core.universe        import Universe, Merge
 from .core.rem             import REM
 from .core.readmappings    import ReadMappings
 from .core.readmartini     import ReadMartini
-from .core.readxml         import READXml
+from .core.readxml         import ReadXML
 from .core.backmap         import Backmap
 from .core.map             import Map
 from .core.checkstructure  import CheckStructure

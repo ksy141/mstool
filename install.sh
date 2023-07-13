@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ### THE CURRENT PATH
-mstoolpath=$(realpath .)
+mstoolpath=$(pwd)
 
 
 ### TEMPORARILY ADD PYTHONPATH TO THE ENVIRONMENT
