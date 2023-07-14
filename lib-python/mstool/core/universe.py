@@ -551,7 +551,7 @@ class Universe:
         return volume
 
 
-def Merge(*args):
+def Merge(*args, sort=False):
     '''Merge atomic groups.
 
     Parameters
@@ -574,5 +574,6 @@ def Merge(*args):
 
     u = Universe()
     u.atoms = pd.concat(args, ignore_index=True)
+    if sort: u.sort()
     return u
 

@@ -9,4 +9,4 @@ build
 *.so
 *.pyd
 .ipynb_checkpoints
-
+*.swp

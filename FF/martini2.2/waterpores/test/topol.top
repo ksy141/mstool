@@ -1,0 +1,9 @@
+#include "../../martini_v2.2.itp"
+#include "P008.itp"
+
+[ system ]
+Martini
+
+[ molecules ]
+P008 1
+

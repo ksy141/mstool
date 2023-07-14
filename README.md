@@ -15,10 +15,10 @@ $SHELL install.sh
 ```
 
 The two actions are included in `install.sh`.
-1. Add `PYTHONPATH` to the environment (`~/.bashrc` and `~/.zshrc`) and `alias`.
+1. Add `PYTHONPATH` to the environment (`~/.bashrc` and `~/.zshrc`) and `mstool` to an environment variable.
    ```
    export PYTHONPATH=$mstoolpath/lib-python:\$PYTHONPATH
-   alias  mstool=$mstoolpath/
+   export mstool=$mstoolpath/
    ```
 2. Build a distance matrix, which uses cython.
    ```

@@ -138,6 +138,7 @@ class Sphere(Lipid):
         
         self.data     = data
         self.universe = Universe(data=data)
+        self.universe.sort()
 
         if out: self.universe.write(out)
 

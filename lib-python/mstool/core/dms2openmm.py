@@ -20,7 +20,6 @@ class DMS2openmm:
         else:
             raise AssertionError('unrecognized nonbonded method')
 
-
         ### Nonbonded parameters
         self.soft = soft
         self.A    = A

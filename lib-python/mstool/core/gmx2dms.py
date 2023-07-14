@@ -54,11 +54,11 @@ class GMX2DMS:
         ### Dihedrals
         self.updateDihedrals()
 
-        ### LJ
-        self.updateLJ()
-
         ### Position restraints
         self.updatePosre()
+
+        ### LJ
+        self.updateLJ()
 
         ### virtual_sites3
         self.updateVirtualSites3()
@@ -101,7 +101,7 @@ class GMX2DMS:
         If there are more than one molecule, recalculate resid.
         '''
         insertion = ''; msys_ct = 0.0
-        index = 0
+        index = -1
 
         # loop over molecule types
         for mol in self.martini.martini['mols']:
@@ -114,6 +114,7 @@ class GMX2DMS:
 
                 for j in range(natoms):
 
+                    i1     = index + j + 1
                     aname  = molecule['atoms']['name'][j]
                     atype  = molecule['atoms']['type'][j]
                     charge = molecule['atoms']['q'][j] / self.epsilon_r ** 0.5
@@ -123,7 +124,7 @@ class GMX2DMS:
 
                     anum, chain, resid_s, bfactor, x, y, z = \
                     self.universe.atoms[['anum', 'chain', 'resid', 'bfactor', 
-                                         'x',  'y',  'z']].loc[index]
+                                         'x',  'y',  'z']].loc[i1]
 
                     # Martini beads need to have anum; Otherwise, openMM will not run a simulation
                     anum = 6
@@ -138,11 +139,11 @@ class GMX2DMS:
 
                     # save
                     self.cursor.execute(sql_insert_particle, (
-                        index, anum, aname, resn, chain, resid, mass, charge,
+                        i1, anum, aname, resn, chain, resid, mass, charge,
                         x, y, z, 0.0, 0.0, 0.0, chain, 
                         insertion, msys_ct, nbtype, atype, bfactor))
 
-                    index += 1
+                index += natoms
 
 
 
@@ -387,7 +388,7 @@ class GMX2DMS:
                     fcy = posre[3] * 0.5 * 2.39e-3
                     fcz = posre[4] * 0.5 * 2.39e-3
 
-                    x, y, z = self.universe.atoms[['x',  'y',  'z']].loc[index]
+                    x, y, z = self.universe.atoms[['x',  'y',  'z']].loc[i1]
 
                     self.cursor.execute(sql_insert_posre_harm_term.format(
                         i1, x, y, z, posre_index))

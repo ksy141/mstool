@@ -35,6 +35,11 @@ def getDMSEnergy(dms_in, nonbondedCutoff=1.1, nonbondedMethod='CutoffPeriodic'):
 def runMartiniEM(dms_in, out, pos_in=None, soft=False, A=200, C=50,
     nonbondedCutoff=1.1, nonbondedMethod='CutoffPeriodic', T=310, dt=0.002,
     addForces=[]):
+    '''
+    CutoffNonPeriodic
+    CutoffPeriodic
+    NoCutoff
+    '''
 
     from ..core.dms2openmm import DMS2openmm
     from ..core.universe   import Universe

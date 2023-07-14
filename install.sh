@@ -12,15 +12,18 @@ export PYTHONPATH=$mstoolpath/lib-python:$PYTHONPATH
 ### MESSAGES TO USERS
 printf '\n\n\n...... Thank you for using mstool\n'
 echo   '...... Adding mstool to the environment (~/.bashrc and ~/.zshrc)'
-echo   "alias  mstool=$mstoolpath/"
+echo   "export mstool=$mstoolpath/"
 echo   "export PYTHONPATH=$mstoolpath/lib-python:\$PYTHONPATH"
 printf '\n\n\n'
 
 
 ########## CMDLINE ##########
-echo   "alias  mstool=$mstoolpath/" >> ~/.bashrc
+export mstool=$mstoolpath/
+export PYTHONPATH=$mstoolpath/lib-python:$PYTHONPATH
+
+echo   "export mstool=$mstoolpath/" >> ~/.bashrc
 echo   "export PYTHONPATH=$mstoolpath/lib-python:\$PYTHONPATH" >> ~/.bashrc
-echo   "alias  mstool=$mstoolpath/" >> ~/.zshrc
+echo   "export mstool=$mstoolpath/" >> ~/.zshrc
 echo   "export PYTHONPATH=$mstoolpath/lib-python:\$PYTHONPATH" >> ~/.zshrc
 #############################
 

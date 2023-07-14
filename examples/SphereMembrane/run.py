@@ -4,7 +4,7 @@ from   mstool.membrane.sphere import Sphere
 ##### Read Martini FF
 #martini = mstool.ReadMartini(define={'FLEXIBLE': 'True'})
 #
-#### Make a spherical bilayer
+#### Make a spherical bilayer of a radius of 60 A
 #upper = Sphere(r=60, dr=+15, inverse=+1, chain='U', monolayer={'POPC':550, 'DOPC': 550}, martini=martini)
 #lower = Sphere(r=60, dr=-15, inverse=-1, chain='L', monolayer={'POPC':200, 'DOPC': 200}, martini=martini)
 #u = mstool.Merge(upper.universe.atoms, lower.universe.atoms)

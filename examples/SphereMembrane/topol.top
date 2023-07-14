@@ -1,0 +1,12 @@
+#include "../../FF/martini2.2/martini_v2.2.itp"
+#include "../../FF/martini2.2/martini_v2.0_lipids_all_201506.itp"
+#include "../../FF/martini2.2/martini_v2.0_ions.itp"
+
+
+[ molecules ]
+POPC 750
+DOPC 750
+NA   722
+CL   722
+W    40377
+
