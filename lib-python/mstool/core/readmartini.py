@@ -31,6 +31,9 @@ class ReadMartini:
         To override the default files, use this.
         e.g., ff = ['ff1.itp', 'ff2.itp']
 
+        One can also provide the complete file.
+        e.g., ff = ['topol.top']
+
     ff_add : list
         A list of *additional* martini forcefield files.
         If there are duplicate moleculetypes, the parameters are updated with the latest one.
@@ -46,12 +49,21 @@ class ReadMartini:
 
     Attributes
     ----------
+    ifiles : list
+        List of files that were read
+
     martini : dict
-        Contains all the information. The three 
-        `self.martini['moleculetypes']`, 
+        Contains all the information. 
+        ``self.martini['molecules']`` saves ``moleculetypes`` field.
+        ``self.martini['mols']`` saves ``molecules`` field.
+        ``self.martini['nb']`` saves ``defaults`` field.
+        ``self.martini['system']`` saves ``system`` field.
+        ``self.martini['nbfunc']`` saves nonbonded potential (``LJ`` or ``Buckingham``)
+        ``self.martini['energy']`` saves a potential form``
+
 
     define : dict
-        gromacs macro.
+        Dictionary to indicate which gromacs macro was used when reading files.
 
 
     Examples
@@ -60,16 +72,20 @@ class ReadMartini:
     ...     define={'FLEXIBLE': 'True', 'MICELLE_LIPIDHEAD_FC: '300.0',
     ...             'VESICLE_LIPIDTAIL_R': '100.0', 
     ...             'BILAYER_LIPIDHEAD_FC': '200.0'})
-    >>> m.martini['moleculetypes']['POPC']
+    >>> m.martini['molecules']['POPC']
     >>> m.martini['define']
+    >>>
+    >>> m = mstool.ReadMartini('topol.top')
+    >>> m.martini['molecules']
+    >>> m.martini['mols']
     '''
 
 
     def __init__(self,
-        ff = [pwd + '/../../FF/martini2.2/martini_v2.2.itp',
-              pwd + '/../../FF/martini2.2/martini_v2.0_ions.itp',
-              pwd + '/../../FF/martini2.2/martini_v2.2_proteins/proteins.itp',
-              pwd + '/../../FF/martini2.2/martini_v2.0_lipids_all_201506.itp'],
+        ff = [pwd + '/../../../FF/martini2.2/martini_v2.2.itp',
+              pwd + '/../../../FF/martini2.2/martini_v2.0_ions.itp',
+              pwd + '/../../../FF/martini2.2/martini_v2.2_proteins/proteins.itp',
+              pwd + '/../../../FF/martini2.2/martini_v2.0_lipids_all_201506.itp'],
         ff_add = [], define = {},
         Kc2b   = 10000.0):
 
@@ -82,7 +98,7 @@ class ReadMartini:
 
 
     def collect(self):
-        d = {}
+        d = {}; read=None
         for ifile in self.ifiles:
             with open(ifile) as W:
                 
@@ -95,7 +111,7 @@ class ReadMartini:
 
                     ### Add ifiles
                     if line.startswith('#include'):
-                        self.ifiles.append(line.split()[1])
+                        self.ifiles.append(line.split()[1].replace('"', '').replace("'", ''))
 
 
                     ######### ifdef ifndef define #########
@@ -143,6 +159,14 @@ class ReadMartini:
                         read = line.split('[')[1].split(']')[0].strip()
                         continue
 
+                    if read == 'system':
+                        d['system'] = line.strip()
+
+                    if read == 'molecules':
+                        if 'mols' not in d.keys(): d['mols'] = []
+                        sl = line.strip().split()
+                        d['mols'].append([sl[0], int(sl[1])])
+
                     if read == 'defaults':
                         ### non-bonded function type
                         #   1 for LJ
@@ -165,14 +189,14 @@ class ReadMartini:
                         # fudge QQ  - default is 1
 
                         sl = line.split()
-                        if sl[0] == 1:
+                        if int(sl[0]) == 1:
                             d['nbfunc'] = 'LJ'
-                        if sl[0] == 2:
+                        if int(sl[0]) == 2:
                             d['nbfunc'] = 'Buckingham'
 
-                        if sl[1] == 1:
+                        if int(sl[1]) == 1:
                             d['energy'] = 'C12/r^12 - C6/r^6'
-                        if sl[1] == 2:
+                        if int(sl[1]) == 2:
                             d['energy'] = '4*eps*((sigma/r)^12 - (sigma/r)^6)'
 
                     if read == 'atomtypes':
@@ -180,11 +204,6 @@ class ReadMartini:
                         
                         sl = line.split()
                         t = sl[0]
-                        m = float(sl[1])
-                        q = float(sl[2])
-                        V = float(sl[4])
-                        W = float(sl[5])
-
                         d['atomtypes'][t] = {}
                         d['atomtypes'][t]['m'] = float(sl[1])
                         d['atomtypes'][t]['q'] = float(sl[2])
@@ -206,7 +225,10 @@ class ReadMartini:
                         resname = sl[0]
                         d['molecules'][resname] = {}
                         d['molecules'][resname]['nrexcl'] = int(sl[1])
-                        d['molecules'][resname]['atoms']  = {'id':[], 'type':[], 'name':[], 'q':[]}
+                        d['molecules'][resname]['atoms']  = {'id':[], 'type':[], 
+                                                             'resid': [], 'resname': [], 
+                                                             'name':[], 'q':[]}
+
                         d['molecules'][resname]['bonds']               = []
                         d['molecules'][resname]['angles']              = []
                         d['molecules'][resname]['dihedrals']           = []
@@ -214,10 +236,20 @@ class ReadMartini:
                         d['molecules'][resname]['virtual_sites3']      = []
                         d['molecules'][resname]['position_restraints'] = []
 
+                        d['molecules'][resname]['idx_bonds']               = []
+                        d['molecules'][resname]['idx_angles']              = []
+                        d['molecules'][resname]['idx_dihedrals']           = []
+                        d['molecules'][resname]['idx_exclusions']          = []
+                        d['molecules'][resname]['idx_virtual_sites3']      = []
+                        d['molecules'][resname]['idx_position_restraints'] = []
+
+
                     if read == 'atoms':
                         sl = line.split()
                         d['molecules'][resname]['atoms']['id'].append(int(sl[0]))
                         d['molecules'][resname]['atoms']['type'].append(sl[1])
+                        d['molecules'][resname]['atoms']['resid'].append(int(sl[2]))
+                        d['molecules'][resname]['atoms']['resname'].append(sl[3])
                         d['molecules'][resname]['atoms']['name'].append(sl[4])
                         d['molecules'][resname]['atoms']['q'].append(float(sl[6]))
 
@@ -231,6 +263,7 @@ class ReadMartini:
                         l = float(sl[3]) #nm
                         k = float(sl[4]) #kJ/nm^2
                         d['molecules'][resname]['bonds'].append([name1, name2, l, k])
+                        d['molecules'][resname]['idx_bonds'].append([id1, id2, l, k])
 
                     if read == 'angles':
                         # V = 0.5 * k * (t - t0)^2 if func = 1
@@ -244,6 +277,7 @@ class ReadMartini:
                         k = float(sl[5]) #kJ/mol
                         func = int(sl[3])
                         d['molecules'][resname]['angles'].append([name1, name2, name3, l, k, func])
+                        d['molecules'][resname]['idx_angles'].append([id1, id2, id3, l, k, func])
 
                     if read == 'dihedrals':
                         # proper (1):   V = k * (1 + cos(nt - t0)); t, k, n
@@ -258,16 +292,16 @@ class ReadMartini:
                         t     = float(sl[5])
                         k     = float(sl[6])
 
-                        if len(sl) == 8:
+                        try:
                             n = int(sl[7])
-                            d['molecules'][resname]['dihedrals'].append([
-                                name1, name2, name3, name4, func, t, k, n])
-                        elif len(sl) == 7:
-                            d['molecules'][resname]['dihedrals'].append([
-                                name1, name2, name3, name4, func, t, k, 0])
+                        except:
+                            n = 0
 
-                        else:
-                            assert 0 == 1, 'unsuccesful dihedral addition'
+                        d['molecules'][resname]['dihedrals'].append([
+                            name1, name2, name3, name4, func, t, k, n])
+                        d['molecules'][resname]['idx_dihedrals'].append([
+                            id1, id2, id3, id4, func, t, k, n])
+
 
                     if read == 'constraints':
                         # V = 0.5 * k * (r - r0)^2
@@ -281,6 +315,7 @@ class ReadMartini:
                         # f == 2 --> No connection, and so no exclusions, are generated for this interaction
                         l = float(sl[3]) #nm
                         d['molecules'][resname]['bonds'].append([name1, name2, l, self.Kc2b, f])
+                        d['molecules'][resname]['idx_bonds'].append([id1, id2, l, self.Kc2b, f])
 
                     if read == 'exclusions':
                         sl = line.split()
@@ -289,6 +324,7 @@ class ReadMartini:
                             name1 = d['molecules'][resname]['atoms']['name'][id1-1]
                             name2 = d['molecules'][resname]['atoms']['name'][id2-1]
                             d['molecules'][resname]['exclusions'].append([name1, name2])
+                            d['molecules'][resname]['idx_exclusions'].append([id1, id2])
 
                     if read == 'virtual_sites3':
                         sl = line.split()
@@ -310,27 +346,34 @@ class ReadMartini:
 
                         try:
                             # 3out has c. inverse nm to inverse A
-                            d['molecules'][resname]['virtual_sites3'].append([name1, name2, name3, name4, f, a, b, 0.1 * float(sl[7])])
+                            vv = 0.1 * float(sl[7])
+                            d['molecules'][resname]['virtual_sites3'].append([name1, name2, name3, name4, f, a, b, vv])
+                            d['molecules'][resname]['idx_virtual_sites3'].append([id1, id2, id3, id4, f, a, b, vv])
+
                         except:
                             d['molecules'][resname]['virtual_sites3'].append([name1, name2, name3, name4, f, a, b])
+                            d['molecules'][resname]['idx_virtual_sites3'].append([id1, id2, id3, id4, f, a, b])
 
 
                     if read == 'position_restraints':
                         sl  = line.split()
                         id1 = int(sl[0])
+                        name1 = d['molecules'][resname]['atoms']['name'][id1-1]
                         f   = int(float(sl[1]))
 
                         if f == 1:
                             kx = float(sl[2])
                             ky = float(sl[3])
                             kz = float(sl[4])
-                            d['molecules'][resname]['position_restraints'].append([id1, f, kx, ky, kz])
+                            d['molecules'][resname]['position_restraints'].append([name1, f, kx, ky, kz])
+                            d['molecules'][resname]['idx_position_restraints'].append([id1, f, kx, ky, kz])
 
                         else:
                             g = int(sl[2])
                             r = float(sl[3])
                             k = float(sl[4])
-                            d['molecules'][resname]['position_restraints'].append([id1, f, g, r, k])
+                            d['molecules'][resname]['position_restraints'].append([name1, f, g, r, k])
+                            d['molecules'][resname]['idx_position_restraints'].append([id1, f, g, r, k])
 
 
         self.martini = d

@@ -1,11 +1,11 @@
 from   .universe      import Universe
-from   ..lib.distance import distance_matrix
+from   ..lib.distance import distance_matrix, distance_overlap
 import numpy as np
 import pandas as pd
 
 
 def solvate(u, out=None, 
-            solventdr=4.93, removedr=5.0, waterslab=0.8, waterchain='W', center=True, pbc=False):
+            solventdr=4.93, removedr=6.0, waterslab=0.8, waterchain='W', center=True, pbc=False):
     
     # if there is a zero, raise an error
     assert np.all(u.dimensions[0:3]), 'check your dimensions'
@@ -46,23 +46,14 @@ def solvate(u, out=None,
     if len(u.atoms) == 0:
         if out: wateru.write(out)
         return wateru
-
-    # calculate a distance matrix between water atoms and solute atoms
-    dm = distance_matrix(wateru.atoms[['x','y','z']].to_numpy(dtype=np.float64), 
-                         u.atoms[['x','y','z']].to_numpy(dtype=np.float64),
-                         np.asarray(u.dimensions, dtype=np.float64),
-                         pbc)
-
-    # bA is a selection for the water atoms that overlap with solute atoms
-    bA = np.any(dm < removedr, axis=1)
     
-    # re-assign residue id
-    wateru.atoms.loc[~bA, 'resid'] = np.arange(1, len(wateru.atoms.loc[~bA]) + 1)
-    
-    # combine and save
-    u.atoms = pd.concat([u.atoms, wateru.atoms[~bA]], ignore_index=True)
+    pos1 = wateru.atoms[['x','y', 'z']].to_numpy(dtype=np.float64)
+    pos2 = u.atoms[['x','y', 'z']].to_numpy(dtype=np.float64)
+    dim  = np.asarray(u.dimensions, dtype=np.float64)
+    bA = distance_overlap(pos1, pos2, removedr, dim, pbc) 
+
+    u.atoms = pd.concat([u.atoms, wateru.atoms[bA]], ignore_index=True)
     if out: u.write(out)
-    return u
 
 
 def ionize(u, out=None, 

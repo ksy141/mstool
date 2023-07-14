@@ -17,5 +17,5 @@ from .core.seq             import Seq
 
 from .utils.protein_sel    import three2one, one2three
 from .utils.dump           import dumpsql, dumpdf
-from .utils.gmx_energy     import gmx_energy
+from .utils.gmx_energy     import getGMXEnergy
 from .utils.openmmutils    import *

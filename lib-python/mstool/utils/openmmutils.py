@@ -14,16 +14,33 @@ def MembranePressure(system, P=1.0, T=310.0, r=0.0):
             MonteCarloMembraneBarostat.XYIsotropic, MonteCarloMembraneBarostat.ZFree))
     return system
 
+def getDMSEnergy(dms_in, nonbondedCutoff=1.1, nonbondedMethod='CutoffPeriodic'):
+    from ..core.dms2openmm import DMS2openmm
+
+    system, dms = DMS2openmm(
+            dms_in          = dms_in,
+            nonbondedMethod = nonbondedMethod,
+            nonbondedCutoff = nonbondedCutoff,
+            soft            = False).make()
+
+    integrator = LangevinMiddleIntegrator(310*kelvin, 1/picosecond, 0.002*picoseconds)
+    simulation = Simulation(dms.topology, system, integrator)
+    simulation.context.setPositions(DesmondDMSFile(dms_in).positions)
+
+    PE = getEnergy(simulation)
+    print('{:7s}: {:10.3f} kJ/mol'.format('openMM', PE))
+    return PE
+
 
 def runMartiniEM(dms_in, out, pos_in=None, soft=False, A=200, C=50,
     nonbondedCutoff=1.1, nonbondedMethod='CutoffPeriodic', T=310, dt=0.002,
     addForces=[]):
 
-    from .dms2openmm import DMS2openmm
-    from .universe   import Universe
+    from ..core.dms2openmm import DMS2openmm
+    from ..core.universe   import Universe
 
     system, dms = DMS2openmm(
-            dms             = dms_in,
+            dms_in          = dms_in,
             nonbondedMethod = nonbondedMethod,
             nonbondedCutoff = nonbondedCutoff,
             soft            = soft,
@@ -77,7 +94,7 @@ def runMartiniNPT(dms_in, out, pos_in=None, soft=False, A=200, C=50,
     from .universe   import Universe
 
     system, dms = DMS2openmm(
-            dms             = dms_in,
+            dms_in          = dms_in,
             nonbondedMethod = nonbondedMethod,
             nonbondedCutoff = nonbondedCutoff,
             soft            = soft,

@@ -114,14 +114,14 @@ constraint_algorithm     = Lincs
 ''')
 
 
-def gmx_energy(c, p='topol.top'):
+def getGMXEnergy(c, p='topol.top', add=''):
     make_mdp()
 
     subprocess.run(f'gmx grompp -f input.mdp -c {c} -o input.tpr -p {p}'.split(), 
         stdout=subprocess.DEVNULL,
         stderr=subprocess.STDOUT)
 
-    subprocess.run(f'gmx mdrun -deffnm input -v'.split(),
+    subprocess.run(f'gmx mdrun -deffnm input -v {add}'.split(),
         stdout=subprocess.DEVNULL,
         stderr=subprocess.STDOUT)
 
@@ -130,9 +130,11 @@ def gmx_energy(c, p='topol.top'):
         stdout=subprocess.DEVNULL,
         stderr=subprocess.STDOUT)
 
-    subprocess.run("""cat energy.xvg | tail -n 1 | awk '{print $2}'""", shell=True)
+    output = subprocess.run("""cat energy.xvg | tail -n 1 | awk '{print $2}'""", shell=True, stdout=subprocess.PIPE)
+    PE = float(output.stdout.decode('utf-8').strip())
     subprocess.run('rm -rf energy.xvg input.mdp input.edr input.gro input.log input.tpr input.xtc mdout.mdp'.split())
-
+    print('{:7s}: {:10.3f} kJ/mol'.format('GMX', PE))
+    return PE
 
 def change_dimensions(c, dimensions=[10000.0]*3 + [90.0]*3):
     import MDAnalysis as mda
