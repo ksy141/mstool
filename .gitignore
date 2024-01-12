@@ -1,0 +1,14 @@
+.DS_Store
+workdir
+*.pyc
+__pycache__
+*.dcd
+*.xtc
+build
+*.c
+*.so
+*.pyd
+.ipynb_checkpoints
+*.swp
+dist
+mstool.egg-info

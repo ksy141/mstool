@@ -1,0 +1,153 @@
+[ moleculetype ]
+
+
+[ moleculetype ]
+HIE             1
+
+[ atoms ]
+    1    P5     1   HIE    BB     1  0.0000 ; C
+    2   SC4     1   HIE   SC1     2  0.0000 ; C
+    3   SP1     1   HIE   SC2     3  0.0000 ; C
+    4   SP1     1   HIE   SC3     4  0.0000 ; C
+
+[ bonds ]
+    1     2      1   0.32000  7500
+
+[ constraints ]
+    2     3      1   0.27000
+    2     4      1   0.27000
+    3     4      1   0.27000 
+
+[ angles ]
+    1     2     3      2    150    50
+    1     2     4      2    150    50
+
+[ dihedrals ]
+    1     3     4     2      2      0    50
+
+
+[ moleculetype ]
+HID             1
+
+[ atoms ]
+    1    P5     1   HID    BB     1  0.0000 ; C
+    2   SC4     1   HID   SC1     2  0.0000 ; C
+    3   SP1     1   HID   SC2     3  0.0000 ; C
+    4   SP1     1   HID   SC3     4  0.0000 ; C
+
+[ bonds ]
+    1     2      1   0.32000  7500
+
+[ constraints ]
+    2     3      1   0.27000
+    2     4      1   0.27000
+    3     4      1   0.27000 
+
+[ angles ]
+    1     2     3      2    150    50
+    1     2     4      2    150    50
+
+[ dihedrals ]
+    1     3     4     2      2      0    50
+
+
+[ moleculetype ]
+HIP             1
+
+[ atoms ]
+    1    P5     1   HIP    BB     1  0.0000 ; C
+    2   SC4     1   HIP   SC1     2  0.0000 ; C
+    3   SP1     1   HIP   SC2     3  0.0000 ; C
+    4   SP1     1   HIP   SC3     4  0.0000 ; C
+
+[ bonds ]
+    1     2      1   0.32000  7500
+
+[ constraints ]
+    2     3      1   0.27000
+    2     4      1   0.27000
+    3     4      1   0.27000 
+
+[ angles ]
+    1     2     3      2    150    50
+    1     2     4      2    150    50
+
+[ dihedrals ]
+    1     3     4     2      2      0    50
+
+
+[ moleculetype ]
+HSD             1
+
+[ atoms ]
+    1    P5     1   HSD    BB     1  0.0000 ; C
+    2   SC4     1   HSD   SC1     2  0.0000 ; C
+    3   SP1     1   HSD   SC2     3  0.0000 ; C
+    4   SP1     1   HSD   SC3     4  0.0000 ; C
+
+[ bonds ]
+    1     2      1   0.32000  7500
+
+[ constraints ]
+    2     3      1   0.27000
+    2     4      1   0.27000
+    3     4      1   0.27000 
+
+[ angles ]
+    1     2     3      2    150    50
+    1     2     4      2    150    50
+
+[ dihedrals ]
+    1     3     4     2      2      0    50
+
+
+[ moleculetype ]
+HSE             1
+
+[ atoms ]
+    1    P5     1   HSE    BB     1  0.0000 ; C
+    2   SC4     1   HSE   SC1     2  0.0000 ; C
+    3   SP1     1   HSE   SC2     3  0.0000 ; C
+    4   SP1     1   HSE   SC3     4  0.0000 ; C
+
+[ bonds ]
+    1     2      1   0.32000  7500
+
+[ constraints ]
+    2     3      1   0.27000
+    2     4      1   0.27000
+    3     4      1   0.27000 
+
+[ angles ]
+    1     2     3      2    150    50
+    1     2     4      2    150    50
+
+[ dihedrals ]
+    1     3     4     2      2      0    50
+
+
+[ moleculetype ]
+HSP             1
+
+[ atoms ]
+    1    P5     1   HSP    BB     1  0.0000 ; C
+    2   SC4     1   HSP   SC1     2  0.0000 ; C
+    3   SP1     1   HSP   SC2     3  0.0000 ; C
+    4   SP1     1   HSP   SC3     4  0.0000 ; C
+
+[ bonds ]
+    1     2      1   0.32000  7500
+
+[ constraints ]
+    2     3      1   0.27000
+    2     4      1   0.27000
+    3     4      1   0.27000 
+
+[ angles ]
+    1     2     3      2    150    50
+    1     2     4      2    150    50
+
+[ dihedrals ]
+    1     3     4     2      2      0    50
+
+

@@ -1,0 +1,614 @@
+; MARTINI (martini22) Coarse Grained topology file for "ALA"
+; Created by py version 2.6 
+; Using the following options:  -f ALA/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name ALA -nt
+; Sequence:
+; A
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+ALA             1
+
+[ atoms ]
+    1    P4     1   ALA    BB     1  0.0000 ; C
+
+[ bonds ]
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals; MARTINI (martini22) Coarse Grained topology file for "ARG"
+; Created by py version 2.6 
+; Using the following options:  -f ARG/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name ARG -nt
+; Sequence:
+; R
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+ARG             1
+
+[ atoms ]
+    1    P5     1   ARG    BB     1  0.0000 ; C
+    2    N0     1   ARG   SC1     2  0.0000 ; C
+    3    Qd     1   ARG   SC2     3  1.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.33000  5000 ; ARG
+    2     3      1   0.34000  5000 ; ARG
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+    1     2     3      2    180    25 ; ARG
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals; MARTINI (martini22) Coarse Grained topology file for "ASN"
+; Created by py version 2.6 
+; Using the following options:  -f ASN/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name ASN -nt
+; Sequence:
+; N
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+ASN             1
+
+[ atoms ]
+    1    P5     1   ASN    BB     1  0.0000 ; C
+    2    P5     1   ASN   SC1     2  0.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.32000  5000 ; ASN
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals; MARTINI (martini22) Coarse Grained topology file for "ASP"
+; Created by py version 2.6 
+; Using the following options:  -f ASP/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name ASP -nt
+; Sequence:
+; D
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+ASP             1
+
+[ atoms ]
+    1    P5     1   ASP    BB     1  0.0000 ; C
+    2    Qa     1   ASP   SC1     2 -1.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.32000  7500 ; ASP
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals; MARTINI (martini22) Coarse Grained topology file for "CYS"
+; Created by py version 2.6 
+; Using the following options:  -f CYS/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name CYS -nt
+; Sequence:
+; C
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+CYS             1
+
+[ atoms ]
+    1    P5     1   CYS    BB     1  0.0000 ; C
+    2    C5     1   CYS   SC1     2  0.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.31000  7500 ; CYS
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals; MARTINI (martini22) Coarse Grained topology file for "GLN"
+; Created by py version 2.6 
+; Using the following options:  -f GLN/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name GLN -nt
+; Sequence:
+; Q
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+GLN             1
+
+[ atoms ]
+    1    P5     1   GLN    BB     1  0.0000 ; C
+    2    P4     1   GLN   SC1     2  0.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.40000  5000 ; GLN
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals; MARTINI (martini22) Coarse Grained topology file for "GLU"
+; Created by py version 2.6 
+; Using the following options:  -f GLU/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name GLU -nt
+; Sequence:
+; E
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+GLU             1
+
+[ atoms ]
+    1    P5     1   GLU    BB     1  0.0000 ; C
+    2    Qa     1   GLU   SC1     2 -1.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.40000  5000 ; GLU
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals; MARTINI (martini22) Coarse Grained topology file for "GLY"
+; Created by py version 2.6 
+; Using the following options:  -f GLY/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name GLY -nt
+; Sequence:
+; G
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+GLY             1
+
+[ atoms ]
+    1    P5     1   GLY    BB     1  0.0000 ; C
+
+[ bonds ]
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals; MARTINI (martini22) Coarse Grained topology file for "HIS"
+; Created by py version 2.6 
+; Using the following options:  -f HIS/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name HIS -nt
+; Sequence:
+; H
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+HIS             1
+
+[ atoms ]
+    1    P5     1   HIS    BB     1  0.0000 ; C
+    2   SC4     1   HIS   SC1     2  0.0000 ; C
+    3   SP1     1   HIS   SC2     3  0.0000 ; C
+    4   SP1     1   HIS   SC3     4  0.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.32000  7500 ; HIS
+
+[ constraints ]
+    2     3      1   0.27000 ; HIS
+    2     4      1   0.27000 ; HIS
+    3     4      1   0.27000 ; HIS
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+    1     2     3      2    150    50 ; HIS
+    1     2     4      2    150    50 ; HIS
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals
+    1     3     4     2      2      0    50 ; HIS; MARTINI (martini22) Coarse Grained topology file for "ILE"
+; Created by py version 2.6 
+; Using the following options:  -f ILE/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name ILE -nt
+; Sequence:
+; I
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+ILE             1
+
+[ atoms ]
+    1    P5     1   ILE    BB     1  0.0000 ; C
+    2   AC1     1   ILE   SC1     2  0.0000 ; C
+
+[ bonds ]
+
+[ constraints ]
+    1     2      1   0.31000 ; ILE
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals; MARTINI (martini22) Coarse Grained topology file for "LEU"
+; Created by py version 2.6 
+; Using the following options:  -f LEU/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name LEU -nt
+; Sequence:
+; L
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+LEU             1
+
+[ atoms ]
+    1    P5     1   LEU    BB     1  0.0000 ; C
+    2   AC1     1   LEU   SC1     2  0.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.33000  7500 ; LEU
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals; MARTINI (martini22) Coarse Grained topology file for "LYS"
+; Created by py version 2.6 
+; Using the following options:  -f LYS/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name LYS -nt
+; Sequence:
+; K
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+LYS             1
+
+[ atoms ]
+    1    P5     1   LYS    BB     1  0.0000 ; C
+    2    C3     1   LYS   SC1     2  0.0000 ; C
+    3    Qd     1   LYS   SC2     3  1.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.33000  5000 ; LYS
+    2     3      1   0.28000  5000 ; LYS
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+    1     2     3      2    180    25 ; LYS
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals; MARTINI (martini22) Coarse Grained topology file for "MET"
+; Created by py version 2.6 
+; Using the following options:  -f MET/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name MET -nt
+; Sequence:
+; M
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+MET             1
+
+[ atoms ]
+    1    P5     1   MET    BB     1  0.0000 ; C
+    2    C5     1   MET   SC1     2  0.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.40000  2500 ; MET
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals; MARTINI (martini22) Coarse Grained topology file for "PHE"
+; Created by py version 2.6 
+; Using the following options:  -f PHE/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name PHE -nt
+; Sequence:
+; F
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+PHE             1
+
+[ atoms ]
+    1    P5     1   PHE    BB     1  0.0000 ; C
+    2   SC5     1   PHE   SC1     2  0.0000 ; C
+    3   SC5     1   PHE   SC2     3  0.0000 ; C
+    4   SC5     1   PHE   SC3     4  0.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.31000  7500 ; PHE
+
+[ constraints ]
+    2     3      1   0.27000 ; PHE
+    2     4      1   0.27000 ; PHE
+    3     4      1   0.27000 ; PHE
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+    1     2     3      2    150    50 ; PHE
+    1     2     4      2    150    50 ; PHE
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals
+    1     3     4     2      2      0    50 ; PHE; MARTINI (martini22) Coarse Grained topology file for "PRO"
+; Created by py version 2.6 
+; Using the following options:  -f PRO/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name PRO -nt
+; Sequence:
+; P
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+PRO             1
+
+[ atoms ]
+    1    P4     1   PRO    BB     1  0.0000 ; C
+    2    C3     1   PRO   SC1     2  0.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.30000  7500 ; PRO
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals; MARTINI (martini22) Coarse Grained topology file for "SER"
+; Created by py version 2.6 
+; Using the following options:  -f SER/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name SER -nt
+; Sequence:
+; S
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+SER             1
+
+[ atoms ]
+    1    P5     1   SER    BB     1  0.0000 ; C
+    2    P1     1   SER   SC1     2  0.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.25000  7500 ; SER
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals; MARTINI (martini22) Coarse Grained topology file for "THR"
+; Created by py version 2.6 
+; Using the following options:  -f THR/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name THR -nt
+; Sequence:
+; T
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+THR             1
+
+[ atoms ]
+    1    P5     1   THR    BB     1  0.0000 ; C
+    2    P1     1   THR   SC1     2  0.0000 ; C
+
+[ bonds ]
+
+[ constraints ]
+    1     2      1   0.26000 ; THR
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals; MARTINI (martini22) Coarse Grained topology file for "TRP"
+; Created by py version 2.6 
+; Using the following options:  -f TRP/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name TRP -nt
+; Sequence:
+; W
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+TRP             1
+
+[ atoms ]
+    1    P5     1   TRP    BB     1  0.0000 ; C
+    2   SC4     1   TRP   SC1     2  0.0000 ; C
+    3   SNd     1   TRP   SC2     3  0.0000 ; C
+    4   SC5     1   TRP   SC3     4  0.0000 ; C
+    5   SC5     1   TRP   SC4     5  0.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.30000  5000 ; TRP
+
+[ constraints ]
+    2     3      1   0.27000 ; TRP
+    2     4      1   0.27000 ; TRP
+    3     4      1   0.27000 ; TRP
+    3     5      1   0.27000 ; TRP
+    4     5      1   0.27000 ; TRP
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+    1     2     3      2    210    50 ; TRP
+    1     2     4      2     90    50 ; TRP
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals
+    1     3     4     2      2      0    50 ; TRP
+    2     3     5     4      2      0   200 ; TRP; MARTINI (martini22) Coarse Grained topology file for "TYR"
+; Created by py version 2.6 
+; Using the following options:  -f TYR/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name TYR -nt
+; Sequence:
+; Y
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+TYR             1
+
+[ atoms ]
+    1    P5     1   TYR    BB     1  0.0000 ; C
+    2   SC4     1   TYR   SC1     2  0.0000 ; C
+    3   SC4     1   TYR   SC2     3  0.0000 ; C
+    4   SP1     1   TYR   SC3     4  0.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.32000  5000 ; TYR
+
+[ constraints ]
+    2     3      1   0.27000 ; TYR
+    2     4      1   0.27000 ; TYR
+    3     4      1   0.27000 ; TYR
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+    1     2     3      2    150    50 ; TYR
+    1     2     4      2    150    50 ; TYR
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals
+    1     3     4     2      2      0    50 ; TYR; MARTINI (martini22) Coarse Grained topology file for "VAL"
+; Created by py version 2.6 
+; Using the following options:  -f VAL/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name VAL -nt
+; Sequence:
+; V
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+VAL             1
+
+[ atoms ]
+    1    P5     1   VAL    BB     1  0.0000 ; C
+    2   AC2     1   VAL   SC1     2  0.0000 ; C
+
+[ bonds ]
+
+[ constraints ]
+    1     2      1   0.26500 ; VAL
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals

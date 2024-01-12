@@ -1,0 +1,33 @@
+; MARTINI (martini22) Coarse Grained topology file for "ARG"
+; Created by py version 2.6 
+; Using the following options:  -f ARG/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name ARG -nt
+; Sequence:
+; R
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+ARG             1
+
+[ atoms ]
+    1    P5     1   ARG    BB     1  0.0000 ; C
+    2    N0     1   ARG   SC1     2  0.0000 ; C
+    3    Qd     1   ARG   SC2     3  1.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.33000  5000 ; ARG
+    2     3      1   0.34000  5000 ; ARG
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+    1     2     3      2    180    25 ; ARG
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals

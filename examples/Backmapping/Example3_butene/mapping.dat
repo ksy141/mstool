@@ -1,0 +1,9 @@
+RESI ONE
+[ CG1 ]
+C1 H11 H12 H13
+C2 H21
+C3 H31
+C4 H41 H42 H43
+
+[ trans ]
+C1 C2 C3 C4

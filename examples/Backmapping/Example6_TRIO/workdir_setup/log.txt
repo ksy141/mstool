@@ -1,0 +1,25 @@
+####################################################################
+workdir/step6_em.dms was reviewed
+####################################################################
+
+The following isomers were reviewed:
+chiral: resname TRIO - HS C2 O21 C1 C3
+chiral: resname POPC - HS C2 O21 C1 C3
+chiral: resname POPC - O13 P O11 O14 O12
+cis: resname TRIO - C18 C19 C110 C111
+cis: resname TRIO - C28 C29 C210 C211
+cis: resname TRIO - C38 C39 C310 C311
+cis: resname POPC - C28 C29 C210 C211
+####################################################################
+
+####################################################################
+No molecules had flipped isomers
+####################################################################
+
+####################################################################
+In summary, the number of residues with the flipped isomers:
+peptide   :          0
+cistrans  :          0
+chiral    :          0
+dihedral  :          0
+####################################################################

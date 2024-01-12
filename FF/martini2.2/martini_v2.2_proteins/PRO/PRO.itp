@@ -1,0 +1,30 @@
+; MARTINI (martini22) Coarse Grained topology file for "PRO"
+; Created by py version 2.6 
+; Using the following options:  -f PRO/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name PRO -nt
+; Sequence:
+; P
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+PRO             1
+
+[ atoms ]
+    1    P4     1   PRO    BB     1  0.0000 ; C
+    2    C3     1   PRO   SC1     2  0.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.30000  7500 ; PRO
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals

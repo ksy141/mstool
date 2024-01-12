@@ -1,0 +1,23 @@
+; 
+; topol.top made by mstool
+; You should modify this file based on the below because it counts only correctly for lipids / waters / ions.
+; It does not work for protein chain. 
+; You need to run martinize.py anyway to parameterize your protein. 
+; 
+
+#include "/Users/siyoungkim/mstool/lib-python/mstool/core/../../../FF/martini2.2/martini_v2.2.itp"
+#include "/Users/siyoungkim/mstool/lib-python/mstool/core/../../../FF/martini2.2/martini_v2.0_ions.itp"
+#include "/Users/siyoungkim/mstool/lib-python/mstool/core/../../../FF/martini2.2/martini_v2.2_proteins/proteins.itp"
+#include "/Users/siyoungkim/mstool/lib-python/mstool/core/../../../FF/martini2.2/martini_v2.0_lipids_all_201506.itp"
+#include "/Users/siyoungkim/mstool/lib-python/mstool/core/../../../FF/martini2.2/structures/P008.itp"
+#include "/Users/siyoungkim/mstool/lib-python/mstool/core/../../../FF/martini2.2/structures/P006.itp"
+#include "/Users/siyoungkim/mstool/lib-python/mstool/core/../../../FF/martini2.2/structures/P007.itp"
+#include "/Users/siyoungkim/mstool/lib-python/mstool/core/../../../FF/martini2.2/structures/P005.itp"
+#include "/Users/siyoungkim/mstool/lib-python/mstool/core/../../../FF/martini2.2/structures/P010.itp"
+
+[ system ]
+Martini
+
+[ molecules ]
+CHOL               1
+

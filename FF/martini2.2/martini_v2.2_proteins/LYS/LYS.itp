@@ -1,0 +1,33 @@
+; MARTINI (martini22) Coarse Grained topology file for "LYS"
+; Created by py version 2.6 
+; Using the following options:  -f LYS/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name LYS -nt
+; Sequence:
+; K
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+LYS             1
+
+[ atoms ]
+    1    P5     1   LYS    BB     1  0.0000 ; C
+    2    C3     1   LYS   SC1     2  0.0000 ; C
+    3    Qd     1   LYS   SC2     3  1.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.33000  5000 ; LYS
+    2     3      1   0.28000  5000 ; LYS
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+    1     2     3      2    180    25 ; LYS
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals

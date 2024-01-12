@@ -1,0 +1,29 @@
+; MARTINI (martini22) Coarse Grained topology file for "VAL"
+; Created by py version 2.6 
+; Using the following options:  -f VAL/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name VAL -nt
+; Sequence:
+; V
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+VAL             1
+
+[ atoms ]
+    1    P5     1   VAL    BB     1  0.0000 ; C
+    2   AC2     1   VAL   SC1     2  0.0000 ; C
+
+[ bonds ]
+
+[ constraints ]
+    1     2      1   0.26500 ; VAL
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals

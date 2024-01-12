@@ -1,0 +1,6 @@
+openmm >= 7.6
+cython
+setuptools
+numpy
+pandas
+sqlite

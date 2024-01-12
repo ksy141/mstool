@@ -1,0 +1,29 @@
+<ForceField>
+  <Residues>
+    <Residue name="ONE">
+      <Atom charge="-0.27" name="C1"  type="CT3"/>
+      <Atom charge="+0.09" name="H11" type="HA3"/>
+      <Atom charge="+0.09" name="H12" type="HA3"/>
+      <Atom charge="+0.09" name="H13" type="HA3"/>
+      <Atom charge="-0.15" name="C2"  type="CC1A"/>
+      <Atom charge="+0.15" name="H21" type="HE1"/>
+      <Atom charge="-0.15" name="C3"  type="CC1A"/>
+      <Atom charge="+0.15" name="H31" type="HE1"/>
+      <Atom charge="-0.27" name="C4"  type="CT3"/>
+      <Atom charge="+0.09" name="H41" type="HA3"/>
+      <Atom charge="+0.09" name="H42" type="HA3"/>
+      <Atom charge="+0.09" name="H43" type="HA3"/>
+      <Bond atomName1="C1" atomName2="H11"/>
+      <Bond atomName1="C1" atomName2="H12"/>
+      <Bond atomName1="C1" atomName2="H13"/>
+      <Bond atomName1="C1" atomName2="C2"/>
+      <Bond atomName1="C2" atomName2="H21"/>
+      <Bond atomName1="C2" atomName2="C3"/>
+      <Bond atomName1="C3" atomName2="H31"/>
+      <Bond atomName1="C3" atomName2="C4"/>
+      <Bond atomName1="C4" atomName2="H41"/>
+      <Bond atomName1="C4" atomName2="H42"/>
+      <Bond atomName1="C4" atomName2="H43"/>
+    </Residue>
+  </Residues>
+</ForceField>

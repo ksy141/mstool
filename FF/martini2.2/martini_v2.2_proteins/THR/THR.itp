@@ -1,0 +1,29 @@
+; MARTINI (martini22) Coarse Grained topology file for "THR"
+; Created by py version 2.6 
+; Using the following options:  -f THR/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name THR -nt
+; Sequence:
+; T
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+THR             1
+
+[ atoms ]
+    1    P5     1   THR    BB     1  0.0000 ; C
+    2    P1     1   THR   SC1     2  0.0000 ; C
+
+[ bonds ]
+
+[ constraints ]
+    1     2      1   0.26000 ; THR
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals

@@ -1,0 +1,30 @@
+; MARTINI (martini22) Coarse Grained topology file for "GLN"
+; Created by py version 2.6 
+; Using the following options:  -f GLN/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name GLN -nt
+; Sequence:
+; Q
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+GLN             1
+
+[ atoms ]
+    1    P5     1   GLN    BB     1  0.0000 ; C
+    2    P4     1   GLN   SC1     2  0.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.40000  5000 ; GLN
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals

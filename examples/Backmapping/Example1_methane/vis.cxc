@@ -1,0 +1,10 @@
+# camera ortho
+set bgColor white
+lighting shadow true
+lighting soft
+graphics silhouettes true
+style sphere
+
+# https://www.cgl.ucsf.edu/chimerax/docs/user/radii.html
+size @CG1 atomRadius 1.5
+

@@ -1,0 +1,30 @@
+; MARTINI (martini22) Coarse Grained topology file for "CYS"
+; Created by py version 2.6 
+; Using the following options:  -f CYS/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name CYS -nt
+; Sequence:
+; C
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+CYS             1
+
+[ atoms ]
+    1    P5     1   CYS    BB     1  0.0000 ; C
+    2    C5     1   CYS   SC1     2  0.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.31000  7500 ; CYS
+
+[ constraints ]
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals

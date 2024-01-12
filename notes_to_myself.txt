@@ -1,0 +1,53 @@
+Dec. 12, 2023
+I noticed that mass = 0 leads to a weird behavior in CG simulations.
+The beads whose masses are 0 look like they have positional restraints.
+
+Therefore, When writing a CG DMS file, I have to turn off guess_atomic_number.
+Universe.write(guess_atomic_number=False)
+
+I tried to add guess_atomic_number=False to every script that writes a CG DMS file.
+But I have not checked this thoroughly yet.
+
+
+Dec. 12, 2023
+When loading DMS file using mstool.DMSFile or DesmondDMSFile,
+it seems like openMM does not allow two residues that have the same chain and same residueid but different resname
+(I think it was fine in PDB...?)
+I hit this problem when I made a bilayer builder because ions did have same chain, residueid, and different resnames
+e.g., 
+/Z:SOD@SOD with associated resid 1
+/Z:CLA@CLA with associated resid 1
+will cause a problem in REM with the following error message:
+ValueError: No template found for residue 1373 (CLA).
+
+The best way to debug this was to print out the structural file into PDB.
+from openmm.app import *
+dms = DesmondDMSFile('step4_ungroup.dms')
+with open('output.pdb', 'w') as f:
+    PDBFile.writeFile(dms.topology, dms.positions, f)
+
+HETATM 9363 CLA  CLA H   1      10.325   7.207  47.318  1.00  0.00          Cl
+HETATM 9364 SOD  CLA H   1     -20.746   7.377 -46.384  1.00  0.00          Na
+HETATM 9365 CLA  CLA H   2     -16.231  -4.763 -40.722  1.00  0.00          Cl
+HETATM 9366 SOD  CLA H   2      -9.220   7.768 -41.875  1.00  0.00          Na
+
+The solution was to provide a different chain to these ions.
+Now positive ions will have chain of ZZ1
+negative ions will have chain of ZZ2
+
+
+Dec. 14, 2023
+Cannot make energy the same between openMM and gromacs when a system has virtual_sites3.
+Upon investigating this, I am 100% sure that this is relevant to virtual_sites3 but not anything else.
+I first thought something was wrong with nonbonded. But all looked good.
+If you make fake bonds between virtual particles and real particles and remove virtual_sites3,
+the energy becomes the same
+See ~/mstool/examples/test/martini_validation/CHL1_proof_virtual_sites
+GMX    : 827297.000 kJ/mol
+openMM : 827277.750 kJ/mol
+openMM : 827277.750 kJ/mol
+I think something might be wrong with the implementation of virtual sites of openMM (?).
+Because parsing DMS to openMM looks fine upon checking with maccallumlab.
+https://github.com/maccallumlab/martini_openmm/blob/master/martini_openmm/martini.py
+Need to make a small test system.
+

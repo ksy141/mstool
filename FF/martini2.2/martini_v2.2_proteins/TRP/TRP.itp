@@ -1,0 +1,42 @@
+; MARTINI (martini22) Coarse Grained topology file for "TRP"
+; Created by py version 2.6 
+; Using the following options:  -f TRP/input.pdb -o topol.top -x input_cg.pdb -v -ss C -name TRP -nt
+; Sequence:
+; W
+; Secondary Structure:
+; C
+
+[ moleculetype ]
+; Name         Exclusions
+TRP             1
+
+[ atoms ]
+    1    P5     1   TRP    BB     1  0.0000 ; C
+    2   SC4     1   TRP   SC1     2  0.0000 ; C
+    3   SNd     1   TRP   SC2     3  0.0000 ; C
+    4   SC5     1   TRP   SC3     4  0.0000 ; C
+    5   SC5     1   TRP   SC4     5  0.0000 ; C
+
+[ bonds ]
+; Sidechain bonds
+    1     2      1   0.30000  5000 ; TRP
+
+[ constraints ]
+    2     3      1   0.27000 ; TRP
+    2     4      1   0.27000 ; TRP
+    3     4      1   0.27000 ; TRP
+    3     5      1   0.27000 ; TRP
+    4     5      1   0.27000 ; TRP
+
+[ angles ]
+; Backbone angles
+; Backbone-sidechain angles
+; Sidechain angles
+    1     2     3      2    210    50 ; TRP
+    1     2     4      2     90    50 ; TRP
+
+[ dihedrals ]
+; Backbone dihedrals
+; Sidechain improper dihedrals
+    1     3     4     2      2      0    50 ; TRP
+    2     3     5     4      2      0   200 ; TRP
