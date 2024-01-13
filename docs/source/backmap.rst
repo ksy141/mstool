@@ -62,7 +62,7 @@ Finally, the methane topology is not defined in the standard CHARMM36 force fiel
 All the ingredients are ready! Consistency in atomic names, bead names, and residue names between structure, mapping, and force field files are important in mstool. Please double-check whether they have consistent names like the :ref:`the below figure <consistency>`:
 
 .. _consistency:
-.. figure:: ../../src/mstool/examples/Backmapping/Example1_methane/consistency.png
+.. figure:: consistency.png
     
     Consistency in names between inputs. 
 
@@ -78,7 +78,7 @@ Let's backmap the coarse-grained structure.
 ``Ungroup`` makes an intermediate all-atom structure. ``REM`` relaxes the structure using Reduced Nonbonded Energy Minimization. ``CheckStructure`` reviews the isomeric properties of the relaxed structure, although in this case, there is nothing to review because methane is not an isomer, and no isomeric information is defined in ``mapping.dat``. The initial coarse-grained, intermediate all-atom, and final all-atom structures are visualized in :ref:`Methane backmapping <methane>`.
 
 .. _methane:
-.. figure:: ../../src/mstool/examples/Backmapping/Example1_methane/methane.png
+.. figure:: methane.png
 
    Methane backmapping. (left) Initial coarse-grained structure. (center) Intermediate all-atom structure. (right) Final all-atom structure.
 
@@ -140,7 +140,7 @@ The initial coarse-grained, intermediate all-atom, and final all-atom structures
 
 .. _ethane:
 
-.. figure:: ../../src/mstool/examples/Backmapping/Example2_ethane/ethane.png
+.. figure:: ethane.png
 
    Ethane backmapping. (left) Initial coarse-grained structure. (center) Intermediate all-atom structure. (right) Final all-atom structure.
 
@@ -262,7 +262,7 @@ In the previous example, we backmapped a Martini POPC bilayer. In this example, 
 Like the previous POPC bilayer, all the lipids included in the system have mapping information in the default mapping file, ``$mstoolpath/mapping/martini.lipid.c36.dat``. :ref:`Lipids <lipids>` with predefined mapping files are shown below:
 
 .. _lipids:
-.. figure:: ../../src/mstool/mapping/lipids.png
+.. figure:: lipids.png
 
    Lipids with predefined mapping files.
 
@@ -366,7 +366,7 @@ Initial coarse-grained, intermediate all-atom, and final all-atom structures are
 
 .. _bilayer:
 
-.. figure:: ../../src/mstool/examples/Backmapping/Example5_Sphere/bilayer.png
+.. figure:: bilayer.png
 
    Multi-component, Martini, bilayer backmapping. (left) Initial coarse-grained structure. (center) Intermediate all-atom structure. (right) Final all-atom structure.
 
