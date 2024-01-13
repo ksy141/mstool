@@ -224,7 +224,7 @@ In this example, we will backmap a Martini POPC bilayer. Copy the coarse-grained
    import shutil
    shutil.copyfile(mstool.POPCSTRUCTURE, './cg.pdb')
 
-There is no need to define a mapping file for Martini POPC because it is already available in ``$mstoolpath/mapping/martini.lipid.c36.dat``. Note that POPC has one chiral center and one cis bond, which is already defined in the default mapping file. Also, an additional force field is not required because POPC is defined in ``$mstoolpath/FF/charmm36/charmm36.xml``. Backmapping is as simple as the following:
+There is no need to define a mapping file for Martini POPC because it is already available in ``$mstoolpath/mapping/martini.lipid.c36.dat``. Note that :ref:`POPC <popc>` has one chiral center and one cis bond, which is already defined in the default mapping file. Also, an additional force field is not required because POPC is defined in ``$mstoolpath/FF/charmm36/charmm36.xml``. Backmapping is as simple as the following:
 
 .. code-block:: python
 
@@ -233,9 +233,11 @@ There is no need to define a mapping file for Martini POPC because it is already
 
 The backmapped structure is ``workdir/step4_final.pdb``. The isomeric properties of backmapped molecules are reviewed at the end of the workflow.
 
-.. figure:: popc2.png
+.. _popc:
+.. figure:: popc.png
 
    POPC backmapping. (A) Molecular structure of POPC. (B) Initial coarse-grained and backmapped structures.
+
 
 One thing to note is that mstool assumes the coarse-grained water resname is W. If the water resname is not W in your coarse-grained structure, it should be provided to ``Backmap`` or ``Ungroup``. Let's assume your water resname is WAT in your coarse-grained structure.
 Also, mstool uses the 1-to-4 mapping for water by default to be consistent with the Martini force field. That is, each coarse-grained water bead represents four all-atom water molecules. If you want to change this to 1-to-n mapping (e.g., using other coarse-grained force fields or wanting more or less water in a backmapped structure):
