@@ -97,13 +97,13 @@ class ReadMartini:
         if not isinstance(ff_add, list): ff_add = [ff_add]
 
         if ff == []:
-            ff = [pwd + '/../../../FF/martini2.2/martini_v2.2.modified.itp',
-                  pwd + '/../../../FF/martini2.2/martini_v2.0_ions.itp',
-                  pwd + '/../../../FF/martini2.2/martini_v2.2_proteins/proteins.itp',
-                  pwd + '/../../../FF/martini2.2/martini_v2.2_proteins/proteins_HIS.itp',
-                  pwd + '/../../../FF/martini2.2/martini_v2.0_lipids_all_201506.itp',
-                  pwd + '/../../../FF/martini2.2/martini_lipids_add.itp',
-                  pwd + '/../../../FF/martini2.2/structures/*.itp']
+            ff = [pwd + '/../FF/martini2.2/martini_v2.2.modified.itp',
+                  pwd + '/../FF/martini2.2/martini_v2.0_ions.itp',
+                  pwd + '/../FF/martini2.2/martini_v2.2_proteins/proteins.itp',
+                  pwd + '/../FF/martini2.2/martini_v2.2_proteins/proteins_HIS.itp',
+                  pwd + '/../FF/martini2.2/martini_v2.0_lipids_all_201506.itp',
+                  pwd + '/../FF/martini2.2/martini_lipids_add.itp',
+                  pwd + '/../FF/martini2.2/structures/*.itp']
 
         self.ifiles = []
         for ifile in [*ff, *ff_add]:

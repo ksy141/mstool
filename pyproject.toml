@@ -9,7 +9,7 @@ description = "Multiscale Simulation Tool for Backmapping"
 readme      = "README.md"
 license     = { file = "LICENSE" }
 requires-python = ">= 3.7"
-dynamic     = ["version"]
+dynamic     = ['version']
 dependencies = [
     "pandas",
     "matplotlib"
@@ -18,8 +18,4 @@ dependencies = [
 [project.urls]
 Repository    = "https://github.com/ksy141/mstool.git"
 documentation = "https://mstool.readthedocs.io/en/latest/#"
-
-[tool.setuptools.packages.find]
-where   = ["lib-python"]
-include = ["mstool*"]
 

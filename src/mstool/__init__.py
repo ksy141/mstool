@@ -35,12 +35,12 @@ from .membrane.bilayerbuilder import BilayerBuilder
 # examples
 import os
 pwd = os.path.dirname(os.path.realpath(__file__))
-ONECGBEADSTRUCTURE = pwd + '/../../examples/Backmapping/Example1_methane/cg.pdb'
-POPCSTRUCTURE      = pwd + '/../../examples/Backmapping/Example4_POPC/cg.pdb'
-MULTISTRUCTURE     = pwd + '/../../examples/Backmapping/Example5_Sphere/cg.pdb'
-TRIOSTRUCTURE      = pwd + '/../../examples/Backmapping/Example6_TRIO/cg.pdb'
-TRIOMAPPING        = pwd + '/../../examples/Backmapping/Example6_TRIO/mapping.dat'
-TRIOFF             = pwd + '/../../examples/Backmapping/Example6_TRIO/ff.xml'
-MPCG               = pwd + '/../../examples/Backmapping/Example7_MembraneProtein/cg.pdb'
-MPAA               = pwd + '/../../examples/Backmapping/Example7_MembraneProtein/protein_AA.pdb'
+ONECGBEADSTRUCTURE = pwd + '/examples/Backmapping/Example1_methane/cg.pdb'
+POPCSTRUCTURE      = pwd + '/examples/Backmapping/Example4_POPC/cg.pdb'
+MULTISTRUCTURE     = pwd + '/examples/Backmapping/Example5_Sphere/cg.pdb'
+TRIOSTRUCTURE      = pwd + '/examples/Backmapping/Example6_TRIO/cg.pdb'
+TRIOMAPPING        = pwd + '/examples/Backmapping/Example6_TRIO/mapping.dat'
+TRIOFF             = pwd + '/examples/Backmapping/Example6_TRIO/ff.xml'
+MPCG               = pwd + '/examples/Backmapping/Example7_MembraneProtein/cg.pdb'
+MPAA               = pwd + '/examples/Backmapping/Example7_MembraneProtein/protein_AA.pdb'
 

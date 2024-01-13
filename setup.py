@@ -6,27 +6,31 @@ is the conda / miniconda environment into which you want to install mstool.
 
 USAGE:
 
-    python setup.py
+    python -m build
+
+or 
+
+    pip install .
 
 """
 
-import sys
-import os
-import subprocess
-import shutil
-
-# We can only run this script from the sire directory
-curdir = os.path.abspath(".")
-
-# Find the conda base
-conda_base = os.path.abspath(os.path.dirname(sys.executable))
-if os.path.basename(conda_base) == "bin":
-    conda_base = os.path.dirname(conda_base)
-
-# MacOS and Linux
-conda_bin  = os.path.join(conda_base, "bin")
-python_bin = os.path.join(conda_bin, "python")
-conda = os.path.join(conda_bin, "conda")
+#import sys
+#import os
+#import subprocess
+#import shutil
+#
+## We can only run this script from the sire directory
+#curdir = os.path.abspath(".")
+#
+## Find the conda base
+#conda_base = os.path.abspath(os.path.dirname(sys.executable))
+#if os.path.basename(conda_base) == "bin":
+#    conda_base = os.path.dirname(conda_base)
+#
+## MacOS and Linux
+#conda_bin  = os.path.join(conda_base, "bin")
+#python_bin = os.path.join(conda_bin, "python")
+#conda = os.path.join(conda_bin, "conda")
 
 # Read version
 def _read_version(ifile):
@@ -73,7 +77,7 @@ def _conda_install(dependency):
     subprocess.run(cmd.split())
             
 def _build():
-    os.chdir("lib-python/mstool/lib")
+    os.chdir("src/mstool/lib")
     subprocess.run(["python", "setup.py", "build_ext", "--inplace"])
     os.chdir(curdir)
 
@@ -113,15 +117,39 @@ def _compare_version(str1, str2):
  
 
 ### Build
-_build()
+#_build()
 
 # why do I have to specify packages in setup and in pyproject.toml
 # [tool.setuptools.packages.find]
-# where = ["lib-python/mstool"]
-#    version=_read_version('lib-python/mstool/version.py'),
+# where = ["src/mstool"]
+#    version=_read_version('src/mstool/version.py'),
 
-from setuptools import setup
+from setuptools   import setup, Extension
+from Cython.Build import cythonize
+from Cython.Distutils import build_ext
+import numpy as np
+
+
+ext_modules=[
+    Extension("mstool.lib.distancelib",
+             ["src/mstool/lib/distancelib.pyx"]) 
+]
+
+
 setup(
-    version='0.1.1',
+    version=_read_version('src/mstool/version.py'),
+    package_dir={"": "src"},
+    include_package_data = False,
+    package_data={
+        "mstool.lib": ["*.pyx"],
+        "mstool.examples.Backmapping": ["*/cg*pdb", "*/protein_AA.pdb", "*/*.xml", "*/*.dat"],
+        "mstool.FF": ["*/*.xml", "*/*.itp", "*/*.pdb"],
+        "mstool.mapping": ["*.dat"],
+    },
+    exclude_package_data={
+        "mstool.backup": ["*.py"]
+    },
+    ext_modules = ext_modules,
+    include_dirs = [np.get_include()],
 )
 
