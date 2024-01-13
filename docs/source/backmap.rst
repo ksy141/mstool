@@ -233,9 +233,7 @@ There is no need to define a mapping file for Martini POPC because it is already
 
 The backmapped structure is ``workdir/step4_final.pdb``. The isomeric properties of backmapped molecules are reviewed at the end of the workflow.
 
-.. _popc:
-
-.. figure:: popc.png
+.. figure:: popc2.png
 
    POPC backmapping. (A) Molecular structure of POPC. (B) Initial coarse-grained and backmapped structures.
 
