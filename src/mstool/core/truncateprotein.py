@@ -131,7 +131,8 @@ class TruncateProtein:
             fcz         = fc2,
             Kchiral     = Kchiral * 0.25,
             Kpeptide    = Kpeptide * 0.25,
-            Kcistrans   = 0.0)
+            Kcistrans   = 0.0,
+            turn_off_EMNVT = True)
 
 
         ### check structure

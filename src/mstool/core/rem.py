@@ -37,7 +37,8 @@ class REM:
         fcx = 1000.0, fcy = 1000.0, fcz = 1000.0,
         bfactor_posre = 0.5, add_bonds=True, sort=False, version='v4',
         cospower=2, turn_off_torsion_warning=False,
-        nsteps=10000):
+        nsteps=10000,
+        turn_off_EMNVT=False):
         
         # v3 should not be used
         # protein: version = 'v4' seems the best
@@ -211,10 +212,12 @@ class REM:
             #CheckTetrahedron(outrem, ff=ff, ff_add=ff_add)
 
         ### Run EM + NVT
-        if not rock:
+        if turn_off_EMNVT:
+            print("EM+NVT is turned off because turn_off_EMNVT=True")
+        elif not rock:
             print(f"Running EM+NVT with unmodified force field\nand without isomeric torsions for {self.nsteps} steps")
             self.runEMNVT()
-        if rock:
+        elif rock:
             print("EM+NVT is turned off with ROCK (AA)")
 
         ### Save

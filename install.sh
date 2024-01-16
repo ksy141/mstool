@@ -8,18 +8,18 @@ mstoolpath=$(pwd)
 printf '\n\n\n...... Thank you for using mstool\n'
 echo   '...... Adding mstool to the environment (~/.bashrc and ~/.zshrc)'
 echo   "export mstool=$mstoolpath/"
-echo   "export PYTHONPATH=$mstoolpath/lib-python:\$PYTHONPATH"
+echo   "export PYTHONPATH=$mstoolpath/src:\$PYTHONPATH"
 printf '\n\n\n'
 
 
 ########## CMDLINE ##########
 export mstool=$mstoolpath/
-export PYTHONPATH=$mstoolpath/lib-python:$PYTHONPATH
+export PYTHONPATH=$mstoolpath/src:$PYTHONPATH
 
 echo   "export mstool=$mstoolpath/" >> ~/.bashrc
-echo   "export PYTHONPATH=$mstoolpath/lib-python:\$PYTHONPATH" >> ~/.bashrc
+echo   "export PYTHONPATH=$mstoolpath/src:\$PYTHONPATH" >> ~/.bashrc
 echo   "export mstool=$mstoolpath/" >> ~/.zshrc
-echo   "export PYTHONPATH=$mstoolpath/lib-python:\$PYTHONPATH" >> ~/.zshrc
+echo   "export PYTHONPATH=$mstoolpath/src:\$PYTHONPATH" >> ~/.zshrc
 #############################
 
 
@@ -46,7 +46,7 @@ echo "...... Building a cython distance matrix program"
 
 
 ########## CMDLINE ##########
-cd lib-python/mstool/lib
+cd src/mstool/lib
 python setup.py build_ext --inplace &> /dev/null
 #############################
 
@@ -55,7 +55,7 @@ python setup.py build_ext --inplace &> /dev/null
 #if test -e *.so || test -e *.pyd; then
 count=`ls -1 *.so 2>/dev/null | wc -l`
 if [ $count != 0 ]; then
-    echo "Identifying lib-python/mstool/lib/*.so"
+    echo "Identifying src/mstool/lib/*.so"
     echo "distance.distance_matrix is successfully installed"
 else
     echo "distance.distance_matrix is NOT successfully installed"
