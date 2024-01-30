@@ -132,7 +132,9 @@ import numpy as np
 
 ext_modules=[
     Extension("mstool.lib.distancelib",
-             ["src/mstool/lib/distancelib.pyx"]) 
+             ["src/mstool/lib/distancelib.pyx"]),
+    Extension("mstool.lib.qcprot",
+             ["src/mstool/lib/qcprot.pyx"]) 
 ]
 
 

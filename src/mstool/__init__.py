@@ -29,6 +29,7 @@ from .utils.cap_termini_residues import capTerminiResidues
 from .utils.change_his import changeHIS
 from .utils.performance import Performance
 
+from .lib.align import rotation_matrix, _fit_to
 from .membrane.bilayerbuilder import BilayerBuilder
 
 

@@ -138,9 +138,12 @@ def capTerminiResidues(structure, out=None, cap_termini={}):
                 CDx, CDy, CDz = proteinu.atoms[bA1 & bA2 & bA6][['x','y', 'z']].values[0]
                 dr2 = np.array([CDx, CDy, CDz]) - np.array([Nx, Ny, Nz])
                 dr2 /= np.linalg.norm(dr2)
-
-                bA7 = proteinu.atoms['name'].isin(['HT1', 'HN', 'H'])
-                removeProHT1.append(proteinu.atoms[bA1 & bA2 & bA7].index[0])
+                
+                try:
+                    bA7 = proteinu.atoms['name'].isin(['HT1', 'HN', 'H'])
+                    removeProHT1.append(proteinu.atoms[bA1 & bA2 & bA7].index[0])
+                except:
+                    pass
  
             posCY  = np.array([Nx, Ny, Nz]) - (dr1 + dr2) / np.linalg.norm(dr1 + dr2) * 1.34
             posOY  = posCY - 1.23 * dr2

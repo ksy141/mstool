@@ -51,3 +51,8 @@ Because parsing DMS to openMM looks fine upon checking with maccallumlab.
 https://github.com/maccallumlab/martini_openmm/blob/master/martini_openmm/martini.py
 Need to make a small test system.
 
+
+Jan. 30, 2024
+Ungroup with backbone=True places C-terminus atoms near origin. Fixed in 0.1.1.
+
+

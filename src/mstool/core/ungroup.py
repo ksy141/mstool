@@ -267,7 +267,7 @@ class Ungroup(Universe):
             posnextOT2  = r[-1] + (dcc * cosg1 * e1 + dcc * sing1 * e2) * 2
 
             n_atoms_add = len(name) - 4
-            posadd      = np.random.rand(n_atoms_add, 3) - 0.5
+            posadd      = posnextN + np.random.rand(n_atoms_add, 3) - 0.5
             poscter     = np.concatenate([[posnextN, posnextC, posnextOT1, posnextOT2], posadd], axis=0)
             n_atoms     = len(name)
 
