@@ -147,6 +147,7 @@ setup(
         "mstool.examples.Backmapping": ["*/cg*pdb", "*/protein_AA.pdb", "*/*.xml", "*/*.dat"],
         "mstool.FF": ["*/*.xml", "*/*.itp", "*/*.pdb"],
         "mstool.mapping": ["*.dat"],
+        "mstool.mapping.structures": ["*.pdb"],
     },
     exclude_package_data={
         "mstool.backup": ["*.py"]

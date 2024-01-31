@@ -1,11 +1,15 @@
 import os
 import numpy as np
+import glob
 from  .universe           import Universe
+from  ..lib.align         import rotation_matrix
 #from  .readxml           import ReadXML
 from  .readmappings       import ReadMappings
 from  ..utils.protein_sel import three2one
 from  ..utils.util        import fibo
 
+pwd = os.path.dirname(os.path.realpath(__file__))
+AAdefaults = glob.glob(pwd + '/../mapping/structures/*_AA.pdb')
 
 class Ungroup(Universe):
     def __init__(self, structure, out=None, refstructure=None, 
@@ -14,7 +18,8 @@ class Ungroup(Universe):
         backbone=True,
         sort=True,
         guess_atomic_number=False, fibor=0.5, version='v1',
-        water_resname='W', water_chain=None, water_number=4, water_fibor=2.0, water_chain_dms=False):
+        water_resname='W', water_chain=None, water_number=4, water_fibor=2.0, water_chain_dms=False,
+        use_AA_structure=False, AA_structure=[], AA_structure_add=[], AA_shrink_factor=1.0):
 
         self.data = {'resid': [], 'resname': [], 'chain': [], 'name': [], 'x': [], 'y': [], 'z': []}
         #self.xml           = ReadXML(ff, ff_add)
@@ -45,6 +50,23 @@ class Ungroup(Universe):
             print('using Ungroup version 2: place atoms on sphere with a radius of {:.2f} A (deterministic)'.format(fibor))
         else:
             assert 0 == 1, 'provide either version = "v1" or version = "v2"'
+
+        ### use_AA
+        self.exclude_residues = []
+        self.AA_shrink_factor = AA_shrink_factor
+        if use_AA_structure:
+            if not isinstance(AA_structure, list):
+                AA_structure = [AA_structure]
+
+            if not isinstance(AA_structure_add, list):
+                AA_structure_add = [AA_structure_add]
+
+            if AA_structure == []:
+                AA_structure = AAdefaults
+
+            self.AA_structure = [*AA_structure, *AA_structure_add]
+            self.construct_using_AA()
+
 
         ### Construct
         if self.backbone:
@@ -97,6 +119,49 @@ class Ungroup(Universe):
                 xyz = self.atoms[['x','y','z']]
                 uni, count = np.unique(xyz, axis=0, return_counts=True)
                 dup = uni[count > 1]  
+
+
+    def construct_using_AA(self):
+        for ifile in self.AA_structure:
+            basename = ifile.split('/')[-1].split('.')[0]
+            ext      = ifile.split('/')[-1].split('.')[-1]
+            prefix   = '/'.join(ifile.split('/')[:-1])
+            resname  = basename.split('_')[0]
+            print(basename, ext, prefix, resname, f'./{prefix}/{resname}.{ext}')
+
+            if not os.path.exists(f'./{prefix}/{resname}.{ext}'): continue
+            self.exclude_residues.append(resname)
+            
+            bA1 = self.u.atoms.resname == resname
+            if bA1.sum() == 0: continue
+
+            resns = self.u.atoms[bA1]['resn'].unique()
+            for resn in resns:
+                bA2 = self.u.atoms.resn == resn
+                refatoms = self.u.atoms[bA1 & bA2]
+                resid    = refatoms['resid'].values[0]
+                chain    = refatoms['chain'].values[0]
+
+                refpos   = self.u.atoms[bA1 & bA2][['x','y','z']].values
+                refcog   = np.average(refpos, axis=0)
+
+                mobatoms = Universe(f'./{prefix}/{resname}.{ext}').atoms
+                mobpos   = mobatoms[['x','y','z']].values
+                mobcog   = np.average(mobpos, axis=0)
+
+                R, min_rmsd = rotation_matrix(mobpos - mobcog, refpos - refcog)
+                
+                aaatoms  = Universe(ifile).atoms
+                aapos    = aaatoms[['x','y','z']].values
+                aacog    = np.average(aapos, axis=0)
+                pos      = refcog + self.AA_shrink_factor * (R @ (aapos - aacog).T).T 
+                n_atoms  = len(aaatoms)
+
+                self.list2data(name    = aaatoms['name'].values,
+                               chain   = [chain]   * n_atoms,
+                               resname = [resname] * n_atoms,
+                               resid   = [resid]   * n_atoms,
+                               pos     = pos)
 
 
     def construct_backbone(self):
@@ -288,6 +353,9 @@ class Ungroup(Universe):
             if resname not in self.mapping.RESI.keys():
                 if resname != self.water_resname:
                     print(f'Warning: mapping does not have {resname}. Skipping backmapping for this molecule.')
+                continue
+
+            if resname in self.exclude_residues:
                 continue
 
             for CGAtom, AAAtoms in self.mapping.RESI[resname]['CGAtoms'].items():
