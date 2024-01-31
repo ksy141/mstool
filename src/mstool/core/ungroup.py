@@ -19,7 +19,7 @@ class Ungroup(Universe):
         sort=True,
         guess_atomic_number=False, fibor=0.5, version='v1',
         water_resname='W', water_chain=None, water_number=4, water_fibor=2.0, water_chain_dms=False,
-        use_AA_structure=False, AA_structure=[], AA_structure_add=[], AA_shrink_factor=1.0):
+        use_AA_structure=False, AA_structure=[], AA_structure_add=[], AA_shrink_factor=0.7):
 
         self.data = {'resid': [], 'resname': [], 'chain': [], 'name': [], 'x': [], 'y': [], 'z': []}
         #self.xml           = ReadXML(ff, ff_add)
