@@ -89,16 +89,23 @@ class REM:
             ext = structure.split('.')[-1]
             if ext == 'pdb' or ext == 'PDB':
                 pdb = PDBFile(structure)
-            elif ext == 'dms' or ext == 'DMS':
-                pdb = DesmondDMSFile(structure)
+                # already build standard bonds
+                ### Add bonds for non-protein residues in u
+                if add_bonds:
+                    bonds, pdb = addBonds(u, xml, pdb)
+
+            if ext == 'dms' or ext == 'DMS':
                 #from .dmsfile import DMSFile
                 #pdb = DMSFile(structure)
-            else:
-                assert 0 == 1, 'Please provide a pdb or dms file'
+                pdb   = DesmondDMSFile(structure)
+                bonds = getBonds(structure, ff=ff, ff_add=ff_add)
+                pdbatoms = [atom for atom in pdb.topology.atoms()]
+                for bond in bonds:
+                    pdb.topology.addBond(pdbatoms[bond[0]], pdbatoms[bond[1]])
 
-            ### Add bonds for non-protein residues in u
-            if add_bonds:
-                bonds, pdb = addBonds(u, xml, pdb)
+        else:
+            raise IOError('Please provide a pdb or dms file')
+
 
         ### Combine systems (rock should be the first because of the bonds added later)
         modeller_combined = []

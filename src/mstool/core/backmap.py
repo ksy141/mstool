@@ -12,7 +12,7 @@ from .checktetrahedron import CheckTetrahedron
 
 class Backmap:
 
-    def __init__(self, structure, workdir='workdir', AA=None, protein=None,
+    def __init__(self, structure, workdir='workdir', AA=None, protein=None, backbone=True,
                  mapping = [], mapping_add = [],
                  ff      = [], ff_add = [],
                  Kchiral=300, Kpeptide=300, Kcistrans=300, Kdihedral=300,
@@ -52,7 +52,7 @@ class Backmap:
 
         ### Ungroup
         Ungroup(structure, out=workdir + f'/step{fileindex}_ungroup.dms', 
-                mapping=mapping, mapping_add=mapping_add,
+                mapping=mapping, mapping_add=mapping_add, backbone=backbone,
                 water_resname=water_resname,
                 water_chain=water_chain, water_number=water_number,
                 water_fibor=water_fibor, water_chain_dms=water_chain_dms,

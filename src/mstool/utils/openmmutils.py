@@ -772,6 +772,85 @@ def getTopPDB(structure, ff=[], ff_add=[]):
     return pdb
 
 
+def getBonds(structure, ff=[], ff_add=[]):
+    xml  = ReadXML(ff=ff, ff_add=ff_add)
+    data = []
+    
+    if isinstance(structure, str):
+        u = Universe(structure)
+    else:
+        u = structure
+
+    print("Adding bonds - started")
+    for resname in set(u.atoms.resname):
+        if resname not in xml.RESI.keys():
+            print(f'Warning: openMM xml does not have {resname}')
+            continue
+
+        bonds = xml.RESI[resname]['bonds']
+
+        for bond in bonds:
+            bA0 = u.atoms.resname == resname
+            bA1 = u.atoms.name.isin(bond)
+            new = u.atoms[bA0 & bA1].groupby('resn').apply(lambda x: x)
+
+            for i in range(len(new.index) - 1):
+                if new.index[i][0] != new.index[i+1][0]: continue
+                data.append([new.index[i][1], new.index[i+1][1]])
+
+        #    bA0 = u.atoms.name == bond[0]
+        #    bA1 = u.atoms.name == bond[1]
+
+        #    atomA = u.atoms[bA & bA0].index
+        #    atomB = u.atoms[bA & bA1].index
+        #    
+        #    assert len(atomA) == len(atomB), f"bond: /{resname} @{bond[0]} @{bond[1]}"
+
+        #    for a, b in zip(atomA, atomB):
+        #        data.append([a, b])
+    
+
+    ### PROTEIN BACKBONE
+    protein_bA     = u.atoms.resname.isin(three2one.keys())
+    protein_chains = u.atoms[protein_bA].chain.unique()
+
+    for chain in protein_chains:
+        chain_bA    = u.atoms.chain == chain
+        chain_atoms = u.atoms[protein_bA & chain_bA]
+        resid_min   = chain_atoms.resid.min()
+        resid_max   = chain_atoms.resid.max()
+        
+        ### C : +N bonds
+        bAN = chain_atoms['name'] == 'N'
+        bAC = chain_atoms['name'] == 'C'
+        assert np.sum(bAN) == np.sum(bAC), 'protein: len(N) != len(C)'
+            
+        tmp = np.array([chain_atoms[bAC].index[:-1], chain_atoms[bAN].index[1:]], dtype=np.int64).T
+        data.extend(list(tmp))
+        
+
+        ### 0N - HT1 HT2 HT3
+        residue_atoms = chain_atoms[chain_atoms.resid == resid_min]
+        bAN = residue_atoms['name'] == 'N'
+        bAH = residue_atoms['name'].isin(['HT1', 'HT2', 'HT3'])
+        assert np.sum(bAN) == 1, f'{np.sum(bAN)} N termini in chain {chain}?'
+
+        for i in residue_atoms[bAH].index:
+            data.append([residue_atoms[bAN].index[0], i])
+
+        ### -1C - OT1 OT2
+        residue_atoms = chain_atoms[chain_atoms.resid == resid_max]
+        bAC = residue_atoms['name'] == 'C'
+        bAO = residue_atoms['name'].isin(['OT1', 'OT2', 'OXT1', 'OXT2', 'OXT'])
+        assert np.sum(bAC) == 1, f'{np.sum(bAC)} C termini in chain {chain}?'
+
+        for i in residue_atoms[bAO].index:
+            data.append([residue_atoms[bAC].index[0], i])
+
+    print("Adding bonds - finished")
+    return data
+
+
 
 def addFlatBottomSphere(u, bfactor_posre, radius, rfb, R0=[0,0,0], fc=1000.0):
     '''Apply Flat-bottomed position restraints for sphere simulations
