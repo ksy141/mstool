@@ -270,8 +270,9 @@ class LoopModeler:
             bA1 = atom['name']  == xtal.atoms.name
             bA2 = atom['resid'] == xtal.atoms.resid
             bA3 = atom['chain'] == xtal.atoms.chain
+            bA4 = xtal.atoms.resname.isin(['ACE', 'NMA', 'NME'])
 
-            xtalatoms = xtal.atoms[bA1 & bA2 & bA3]
+            xtalatoms = xtal.atoms[bA1 & bA2 & bA3 & ~bA4]
             if len(xtalatoms) == 0:
                 bfactors.append(0.0)
                 #atom.bfactor = 0.0
@@ -281,7 +282,7 @@ class LoopModeler:
                 #atom.bfactor = 1.0
 
             else:
-                assert 0 == 1, 'more than one atom with the same name, resid, chain?'
+                assert 0 == 1, print(xtalatoms)
 
         backmap.atoms.bfactor = bfactors
         return backmap
