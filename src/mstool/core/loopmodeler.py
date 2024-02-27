@@ -31,7 +31,7 @@ class LoopModeler:
         A=100, C=50, soft=True, mutate=True, t=15.0, extend_termini={},
         mapping=[], mapping_add=[], ff=[], ff_add=[],
         fc1 = 50, fc2 = 2000, Kchiral=300.0, Kpeptide=300.0, 
-        nsteps=0, dt=0.002, dcdfreq=1000, csvfreq=1000):
+        nsteps=0, dt=0.002, dcdfreq=1000, csvfreq=1000, helix=False):
 
         self.protein     = protein
         self.fasta       = fasta
@@ -44,6 +44,7 @@ class LoopModeler:
         self.mapping     = mapping
         self.mapping_add = mapping_add
         self.fc1         = fc1
+        self.helix       = helix
 
 
         ### step1: workdir
@@ -244,7 +245,8 @@ class LoopModeler:
                      out     = out,
                      fcx     = self.fc1,
                      fcy     = self.fc1,
-                     fcz     = self.fc1)
+                     fcz     = self.fc1,
+                     helix   = self.helix)
         dumpsql(out)
 
 
