@@ -8,7 +8,7 @@ pwd = os.path.dirname(os.path.realpath(__file__))
 class Bilayer(Lipid):
     def __init__(self, protein=None, upper={}, lower={}, trans={},
                  dx=8.0, waterz=25.0, rcut=3, out=None, mode='shift',
-                 dN=5, martini=None,
+                 dN=5, martini=None, hydrophobic_thickness=30.0, 
                  lipidpath=pwd + '/../../../FF/martini2.2/structures/'):
 
         '''Make a plane bilayer (or monolayer) with the provided numbers of lipids.
@@ -54,6 +54,8 @@ class Bilayer(Lipid):
             Number of additional layers in XY dimensions if you shift overlapped lipids.
             dN = 5 (default) is usually fine, but if you have a protein-crowded membrane structure,
             you should increase this value.
+        hydrophobic thickness : float
+            Hydrophobic thickness of a bilayer in A.
         lipidpath : str
             Path to a folder that contains the structures of lipids.
             Phospholipids that have names of GL*/C*/D* can be internally constructed.
@@ -75,7 +77,7 @@ class Bilayer(Lipid):
         ...             trans={'P006':1}, martini=martini)
         '''
 
-        Lipid.__init__(self, martini=martini, lipidpath=lipidpath)
+        Lipid.__init__(self, martini=martini, lipidpath=lipidpath, hydrophobic_thickness=hydrophobic_thickness)
 
         upperN = int(np.sum(list(upper.values())))
         lowerN = int(np.sum(list(lower.values())))
@@ -110,12 +112,12 @@ class Bilayer(Lipid):
         # upper
         upperP, unused_upperP = self.make_rect2(upperN, dx, dN)
         upperU = self.make_monolayer(upperP, 
-            monolayer_keys['upper'], monolayer_list['upper'], chain='UPPER', dz=15, inverse=+1.0)
+            monolayer_keys['upper'], monolayer_list['upper'], chain='UPPER', dz=+hydrophobic_thickness/2, inverse=+1.0)
 
         # lower
         lowerP, unused_lowerP = self.make_rect2(lowerN, dx, dN)
         lowerU = self.make_monolayer(lowerP, 
-            monolayer_keys['lower'], monolayer_list['lower'], chain='LOWER', dz=-15, inverse=-1.0)
+            monolayer_keys['lower'], monolayer_list['lower'], chain='LOWER', dz=-hydrophobic_thickness/2, inverse=-1.0)
 
         # pbc
         half_pbcx = max(upperP.max(), abs(upperP.min()), lowerP.max(), abs(lowerP.min()))

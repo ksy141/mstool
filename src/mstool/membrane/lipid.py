@@ -6,7 +6,7 @@ import glob
 pwd = os.path.dirname(os.path.realpath(__file__))
 
 class Lipid:
-    def __init__(self, martini, lipidpath):
+    def __init__(self, martini, lipidpath, hydrophobic_thickness):
         '''
         Parameters
         ----------
@@ -55,6 +55,7 @@ class Lipid:
             structures[moleculetype] = Universe(ifile)
 
         self.structures = structures
+        self.hydrophobic_thickness = hydrophobic_thickness
         
 
     def construct_molecule(self, resname):
@@ -65,7 +66,7 @@ class Lipid:
         chain2 = list(set(names) & set(self.chain2))
         chain3 = list(set(names) & set(self.chain3))
         Nmax   = max(len(chain1), len(chain2), len(chain3))
-        zz     = np.linspace(0, -13, Nmax + 1)
+        zz     = np.linspace(0, -(self.hydrophobic_thickness/2 - 2), Nmax + 1)
         
         for name in names:
             added = False
