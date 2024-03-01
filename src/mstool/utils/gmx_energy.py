@@ -118,6 +118,7 @@ constraint_algorithm     = Lincs
 
 
 def getGMXEnergy(c, p='topol.top', add_mdrun='', add_grompp='', epsilon_r=15.0, define=None):
+    """If fails, use add_mdurn='-rcon 1' or add_mdrun='-ntomp 1' (depending on versions)"""
     make_mdp(epsilon_r, define)
 
     subprocess.run(f'gmx grompp -f input.mdp -c {c} -o input.tpr -p {p} {add_grompp} -maxwarn -1'.split(), 

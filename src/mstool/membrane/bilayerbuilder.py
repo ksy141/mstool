@@ -113,7 +113,7 @@ class BilayerBuilder:
         if protein: Map(workdir + '/protein.dms', workdir + '/protein_CG.dms', add_notavailableAAAtoms=False)
 
         ### Construct a bilayer
-        u = Bilayer(protein=workdir + '/protein_CG.dms', 
+        u = Bilayer(protein=workdir + '/protein_CG.dms' if protein else None, 
                     upper=upper, lower=lower, 
                     dx=dx, waterz=waterz, rcut=rcut,
                     out=workdir + '/step1.bilayer.dms', 

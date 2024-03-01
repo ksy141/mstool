@@ -21,9 +21,9 @@ class Lipid:
             The lipid should have an orientation of +z, and approximately centered at the origin.
             Imagine that this lipid is located at the upper leaflet of a bilayer whose center is 0.
         '''
-
+        
         #             PC,    PE,    PS,    PG,    PI,               PA    cholesterol
-        self.head = ['NC3', 'NH3', 'CNO', 'GL0', 'C1', 'C2', 'C3', 'PO4']
+        self.head = ['NC3', 'NH3', 'CNO', 'GL0', 'C1', 'C2', 'C3', 'PO4', 'R1']
 
         self.chain1 = []
         for i in range(1, 7):
@@ -74,6 +74,17 @@ class Lipid:
             if name in self.head:
                 if name == 'PO4':
                     positions.append([0, 0, 5])
+                
+                # cholesterol
+                elif 'R1' in names:
+                    # R1 or ROH
+                    if name == 'R1' or name == 'ROH':
+                        positions.append(np.random.rand(3) - 0.5 + np.array([0, 0, +5.0]))
+                    # C1 or C2
+                    else:
+                        positions.append(np.random.rand(3) - 0.5 + np.array([0, 0, -5.0]))
+                
+                # NC3
                 else:
                     positions.append([0, 0, 10])
                 added = True
