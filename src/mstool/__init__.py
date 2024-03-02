@@ -45,4 +45,5 @@ TRIOMAPPING        = pwd + '/examples/Backmapping/Example6_TRIO/mapping.dat'
 TRIOFF             = pwd + '/examples/Backmapping/Example6_TRIO/ff.xml'
 MPCG               = pwd + '/examples/Backmapping/Example7_MembraneProtein/cg.pdb'
 MPAA               = pwd + '/examples/Backmapping/Example7_MembraneProtein/protein_AA.pdb'
+MPAA2              = pwd + '/examples/Backmapping/Example7_MembraneProtein/protein_AA2.pdb'
 

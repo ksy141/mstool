@@ -42,11 +42,13 @@ class Backmap:
                 forcefield = ForceField('charmm36.xml', 'charmm36/water.xml')
                 system = forcefield.createSystem(pdb.topology)
                 protein = AA
+                rock    = None
                 print('All of the residues in the AA argument is recognizable in openMM')
                 print(f'Using protein="{AA}"')
 
             except:
                 rock = AA
+                protein = None
                 print('Some of the residues in the AA argument is not recognizable in openMM')
                 print(f'Using protein="{AA}"')
 

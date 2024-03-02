@@ -11,6 +11,7 @@ from  ..core.universe        import Universe
 from  ..core.backmap         import Backmap
 from  ..utils.dump           import dumpsql
 from  ..utils.openmmutils    import addPosre
+from  ..utils.protein_sel    import one2three, three2one
 pwd = os.path.dirname(os.path.realpath(__file__))
 
 class BilayerBuilder:
@@ -19,7 +20,7 @@ class BilayerBuilder:
                  martini=[], martini_add=[], lipidpath=pwd+'/../../../FF/martini2.2/structures/',
                  mapping=[], mapping_add=[],
                  ff=[], ff_add=[],
-                 removedr=4.5, dt=0.03, cg_nsteps=50000, aa_nsteps=10000,
+                 removedr=4.5, dt=0.03, cg_nsteps=100000, aa_nsteps=10000,
                  frictionCoeff=5.0, barfreq=1, nonbondedCutoff=1.1, 
                  improper_prefactor=0.99, use_existing_folder=False,
                  hydrophobic_thickness=30, ionconc=0.15):
@@ -80,7 +81,7 @@ class BilayerBuilder:
         dt: float=0.03
             Integration time (ps) for coarse-grained simulations.
             If you encounter numerical issue (Energy is Nan, or particles are all over the place), reduce dt while increasing nsteps.
-        cg_nsteps: int=50000
+        cg_nsteps: int=100000
             Number of coarse-grained simulation steps.
             If your membrane does not look equilibrated (e.g., water not equally dispersed in solution), increase this number.
         aa_nsteps: int=10000
@@ -130,7 +131,10 @@ class BilayerBuilder:
                     hydrophobic_thickness=hydrophobic_thickness)
 
         ### Solvate
-        usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc, membrane=True)
+        if protein:
+            usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc)
+        else:
+            usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc, membrane=True)
         cell = usol.cell
         dim  = usol.dimensions
         bA1  = usol.atoms.name == 'W'
@@ -164,7 +168,15 @@ class BilayerBuilder:
         u.atoms[['x','y','z']] -= shift
         u.write(workdir + '/step3.dms', wrap=True)
 
+        if protein:
+            noprotein = Universe(data=u.atoms[~u.atoms.resname.isin(three2one.keys())])
+            noprotein.dimensions = u.dimensions
+            noprotein.cell = u.cell
+            noprotein.write(workdir + '/step3.noprotein.dms')
+        else:
+            shutil.copyfile(workdir + '/step3.dms', workdir + '/step3.noprotein.dms')
+
         ### Backmapping
-        Backmap(workdir + '/step3.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
+        Backmap(workdir + '/step3.noprotein.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
                 AA=protein, fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add)
 
