@@ -23,7 +23,7 @@ class Lipid:
         '''
         
         #             PC,    PE,    PS,    PG,    PI,               PA    cholesterol
-        self.head = ['NC3', 'NH3', 'CNO', 'GL0', 'C1', 'C2', 'C3', 'PO4', 'R1']
+        self.head = ['NC3', 'NH3', 'CNO', 'GL0', 'C1', 'C2', 'C3', 'PO4', 'R1', 'ROH']
 
         self.chain1 = []
         for i in range(1, 7):

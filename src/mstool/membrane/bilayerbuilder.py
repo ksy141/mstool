@@ -14,13 +14,16 @@ from  ..utils.openmmutils    import addPosre
 pwd = os.path.dirname(os.path.realpath(__file__))
 
 class BilayerBuilder:
-    def __init__(self, workdir='workdir', protein=None, upper={}, lower={}, dx=8.0, waterz=30.0, rcut=3.0, 
+    def __init__(self, workdir='workdir', protein=None, upper={}, lower={}, dx=8.0, waterz=50.0, rcut=3.0, 
                  mode='shift', dN=5, 
                  martini=[], martini_add=[], lipidpath=pwd+'/../../../FF/martini2.2/structures/',
                  mapping=[], mapping_add=[],
                  ff=[], ff_add=[],
-                 removedr=8.5, dt=0.007, nsteps=50000, frictionCoeff=5.0, barfreq=100, nonbondedCutoff=1.1, 
-                 improper_prefactor=0.99, use_existing_folder=False):
+                 removedr=4.5, dt=0.03, cg_nsteps=50000, aa_nsteps=10000,
+                 frictionCoeff=5.0, barfreq=1, nonbondedCutoff=1.1, 
+                 improper_prefactor=0.99, use_existing_folder=False,
+                 hydrophobic_thickness=30, ionconc=0.15):
+
         '''Bilayer builder.
         Parameters
         ----------
@@ -40,7 +43,7 @@ class BilayerBuilder:
             e.g., lower={'POPC': 100, 'DOPC': 100} will place 100 POPC molecules and 100 DOPC molecules in the lower leaflet.
         dx: float=8.0
             distance between the lipids at the initial structure.
-        waterz: float=30.0
+        waterz: float=50.0
             water thickness in Z dimension (A).
         rcut: float=3.0
             lipids that are closer than rcut (A) to protein will be shifted (mode=shift) or removed (mode=remove)
@@ -74,14 +77,14 @@ class BilayerBuilder:
             Additional openMM Charmm36 XML files. Useful when you add new molecules.
         removedr: float=8.5
             Remove water beads that are closer than removedr to solutes (protein + lipids).
-        dt: float=0.007
-            Integration time for coarse-grained simulations.
-            dt=0.020 works fine for no virtual sites including systems.
-            dt=0.007 is the largest value for virtual sites containing systems (e.g., cholesterol, CHL1)
+        dt: float=0.03
+            Integration time (ps) for coarse-grained simulations.
             If you encounter numerical issue (Energy is Nan, or particles are all over the place), reduce dt while increasing nsteps.
-        nsteps: int=50000
+        cg_nsteps: int=50000
             Number of coarse-grained simulation steps.
             If your membrane does not look equilibrated (e.g., water not equally dispersed in solution), increase this number.
+        aa_nsteps: int=10000
+            Number of all-atom simulation steps after backmapping
         frictionCoeff: float=5.0
             Friction coefficient for coarse-grained simulations.
         barfreq: int=100
@@ -96,6 +99,10 @@ class BilayerBuilder:
             k*(acos(improper_prefactor * cos(theta-theta0)))^2.
             It works fine for most of the case. However, when you compare potential energy calculated with gromacs and openMM, 
             make sure you change it to 1.0.
+        hydrophobic_thickness: float=30
+            Hydrophobic thickness in A.
+        ionconc: float=0.15
+            Ion concentration in M.
         '''
 
         
@@ -106,7 +113,8 @@ class BilayerBuilder:
         if protein: Universe(protein).write(workdir + '/protein.dms', wrap=False)
        
         ### Read Martini
-        martiniff = ReadMartini(ff=martini, ff_add=martini_add, define={'FLEXIBLE': 'True'})
+        #martiniff = ReadMartini(ff=martini, ff_add=martini_add, define={'FLEXIBLE': 'True'})
+        martiniff = ReadMartini(ff=martini, ff_add=martini_add, constraint_to_bond=True, Kc2b=10000.0)
 
         ### Mapping & Translate
         #if protein: Map(workdir + '/protein.dms', workdir + '/protein_CG.dms', add_notavailableAAAtoms=True)
@@ -118,26 +126,38 @@ class BilayerBuilder:
                     dx=dx, waterz=waterz, rcut=rcut,
                     out=workdir + '/step1.bilayer.dms', 
                     mode=mode, dN=dN, martini=martiniff, 
-                    lipidpath=lipidpath)
+                    lipidpath=lipidpath,
+                    hydrophobic_thickness=hydrophobic_thickness)
 
         ### Solvate
-        usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr)
-
+        usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc, membrane=True)
+        cell = usol.cell
+        dim  = usol.dimensions
+        bA1  = usol.atoms.name == 'W'
+        bA2  = usol.atoms.z    <  hydrophobic_thickness / 2 + 10
+        bA3  = usol.atoms.z    > -hydrophobic_thickness / 2 - 10
+        usol = Universe(data=usol.atoms[~(bA1 & bA2 & bA3)])
+        usol.dimensions = dim
+        usol.cell       = cell
+        
         ### Translate
         shift = usol.dimensions[0:3] / 2
         usol.atoms[['x','y','z']] += shift
-        usol.atoms.loc[(usol.atoms.name == 'GL1') | (usol.atoms.name == 'GL2'), 'bfactor'] = 1.0
+        #This will add posx, posy, and posz
+        #usol.atoms.loc[(usol.atoms.name == 'GL1') | (usol.atoms.name == 'GL2'), 'bfactor'] = 1.0
         usol.write(workdir + '/step1.sol.dms')
 
         ### Martinize
         MartinizeDMS(workdir + '/step1.sol.dms', out = workdir + '/step1.martini.dms', martini=martiniff)
         dumpsql(workdir + '/step1.martini.dms')
 
-        ### Run
+        ### Create system & add posz to GL1 and GL2
         dms = DMSFile(workdir + '/step1.martini.dms')
-        dms.createSystem(REM=False, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=False)
-        #dms.system.addForce(addPosre(Universe(workdir + '/step1.martini.dms'), bfactor_posre=0.5, fcx=0.0, fcy=0.0, fcz=100.0))
-        dms.runEMNPT(workdir + '/step2.dms', dt=dt, nsteps=nsteps, frictionCoeff=frictionCoeff, barfreq=barfreq)
+        dms.createSystem(REM=True, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=False)
+        martiniU = Universe(workdir + '/step1.martini.dms')
+        martiniU.atoms.loc[((martiniU.atoms.name == 'PO4')), 'bfactor'] = 1.0
+        dms.system.addForce(addPosre(martiniU, bfactor_posre=0.5, fcx=0.0, fcy=0.0, fcz=100.0))
+        dms.runEMNPT(workdir + '/step2.dms', emout=workdir + '/step2.em.dms', dt=dt, nsteps=cg_nsteps, frictionCoeff=frictionCoeff, barfreq=barfreq)
         
         ### Translate Back
         u = Universe(workdir + '/step2.dms')
@@ -145,6 +165,6 @@ class BilayerBuilder:
         u.write(workdir + '/step3.dms', wrap=True)
 
         ### Backmapping
-        Backmap(workdir + '/step3.dms', workdir=workdir, use_existing_workdir=True,
+        Backmap(workdir + '/step3.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
                 AA=protein, fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add)
 

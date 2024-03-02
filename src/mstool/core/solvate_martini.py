@@ -5,7 +5,8 @@ import pandas as pd
 
 
 def solvate(u, out=None, 
-            solventdr=4.93, removedr=6.0, waterslab=0.8, waterchain='W', center=True, pbc=False):
+            solventdr=4.93, removedr=6.0, waterslab=0.8, waterchain='W', center=True, pbc=False,
+            membrane=False):
     
     # if there is a zero, raise an error
     assert np.all(u.dimensions[0:3]), 'check your dimensions'
@@ -21,6 +22,12 @@ def solvate(u, out=None,
     Nz  = u.dimensions[2]               // solventdr
     Nz2 = (u.dimensions[2] - waterslab) // solventdr
     if Nz != Nz2: Nz = Nz2
+
+    if Nx > 3.5 and membrane:
+        Nx -= 3
+    
+    if Ny > 3.5 and membrane:
+        Ny -= 3
 
     xx = np.arange(Nx) * solventdr
     yy = np.arange(Ny) * solventdr
@@ -159,7 +166,8 @@ def ionize(u, out=None, qtot=None,
 def SolvateMartini(structure=None, out=None, t=None,
                    dimensions=None,
                    solventdr=4.93, removedr=6.0, waterslab=0.8, waterchain='W', center=True,
-                   conc=0.15, qtot=None, pos='SOD', neg='CLA', waterresname='W', ionchain='ZZ', pbc=True):
+                   conc=0.15, qtot=None, pos='SOD', neg='CLA', waterresname='W', ionchain='ZZ', pbc=True,
+                   membrane=False):
         
     # make a water box
     if dimensions:
@@ -192,7 +200,7 @@ def SolvateMartini(structure=None, out=None, t=None,
             u.cell = np.array([[dim, 0, 0], [0, dim, 0], [0, 0, dim]])
 
     solvatedu = solvate(u, solventdr=solventdr, removedr=removedr, waterslab=waterslab,
-                        waterchain=waterchain, center=center, pbc=pbc)
+                        waterchain=waterchain, center=center, pbc=pbc, membrane=membrane)
     if conc == 0.0:
         if out: solvatedu.write(out, guess_atomic_number=False)
         return solvatedu

@@ -90,9 +90,11 @@ class ReadMartini:
 
     def __init__(self,
         ff = [], ff_add = [], 
-        define = {}, Kc2b = 10000.0):
+        define = {}, Kc2b = 10000.0,
+        constraint_to_bond=False):
 
         self.Kc2b = Kc2b
+        self.ctb  = constraint_to_bond
         if not isinstance(ff, list): ff = [ff]
         if not isinstance(ff_add, list): ff_add = [ff_add]
 
@@ -339,8 +341,14 @@ class ReadMartini:
                         # f == 1 --> Just like bonds -> exclusions should be added
                         # f == 2 --> No connection, and so no exclusions, are generated for this interaction
                         l = float(sl[3]) #nm
-                        d['molecules'][resname]['bonds'].append([name1, name2, l, self.Kc2b, f])
-                        d['molecules'][resname]['idx_bonds'].append([id1, id2, l, self.Kc2b, f])
+
+                        if self.ctb:
+                            d['molecules'][resname]['bonds'].append([name1, name2, l, self.Kc2b])
+                            d['molecules'][resname]['idx_bonds'].append([id1, id2, l, self.Kc2b])
+
+                        else:
+                            d['molecules'][resname]['bonds'].append([name1, name2, l, self.Kc2b, f])
+                            d['molecules'][resname]['idx_bonds'].append([id1, id2, l, self.Kc2b, f])
 
                     if read == 'exclusions':
                         sl = line.split()

@@ -1573,7 +1573,7 @@ class DMSFile(object):
             conn.close()
 
 
-    def runEMNPT(self, out=None,
+    def runEMNPT(self, out=None, emout=None,
         nonbondedCutoff=1.1, 
         nsteps=10000, dcdfreq=1000, csvfreq=1000, dt=0.02, P=1.0, T=310, 
         semiisotropic=False, barfreq=100, addForces=[], frictionCoeff=5.0):
@@ -1625,14 +1625,27 @@ class DMSFile(object):
         simulation.minimizeEnergy()
         print('E1: %.5e kJ/mol' %getEnergy(simulation))
         print('-------------------------------')
+        self.positions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)._value
+
+        ### SAVE EM
+        if emout:
+            shutil.copy(self._file[0], emout)
+            conn    = sqlite3.connect(emout)
+            cursor  = conn.cursor()
+            n_atoms = cursor.execute('SELECT COUNT(DISTINCT id) FROM particle;').fetchone()[0]
     
+            for index in range(n_atoms):
+                cursor.execute('UPDATE particle SET x = ?, y = ?, z = ? WHERE id = ?', 
+                    (*self.positions[index][0:3] * 10, index))
+ 
+            conn.commit()
+            conn.close()
     
         ### RUN NVT/NPT
         prefix = '.'.join(out.split('.')[:-1])
         simulation.reporters.append(DCDReporter(      prefix + '.dcd', dcdfreq))
         simulation.reporters.append(StateDataReporter(prefix + '.csv', csvfreq, step=True, potentialEnergy=True, temperature=True))
         simulation.step(nsteps)
-        
         self.positions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)._value
         cell = getCell(simulation)
     

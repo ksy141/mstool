@@ -792,22 +792,22 @@ def getBonds(structure, ff=[], ff_add=[]):
         for bond in bonds:
             bA0 = u.atoms.resname == resname
             bA1 = u.atoms.name.isin(bond)
-            new = u.atoms[bA0 & bA1].groupby('resn').apply(lambda x: x)
+            new = u.atoms[bA0 & bA1]
 
             for i in range(len(new.index) - 1):
-                if new.index[i][0] != new.index[i+1][0]: continue
-                data.append([new.index[i][1], new.index[i+1][1]])
+                if new.iloc[i].resn == new.iloc[i+1].resn:
+                    data.append([new.iloc[i].id, new.iloc[i+1].id])
 
-        #    bA0 = u.atoms.name == bond[0]
-        #    bA1 = u.atoms.name == bond[1]
+            #bA0 = u.atoms.name == bond[0]
+            #bA1 = u.atoms.name == bond[1]
 
-        #    atomA = u.atoms[bA & bA0].index
-        #    atomB = u.atoms[bA & bA1].index
-        #    
-        #    assert len(atomA) == len(atomB), f"bond: /{resname} @{bond[0]} @{bond[1]}"
+            #atomA = u.atoms[bA & bA0].index
+            #atomB = u.atoms[bA & bA1].index
+            #
+            #assert len(atomA) == len(atomB), f"bond: /{resname} @{bond[0]} @{bond[1]}"
 
-        #    for a, b in zip(atomA, atomB):
-        #        data.append([a, b])
+            #for a, b in zip(atomA, atomB):
+            #    data.append([a, b])
     
 
     ### PROTEIN BACKBONE
