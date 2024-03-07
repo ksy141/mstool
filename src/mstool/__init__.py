@@ -32,6 +32,8 @@ from .utils.saveargs import saveargs
 
 from .lib.align import rotation_matrix, _fit_to
 from .membrane.bilayerbuilder import BilayerBuilder
+from .membrane.spherebuilder  import SphereBuilder
+from .membrane.sphereprotein  import SphereProtein
 
 
 # examples
@@ -43,7 +45,11 @@ MULTISTRUCTURE     = pwd + '/examples/Backmapping/Example5_Sphere/cg.pdb'
 TRIOSTRUCTURE      = pwd + '/examples/Backmapping/Example6_TRIO/cg.pdb'
 TRIOMAPPING        = pwd + '/examples/Backmapping/Example6_TRIO/mapping.dat'
 TRIOFF             = pwd + '/examples/Backmapping/Example6_TRIO/ff.xml'
+TRIOMARTINI        = pwd + '/examples/Backmapping/Example6_TRIO/martini.itp'
 MPCG               = pwd + '/examples/Backmapping/Example7_MembraneProtein/cg.pdb'
 MPAA               = pwd + '/examples/Backmapping/Example7_MembraneProtein/protein_AA.pdb'
 MPAA2              = pwd + '/examples/Backmapping/Example7_MembraneProtein/protein_AA2.pdb'
+GPCR               = pwd + '/examples/BilayerBuilder/Example5_GPCR/gpcr.pdb'
+SEIPIN             = pwd + '/examples/BilayerBuilder/Example6_Seipin/oligomer.pdb'
+
 

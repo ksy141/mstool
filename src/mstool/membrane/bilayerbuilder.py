@@ -16,14 +16,16 @@ pwd = os.path.dirname(os.path.realpath(__file__))
 
 class BilayerBuilder:
     def __init__(self, workdir='workdir', protein=None, upper={}, lower={}, dx=8.0, waterz=50.0, rcut=3.0, 
-                 mode='shift', dN=5, 
+                 mode='shift', dN=5, rockCtype='CTL3', rockHtype='HAL3', rockrcut=1.2, rockENM=True,
                  martini=[], martini_add=[], lipidpath=pwd+'/../../../FF/martini2.2/structures/',
                  mapping=[], mapping_add=[],
                  ff=[], ff_add=[],
                  removedr=4.5, dt=0.03, cg_nsteps=100000, aa_nsteps=10000,
                  frictionCoeff=5.0, barfreq=1, nonbondedCutoff=1.1, 
                  improper_prefactor=0.99, use_existing_folder=False,
-                 hydrophobic_thickness=30, ionconc=0.15):
+                 hydrophobic_thickness=30, ionconc=0.15,
+                 use_AA_structure=True,
+                 remove_solvent=False):
 
         '''Bilayer builder.
         Parameters
@@ -111,7 +113,13 @@ class BilayerBuilder:
         if (not use_existing_folder) or (use_existing_folder and not os.path.exists(workdir)):
             os.mkdir(workdir)
 
-        if protein: Universe(protein).write(workdir + '/protein.dms', wrap=False)
+        if protein:
+            proteinU = Universe(protein)
+            Hatoms   = proteinU.atoms.name.str.startswith('H')
+            proteinU.atoms.bfactor = 0.0
+            proteinU.atoms.loc[~Hatoms, 'bfactor'] = 1.0
+            proteinU.write(workdir + '/protein.dms', wrap=False)
+            proteinU.write(workdir + '/protein.pdb', wrap=False)
        
         ### Read Martini
         #martiniff = ReadMartini(ff=martini, ff_add=martini_add, define={'FLEXIBLE': 'True'})
@@ -150,6 +158,7 @@ class BilayerBuilder:
         #This will add posx, posy, and posz
         #usol.atoms.loc[(usol.atoms.name == 'GL1') | (usol.atoms.name == 'GL2'), 'bfactor'] = 1.0
         usol.write(workdir + '/step1.sol.dms')
+        usol.write(workdir + '/step1.sol.pdb')
 
         ### Martinize
         MartinizeDMS(workdir + '/step1.sol.dms', out = workdir + '/step1.martini.dms', martini=martiniff)
@@ -159,24 +168,45 @@ class BilayerBuilder:
         dms = DMSFile(workdir + '/step1.martini.dms')
         dms.createSystem(REM=True, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=False)
         martiniU = Universe(workdir + '/step1.martini.dms')
-        martiniU.atoms.loc[((martiniU.atoms.name == 'PO4')), 'bfactor'] = 1.0
-        dms.system.addForce(addPosre(martiniU, bfactor_posre=0.5, fcx=0.0, fcy=0.0, fcz=100.0))
+        martiniU.atoms.loc[((martiniU.atoms.name == 'GL1')), 'bfactor'] = 1.0
+        dms.system.addForce(addPosre(martiniU, bfactor_posre=0.5, fcx=0.0, fcy=0.0, fcz=1000.0))
         dms.runEMNPT(workdir + '/step2.dms', emout=workdir + '/step2.em.dms', dt=dt, nsteps=cg_nsteps, frictionCoeff=frictionCoeff, barfreq=barfreq)
         
         ### Translate Back
         u = Universe(workdir + '/step2.dms')
         u.atoms[['x','y','z']] -= shift
+
+        if remove_solvent:
+            dimensions = u.dimensions
+            cell = u.cell
+            bA1  = u.atoms.resname == 'W'
+            bA2  = u.atoms.chain   == 'ZZ1'
+            bA3  = u.atoms.chain   == 'ZZ2'
+            bA   = bA1 | bA2 | bA3
+            u    = Universe(data=u.atoms[~bA])
+            u.dimensions = dimensions
+            u.cell = cell
+        
         u.write(workdir + '/step3.dms', wrap=True)
+        u.write(workdir + '/step3.pdb', wrap=True)
+        #u.atoms[['x','y','z']] -= u.dimensions[0:3] / 2
+        #u.write(workdir + '/step3.dms')
+        #u.write(workdir + '/step3.pdb')
 
         if protein:
+            #proteinshifted = Universe(workdir + '/protein.pdb')
+            #proteinshifted.atoms[['x','y','z']] += shift - u.dimensions[0:3]/2
+            #proteinshifted.write(workdir + '/step8_protein.pdb')
+
             noprotein = Universe(data=u.atoms[~u.atoms.resname.isin(three2one.keys())])
             noprotein.dimensions = u.dimensions
             noprotein.cell = u.cell
             noprotein.write(workdir + '/step3.noprotein.dms')
+            Backmap(workdir + '/step3.noprotein.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
+                    AA=workdir + '/protein.pdb', fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
+                    use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype, rockrcut=rockrcut, rockENM=rockENM)
         else:
-            shutil.copyfile(workdir + '/step3.dms', workdir + '/step3.noprotein.dms')
-
-        ### Backmapping
-        Backmap(workdir + '/step3.noprotein.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
-                AA=protein, fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add)
+            Backmap(workdir + '/step3.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
+                    AA=None, fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
+                    use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype, rockrcut=rockrcut, rockENM=rockENM)
 

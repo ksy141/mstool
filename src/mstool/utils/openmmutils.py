@@ -650,6 +650,31 @@ def addPosre(u, bfactor_posre, fcx, fcy, fcz):
     print('Adding Posre for {:d} atoms whose bfactor > {:.2f})'.format(len(df), bfactor_posre))
     return cef
 
+def addPosrePeriodic(u, bfactor_posre, k):
+    '''Apply positional restraints on atoms whose bfactors are larger than bfactor_posre'''
+    cef = CustomExternalForce("k * periodicdistance(x, y, z, x0, y0, z0)^2")
+    cef.addPerParticleParameter("x0")
+    cef.addPerParticleParameter("y0")
+    cef.addPerParticleParameter("z0")
+    cef.addPerParticleParameter("k")
+
+    if 'bfactor' not in u.atoms:
+        print('bfactor not in atoms; skipping Positional Restraints')
+        return cef
+
+    bA = u.atoms.bfactor > bfactor_posre
+    df = u.atoms[bA]
+
+    for index, row in df.iterrows():
+        x0d = (row.x * angstrom).value_in_unit(nanometer)
+        y0d = (row.y * angstrom).value_in_unit(nanometer)
+        z0d = (row.z * angstrom).value_in_unit(nanometer)
+        fc  = k * kilojoule_per_mole/nanometer**2
+        cef.addParticle(index,[ x0d, y0d, z0d, fc])
+
+    print('Adding Periodic Posre for {:d} atoms whose bfactor > {:.2f})'.format(len(df), bfactor_posre))
+    return cef
+
 
 def addRefPosre(u, refstructure, fcx, fcy, fcz):
     ref = Universe(refstructure)
@@ -690,6 +715,41 @@ def addRefPosre(u, refstructure, fcx, fcy, fcz):
     print('Adding RefPosre for {:d} atoms that exist in {:s}'.format(N, refstructure))
     return cef
 
+
+def addRefPosrePeriodic(u, refstructure, k):
+    ref = Universe(refstructure)
+
+    cef = CustomExternalForce("k * periodicdistance(x, y, z, x0, y0, z0)^2")
+    cef.addPerParticleParameter("x0")
+    cef.addPerParticleParameter("y0")
+    cef.addPerParticleParameter("z0")
+    cef.addPerParticleParameter("k")
+
+    N = 0
+    for index, atom in u.atoms.iterrows():
+        bA1 = atom['name']  == ref.atoms.name
+        bA2 = atom['resid'] == ref.atoms.resid
+        bA3 = atom['chain'] == ref.atoms.chain
+
+        refatoms = ref.atoms[bA1 & bA2 & bA3]
+        if len(refatoms) == 0:
+            continue
+        elif len(refatoms) == 1:
+            refatom = refatoms.iloc[0]
+            #print(refatom.resid, refatom.chain, refatom['name'], atom.x, refatom.x, atom.y, refatom.y, atom.z, refatom.z)
+            x0d = (refatom.x * angstrom).value_in_unit(nanometer)
+            y0d = (refatom.y * angstrom).value_in_unit(nanometer)
+            z0d = (refatom.z * angstrom).value_in_unit(nanometer)
+            fc  = k * kilojoule_per_mole/nanometer**2
+            cef.addParticle(index,[ x0d, y0d, z0d, k])
+            N += 1
+
+        else:
+            assert 0 == 1, '/{:s}:{:d}@{:s} '.format(atom['chain'], atom['resid'], atom['name']) + \
+            'more than one atom with the same name, resid, chain?'
+
+    print('Adding RefPosre for {:d} atoms that exist in {:s}'.format(N, refstructure))
+    return cef
 
 def addBonds(u, xml, pdb=None):
     print("Adding bonds for non-protein residues - started")
@@ -739,7 +799,10 @@ def addBonds(u, xml, pdb=None):
 def getTopPDB(structure, ff=[], ff_add=[]):
     xml = ReadXML(ff=ff, ff_add=ff_add)
     u   = Universe(structure)
-    pdb = PDBFile(structure)
+    if structure.split('.')[-1] == 'pdb':
+        pdb = PDBFile(structure)
+    elif structure.split('.')[-1] == 'dms':
+        pdb = DesmondDMSFile(structure)
     pdbatoms = [atom for atom in pdb.topology.atoms()]
 
     print("Adding bonds for non-protein residues - started")
@@ -922,34 +985,53 @@ def verifyFlatBottomSphere(radius=300, rfb=50, R0=[0,0,0], fc=1.0):
     print(y2)
 
 
+def addSpherePosre(u, bfactor_posre, radius, rfb, R0=[0,0,0], fc=1000.0, chain=None):
+    '''Apply Flat-bottomed position restraints for sphere simulations
 
-def addPosre(u, bfactor_posre, fcx, fcy, fcz):
-    '''Apply positional restraints on atoms whose bfactors are larger than bfactor_posre'''
-    cef = CustomExternalForce("hkx*(x-x0)^2+hky*(y-y0)^2+hkz*(z-z0)^2")
-    cef.addPerParticleParameter("x0")
-    cef.addPerParticleParameter("y0")
-    cef.addPerParticleParameter("z0")
-    cef.addPerParticleParameter("hkx")
-    cef.addPerParticleParameter("hky")
-    cef.addPerParticleParameter("hkz")
+    | d - radius | < rfb  ---> pot = 0
+      d - radius   < -rfb ---> pot = (radius - rfb - x)**2
+      d - radius   > +rfb ---> pot = (radius + rfb - x)**2
+    
+    Parameters
+    ----------
+    u : Universe
+    bfactor_posre : float
+        atoms whose bfactors are larger than bfactor_posre will have this restraints
+    radius : float
+        radius in unit of Angstrom
+    rfb : float
+        distance from the center with a flat potential in unit of Angstrom
+    fc : float
+        force constant in unit of kilojoule_per_mole/naometer**2
+    R0 : list or array
+        a reference position with a shape of ``(3,)``.
+    '''
 
-    if 'bfactor' not in u.atoms:
-        print('bfactor not in atoms; skipping Positional Restraints')
-        return cef
+    pot  = "fc * (radius + rfb - d)^2 * step( d - radius - rfb) + "
+    pot += "fc * (radius - rfb - d)^2 * step(-d + radius - rfb); "
+    pot += "d = (  (x-R0x)^2 + (y-R0y)^2 + (z-R0z)^2  )^0.5;"
+    
+    cef = CustomExternalForce(pot)
+    cef.addGlobalParameter("fc",     fc * kilojoule_per_mole/nanometer**2)
+    cef.addGlobalParameter("R0x",    R0[0]  * 0.1 * nanometer)
+    cef.addGlobalParameter("R0y",    R0[1]  * 0.1 * nanometer)
+    cef.addGlobalParameter("R0z",    R0[2]  * 0.1 * nanometer)
+    cef.addGlobalParameter("rfb",    rfb    * 0.1 * nanometer)
+    cef.addPerParticleParameter("radius")
 
-    bA = u.atoms.bfactor > bfactor_posre
-    df = u.atoms[bA]
+    bA1 = u.atoms.bfactor > bfactor_posre
+    if chain:
+        bA2 = u.atoms.chain == chain
+        df  = u.atoms[bA1 & bA2]
+    else:
+        df = u.atoms[bA]
 
     for index, row in df.iterrows():
-        x0d = (row.x * angstrom).value_in_unit(nanometer)
-        y0d = (row.y * angstrom).value_in_unit(nanometer)
-        z0d = (row.z * angstrom).value_in_unit(nanometer)
-        hfcxd = fcx*kilojoule_per_mole/nanometer**2
-        hfcyd = fcy*kilojoule_per_mole/nanometer**2
-        hfczd = fcz*kilojoule_per_mole/nanometer**2
-        cef.addParticle(index,[ x0d, y0d, z0d, hfcxd,  hfcyd,  hfczd])
+        cef.addParticle(index, [radius * 0.1 * nanometer])
 
-    print('Adding Posre for {:d} atoms whose bfactor > {:.2f})'.format(len(df), bfactor_posre))
+    if chain:
+        print(f'Adding Sphere Posre for {len(df):d} atoms whose bfactor > {bfactor_posre:.2f} and chain is {chain})')
+    else:
+        print(f'Adding Sphere Posre for {len(df):d} atoms whose bfactor > {bfactor_posre:.2f}')
     return cef
-
 

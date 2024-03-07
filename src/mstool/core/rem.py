@@ -28,7 +28,7 @@ class REM:
     def __init__(self, structure=None, out=None, protein=None, refposre=None, outrem=None,
         rock=None, rockrcut=1.2, rockKbond=5000.0, rockresname='ROCK', rockout='ROCK_rem.pdb',
         nonrockout='NONROCK.dms',
-        rocktype='HL',
+        rockCtype='CTL3', rockHtype='HAL3', rockENM=True,
         rcut=1.2, pbc=True, 
         A=100, C=50,
         mapping = [], mapping_add = [], 
@@ -43,6 +43,11 @@ class REM:
         # v3 should not be used
         # protein: version = 'v4' seems the best
         # lipid:   version = 'v1' seems the best
+
+        self.fcx = fcx
+        self.fcy = fcy
+        self.fcz = fcz
+        self.bfactor_posre = bfactor_posre
 
 
         ### NonbondedMethod
@@ -59,6 +64,7 @@ class REM:
         self.cospower = cospower
         self.nsteps   = nsteps
         u          = Universe(structure)
+        self.protein = protein
 
 
         if not isinstance(ff_add, list):
@@ -71,7 +77,9 @@ class REM:
                               rcut=rockrcut, 
                               Kbond=rockKbond, 
                               resname=rockresname,
-                              type=rocktype)
+                              rockCtype=rockCtype,
+                              rockHtype=rockHtype,
+                              ENM=rockENM)
 
             rrdms      = DesmondDMSFile(rr.dms)
             ff_add    += ['ROCK.xml']
@@ -103,20 +111,35 @@ class REM:
                 for bond in bonds:
                     pdb.topology.addBond(pdbatoms[bond[0]], pdbatoms[bond[1]])
 
+            realpbc = pdb.topology.getPeriodicBoxVectors()
+            print(realpbc)
+
         else:
             raise IOError('Please provide a pdb or dms file')
 
+        fakepbc = Quantity(value=(Vec3(x=9.0, y=0.0, z=0.0), 
+                                  Vec3(x=0.0, y=9.0, z=0.0), 
+                                  Vec3(x=0.0, y=0.0, z=9.0)), 
+                           unit=nanometer)
 
         ### Combine systems (rock should be the first because of the bonds added later)
         modeller_combined = []
         universe_combined = []
 
         if rock:
+            if pbc:
+                rrdms.topology.setPeriodicBoxVectors(realpbc)
+            else:
+                rrdms.topology.setPeriodicBoxVectors(fakepbc)
             modeller_combined.append([rrdms.topology, rrdms.positions])
             universe_combined.append(Universe(rr.dms).atoms)
 
         if protein:
             proteinpdb = PDBFile(protein)
+            if pbc:
+                proteinpdb.topology.setPeriodicBoxVectors(realpbc)
+            else:
+                proteinpdb.topology.setPeriodicBoxVectors(fakepbc)
             modeller_combined.append([proteinpdb.topology, proteinpdb.positions])
             universe_combined.append(Universe(protein).atoms)
         
@@ -131,10 +154,11 @@ class REM:
             modeller.add(modeller_combined[i][0], modeller_combined[i][1])
 
         if pbc:
-            modeller.topology.setPeriodicBoxVectors(pdb.topology.getPeriodicBoxVectors())
+            modeller.topology.setPeriodicBoxVectors(realpbc)
 
         self.final = modeller
         print(self.final.topology)
+        print(self.final.topology.getPeriodicBoxVectors())
 
 
         ### Make a universe
@@ -167,10 +191,12 @@ class REM:
 
         ### Add posre
         if refposre:
-            self.system.addForce(addRefPosre(u, refposre, fcx, fcy, fcz))
+            # self.system.addForce(addRefPosre(u, refposre, fcx, fcy, fcz))
+            self.system.addForce(addRefPosrePeriodic(u, refposre, fcz))
         else:
             # rock molecules have bfactor of 0.0 -> will have no restraints
-            self.system.addForce(addPosre(u, bfactor_posre, fcx, fcy, fcz))
+            # self.system.addForce(addPosre(u, bfactor_posre, fcx, fcy, fcz))
+            self.system.addForce(addPosrePeriodic(u, bfactor_posre, fcz))
 
 
 
@@ -211,12 +237,12 @@ class REM:
         print("Running REM without isomeric torsions")
         self.removeForces(['PeptideTorsion', 'CisTransTorsion', 'ChiralTorsion'])
         self.runREM()
+        u.atoms[['x','y','z']] = self.numpypositions
 
         ### Save outREM
-        if outrem:
-            u.atoms[['x','y','z']] = self.numpypositions
-            u.write(outrem)
-            #CheckTetrahedron(outrem, ff=ff, ff_add=ff_add)
+        if outrem: u.write(outrem)
+        #CheckTetrahedron(outrem, ff=ff, ff_add=ff_add)
+        self.u = u
 
         ### Run EM + NVT
         if turn_off_EMNVT:
@@ -234,13 +260,15 @@ class REM:
             rockstruct = Universe(data = u.atoms[u.atoms.resname == 'ROCK'])
             rockstruct.dimensions = u.dimensions
             rockstruct.cell       = u.cell 
-            rockstruct.bodns      = addBonds(rockstruct, xml)
+            rockstruct.bonds      = addBonds(rockstruct, xml)
+            #rockstruct.bonds      = getBonds(rockstruct, ff=ff, ff_add=ff_add)
             rockstruct.write(rockout)
 
             nonrockstruct = Universe(data = u.atoms[u.atoms.resname != 'ROCK'])
             nonrockstruct.dimensions = u.dimensions
             nonrockstruct.cell       = u.cell
             nonrockstruct.bonds      = addBonds(nonrockstruct, xml)
+            #nonrockstruct.bonds      = getBonds(nonrockstruct, xml)
             nonrockstruct.write(nonrockout)
 
             new = Universe(data = pd.concat([Universe(rock).atoms, nonrockstruct.atoms], ignore_index=True))
@@ -261,6 +289,7 @@ class REM:
         
         #CheckTetrahedron(out, ff=ff, ff_add=ff_add)
         self.universe = u
+        self.u        = u
         self.forces   = { force.__class__.__name__ : force for force in self.system.getForces() }
         #print(self.forces.keys())
 
@@ -424,6 +453,13 @@ class REM:
         system     = self.forcefield.createSystem(self.final.topology, 
                                                   nonbondedMethod=self.nonbondedMethod, 
                                                   nonbondedCutoff=self.rcut*nanometers)
+
+        # added on 20240302
+        # let protein does not change during EMNVT
+        if self.protein:
+            system.addForce(addPosrePeriodic(self.u, self.bfactor_posre, self.fcz))
+            # system.addForce(addRefPosre(self.u, self.protein, self.fcx, self.fcy, self.fcz))
+
         simulation = Simulation(self.final.topology, system, integrator)
         simulation.context.setPositions(self.positions)
         #print(simulation.context.getState().getPeriodicBoxVectors(asNumpy=True)._value * 10)
@@ -432,8 +468,10 @@ class REM:
         print("Platform: ", platform)
         print("E0: %.3e kJ/mol" %simulation.context.getState(getEnergy=True).getPotentialEnergy()._value)
         simulation.minimizeEnergy()
-        simulation.step(self.nsteps)
         print("E1: %.3e kJ/mol" %simulation.context.getState(getEnergy=True).getPotentialEnergy()._value)
+        if self.nsteps > 0:
+            simulation.step(self.nsteps)
+            print("E2: %.3e kJ/mol" %simulation.context.getState(getEnergy=True).getPotentialEnergy()._value)
         print("-------------------------------")
 
         self.positions      = simulation.context.getState(getPositions=True).getPositions()

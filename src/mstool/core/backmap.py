@@ -17,7 +17,8 @@ class Backmap:
                  ff      = [], ff_add = [],
                  Kchiral=300, Kpeptide=300, Kcistrans=300, Kdihedral=300,
                  fcx=1000.0, fcy=1000.0, fcz=1000.0,
-                 rock=None, rockrcut=1.2, rockKbond=5000.0, rockname='ROCK', rcut=1.2, pbc=True, A=100, C=50,
+                 rock=None, rockrcut=1.2, rockKbond=5000.0, rockname='ROCK', rockCtype='CTL3', rockHtype='HAL3', rockENM=True,
+                 rcut=1.2, pbc=True, A=100, C=50,
                  add_bonds = True, remversion='v4',
                  water_resname='W', water_chain=None, water_number=4, water_fibor=2.0, water_chain_dms=True, 
                  use_AA_structure=False, AA_structure=[], AA_structure_add=[], AA_shrink_factor=1.0,
@@ -67,7 +68,11 @@ class Backmap:
             rockout     = workdir + f'/step{fileindex+2}_rock.dms',
             nonrockout  = workdir + f'/step{fileindex+2}_nonrock.dms',
             protein     = protein,
-            rock        = rock, 
+            rock        = rock,
+            rockCtype   = rockCtype,
+            rockHtype   = rockHtype,
+            rockrcut    = rcut,
+            rockENM     = rockENM,
             mapping     = mapping, 
             mapping_add = mapping_add,
             ff          = ff, 
@@ -75,6 +80,7 @@ class Backmap:
             A           = A,
             C           = C,
             cospower    = cospower,
+            rcut        = rcut,
             pbc         = pbc,
             nsteps      = nsteps)
         
@@ -123,7 +129,7 @@ class Backmap:
 
             step3file = workdir + f'/step{fileindex+3}_final'
             Universe(step3file + '.dms').write(step3file + '.pdb')
-            CheckTetrahedron(step3file + '.pdb', ff=ff, ff_add=ff_add)
+            CheckTetrahedron(step3file + '.dms', ff=ff, ff_add=ff_add)
 
 
     def checkMappingXML(self, map, xml):

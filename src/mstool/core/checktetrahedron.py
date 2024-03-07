@@ -18,6 +18,9 @@ def CheckTetrahedron(structure, ff=[], ff_add=[], tol=1.0):
     bondedlist = [list(b) for b in bonded]
     
     print("####################################################################")
+    print("Incorrect tetrahedron geometry is harmless")
+    print("because it will be fixed within 0.1 ns of AA MD simulations.")
+    print("Checking anyway...")
     print("Tetrahedron checking - started")
     for center, bb in enumerate(bondedlist):
         if len(bb) != 4: continue

@@ -123,13 +123,16 @@ class Ungroup(Universe):
 
     def construct_using_AA(self):
         for ifile in self.AA_structure:
-            basename = ifile.split('/')[-1].split('.')[0]
-            ext      = ifile.split('/')[-1].split('.')[-1]
-            prefix   = '/'.join(ifile.split('/')[:-1])
+            basename = os.path.basename(ifile).split('.')[0]
+            ext      = os.path.basename(ifile).split('.')[-1]
+            prefix   = '/'.join(os.path.abspath(ifile).split('/')[:-1])
             resname  = basename.split('_')[0]
-            print(basename, ext, prefix, resname, f'./{prefix}/{resname}.{ext}')
+            path     = prefix + f'/{resname}.{ext}'
+            print('Using AA structure: ' + path)
 
-            if not os.path.exists(f'./{prefix}/{resname}.{ext}'): continue
+            if not os.path.exists(path):
+                print(f'{path} does not exist')
+                continue
             self.exclude_residues.append(resname)
             
             bA1 = self.u.atoms.resname == resname
@@ -145,7 +148,7 @@ class Ungroup(Universe):
                 refpos   = self.u.atoms[bA1 & bA2][['x','y','z']].values
                 refcog   = np.average(refpos, axis=0)
 
-                mobatoms = Universe(f'./{prefix}/{resname}.{ext}').atoms
+                mobatoms = Universe(path).atoms
                 mobpos   = mobatoms[['x','y','z']].values
                 mobcog   = np.average(mobpos, axis=0)
 
