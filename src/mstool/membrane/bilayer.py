@@ -190,8 +190,8 @@ class Bilayer(Lipid):
         ### Setting pbc
         pbcx         = max(u.atoms['x'].max(), u.atoms['y'].max(), abs(u.atoms['x'].min()), abs(u.atoms['y'].min())) * 2 + 3.0
         pbcz         = max(u.atoms['z'].max(), abs(u.atoms['z'].min())) * 2 + waterz * 2
-        u.dimensions = [pbcx, pbcx, pbcz, 90, 90, 90]
-        u.cell       = [[pbcx, 0, 0], [0, pbcx, 0], [0, 0, pbcz]]
+        u.dimensions = np.array([pbcx, pbcx, pbcz, 90, 90, 90])
+        u.cell       = np.array([[pbcx, 0, 0], [0, pbcx, 0], [0, 0, pbcz]])
 
         if out: u.write(out)
         self.universe = u

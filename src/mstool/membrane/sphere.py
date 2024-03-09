@@ -122,8 +122,8 @@ class Sphere(Lipid):
         u        = RemoveOverlappedResidues(lipidU.atoms, proteinU.atoms, rcut=rcut)
 
         ### Setting pbc
-        u.dimensions = [pbc, pbc, pbc, 90, 90, 90]
-        u.cell       = [[pbc, 0, 0], [0, pbc, 0], [0, 0, pbc]]
+        u.dimensions = np.array([pbc, pbc, pbc, 90, 90, 90])
+        u.cell       = np.array([[pbc, 0, 0], [0, pbc, 0], [0, 0, pbc]])
 
         if out: u.write(out)
         self.universe = u

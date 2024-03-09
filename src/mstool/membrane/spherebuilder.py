@@ -26,7 +26,8 @@ class SphereBuilder:
                  hydrophobic_thickness=30, ionconc=0.15,
                  use_AA_structure=True,
                  alpha=0.0, beta=0.0, gamma=0.0,
-                 remove_solvent=False):
+                 remove_solvent=False,
+                 solvate=True):
 
         '''Sphere builder.
         Parameters
@@ -136,12 +137,13 @@ class SphereBuilder:
                    alpha=alpha, beta=beta, gamma=gamma)
 
         ### Solvate
-        usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc)
-        cell = usol.cell
-        dim  = usol.dimensions
-        usol.dimensions = dim
-        usol.cell       = cell
-        
+        if solvate:
+            usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc)
+        else:
+            usol = u.universe
+            cg_nsteps=0
+            remove_solvent=False
+
         ### Translate
         shift = usol.dimensions[0:3] / 2
         usol.atoms[['x','y','z']] += shift

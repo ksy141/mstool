@@ -25,7 +25,8 @@ class BilayerBuilder:
                  improper_prefactor=0.99, use_existing_folder=False,
                  hydrophobic_thickness=30, ionconc=0.15,
                  use_AA_structure=True,
-                 remove_solvent=False):
+                 remove_solvent=False,
+                 solvate=True):
 
         '''Bilayer builder.
         Parameters
@@ -139,10 +140,17 @@ class BilayerBuilder:
                     hydrophobic_thickness=hydrophobic_thickness)
 
         ### Solvate
-        if protein:
-            usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc)
+        if solvate:
+            if protein:
+                usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc)
+            else:
+                usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc, membrane=True)
+
         else:
-            usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc, membrane=True)
+            usol = u.universe
+            cg_nsteps=0
+            remove_solvent=False
+
         cell = usol.cell
         dim  = usol.dimensions
         bA1  = usol.atoms.name == 'W'

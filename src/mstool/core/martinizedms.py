@@ -433,24 +433,29 @@ class MartinizeDMS:
             bA1 = self.u.atoms.chain == chain
             bA2 = self.u.atoms.resname.isin(prot_resnames)
             bA3 = self.u.atoms.name  == 'BB'
-
             BB  = self.u.atoms[bA1 & bA2 & bA3]
-            assert (BB.resid.to_numpy()[1:] - BB.resid.to_numpy()[:-1] == 1).all(), 'not continuous?'
 
             ### BB bond
             r0 = 0.35 * 10
             k  = 1250 * 0.5 * 2.39e-3
 
-            if len(BB.index) > 1:
-                for i1, i2 in zip(BB[:-1].index, BB[1:].index):
-                    self.bond_param += 1
+            for i in range(len(BB) - 1):
+                CG1 = BB.iloc[i+0]
+                CG2 = BB.iloc[i+1]
+                
+                if CG2.resid - CG1.resid != 1:
+                    continue
 
-                    self.cursor.execute(sql_insert_exclusion.format(i1, i2))
-                    btype = f'BB_{i1}_{i2}'
+                i1 = CG1.id
+                i2 = CG2.id
+                self.bond_param += 1
 
-                    self.cursor.execute(sql_insert_bond.format(i1, i2, 1))
-                    self.cursor.execute(sql_insert_stretch_harm_term.format(i1, i2, 0, self.bond_param))
-                    self.cursor.execute(sql_insert_stretch_harm_param.format(btype, r0, k, self.bond_param))
+                self.cursor.execute(sql_insert_exclusion.format(i1, i2))
+                btype = f'BB_{i1}_{i2}'
+
+                self.cursor.execute(sql_insert_bond.format(i1, i2, 1))
+                self.cursor.execute(sql_insert_stretch_harm_term.format(i1, i2, 0, self.bond_param))
+                self.cursor.execute(sql_insert_stretch_harm_param.format(btype, r0, k, self.bond_param))
 
             
             if self.helix:
@@ -478,12 +483,22 @@ class MartinizeDMS:
             
             
             ### BBB angle
-            if len(BB.index) > 2.5:
-                for i1, i2, i3 in zip(BB[:-2].index, BB[1:-1].index, BB[2:].index):
-                    self.angle_param += 1
-                    atype = f'BBB_{i1}_{i2}_{i3}'
-                    self.cursor.execute(sql_insert_angle_harmcos_term.format(i1, i2, i3, self.angle_param))
-                    self.cursor.execute(sql_insert_angle_harmcos_param.format(atype, np.cos(t0 * np.pi / 180), k, self.angle_param))
+            for i in range(len(BB) - 2):
+                CG1 = BB.iloc[i+0]
+                CG2 = BB.iloc[i+1]
+                CG3 = BB.iloc[i+2]
+
+                if (CG3.resid - CG2.resid != 1) or (CG2.resid - CG1.resid != 1):
+                    continue
+                
+                i1 = CG1.id
+                i2 = CG2.id
+                i3 = CG3.id
+                self.angle_param += 1
+
+                atype = f'BBB_{i1}_{i2}_{i3}'
+                self.cursor.execute(sql_insert_angle_harmcos_term.format(i1, i2, i3, self.angle_param))
+                self.cursor.execute(sql_insert_angle_harmcos_param.format(atype, np.cos(t0 * np.pi / 180), k, self.angle_param))
             
 
             ### BBS angle
