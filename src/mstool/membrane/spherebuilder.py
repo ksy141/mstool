@@ -85,7 +85,7 @@ class SphereBuilder:
             Number of all-atom simulation steps after backmapping
         frictionCoeff: float=5.0
             Friction coefficient for coarse-grained simulations.
-        barfreq: int=100
+        barfreq: int=1
             Frequency of MonteCarloMembraneBarostat.
         nonbondedCutoff: float=1.1
             Cutoff distance in coarse-grained simulations.
@@ -141,7 +141,9 @@ class SphereBuilder:
             usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc)
         else:
             usol = u.universe
-            cg_nsteps=0
+            # make it NVT
+            barfreq=0
+            # remove_solvent step becomes redundant
             remove_solvent=False
 
         ### Translate
