@@ -11,7 +11,6 @@ class Rock:
         u    = Universe(structure)
         N    = len(u.atoms)
         pos  = u.atoms[['x','y','z']].to_numpy()
-        dist = pdist(pos)
 
         ### Change atomic information
         u.atoms.resname = resname
@@ -57,6 +56,7 @@ class Rock:
         self.bonds = []
 
         if ENM:
+            dist  = pdist(pos)
             bonds = []
             for i in range(N):
                 for j in range(N):
