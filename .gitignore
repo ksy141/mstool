@@ -12,3 +12,4 @@ build
 *.swp
 dist
 mstool.egg-info
+protein.dms
