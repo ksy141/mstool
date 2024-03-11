@@ -1,5 +1,5 @@
-Membrane Builder
-================
+MembraneBuilder
+===============
 
 The tool incorporates a membrane-building function at an all-atom resolution, using a provided lipid composition similar to `CHARMM-GUI <https://charmm-gui.org>`_. Initially, it constructs a membrane at Martini coarse-grained resolution, conducts coarse-grained simulations for equilibrium, and subsequently converts the coarse-grained structure into an all-atom structure. If a protein structure is provided, the tool will then solvate the protein with lipids. However, instead of converting the coarse-grained protein into an all-atom protein during the backmapping process, the coarse-grained protein will be substituted with the initial input all-atom protein. This ensures that the tool respects the input protein structure.
 
