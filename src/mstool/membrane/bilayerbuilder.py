@@ -16,7 +16,7 @@ pwd = os.path.dirname(os.path.realpath(__file__))
 
 class BilayerBuilder:
     def __init__(self, workdir='workdir', protein=None, upper={}, lower={}, dx=8.0, waterz=50.0, rcut=3.0, 
-                 mode='shift', dN=5, rockCtype='CTL3', rockHtype='HAL3', rockrcut=1.2, rockENM=True,
+                 mode='shift', dN=5, rockCtype='CTL3', rockHtype='HAL3', rockrcut=1.2, rockENM=False,
                  martini=[], martini_add=[], lipidpath=pwd+'/../../../FF/martini2.2/structures/',
                  mapping=[], mapping_add=[],
                  ff=[], ff_add=[],
