@@ -97,7 +97,7 @@ class SphereProtein:
         universe = Universe(data=data)
         # when merging, if there is empty universe, resid changes to float.
         universe.atoms = universe.atoms.astype({'resid': int})
-        universe.sort(by=['chain', 'resid'])
+        #universe.sort(by=['chain', 'resid'])
         return universe
 
 
