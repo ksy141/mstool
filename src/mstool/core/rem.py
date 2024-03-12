@@ -28,7 +28,7 @@ class REM:
     def __init__(self, structure=None, out=None, protein=None, refposre=None, outrem=None,
         rock=None, rockrcut=1.2, rockKbond=5000.0, rockresname='ROCK', rockout='ROCK_rem.pdb',
         nonrockout='NONROCK.dms',
-        rockCtype='CTL3', rockHtype='HAL3', rockENM=True,
+        rockCtype='CTL3', rockHtype='HAL3', rockENM=False,
         rcut=1.2, pbc=True, 
         A=100, C=50,
         mapping = [], mapping_add = [], 

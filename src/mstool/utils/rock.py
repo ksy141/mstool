@@ -5,7 +5,7 @@ from   ..core.universe import Universe
 class Rock:
     def __init__(self, structure, out='ROCK', resname='ROCK',
                  rockHtype='HAL3', rockCtype='CTL3', 
-                 rcut=1.2, Kbond=5000.0, ENM=True):
+                 rcut=1.2, Kbond=5000.0, ENM=False):
         
         # Kbond: kJ/mol/nm^2
         u    = Universe(structure)
