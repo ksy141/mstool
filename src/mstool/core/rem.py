@@ -9,6 +9,7 @@ from   .checktetrahedron import CheckTetrahedron
 
 from   ..utils.protein_sel import three2one
 from   ..utils.rock        import Rock
+from   ..utils.rockchain   import RockChain
 from   ..utils.openmmutils import *
 
 import numpy  as np
@@ -73,13 +74,19 @@ class REM:
 
         ### Make a rock file
         if rock:
-            rr         = Rock(structure=rock, out='ROCK', 
-                              rcut=rockrcut, 
-                              Kbond=rockKbond, 
-                              resname=rockresname,
-                              rockCtype=rockCtype,
-                              rockHtype=rockHtype,
-                              ENM=rockENM)
+            #rr         = Rock(structure=rock, out='ROCK', 
+            #                  rcut=rockrcut, 
+            #                  Kbond=rockKbond, 
+            #                  resname=rockresname,
+            #                  rockCtype=rockCtype,
+            #                  rockHtype=rockHtype,
+            #                  ENM=rockENM)
+
+            rr         = RockChain(structure=rock, 
+                                   out='ROCK', 
+                                   resname=rockresname,
+                                   rockCtype=rockCtype,
+                                   rockHtype=rockHtype)
 
             rrdms      = DesmondDMSFile(rr.dms)
             ff_add    += ['ROCK.xml']

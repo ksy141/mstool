@@ -46,7 +46,7 @@ class Rock:
         W.write(f'    <Residue name="{resname}">\n')
         for nn, tt in zip(u.atoms.name.tolist(), u.atoms.type.tolist()):
             W.write(f'      <Atom charge="0.00" name="{nn}" type="{tt}"/>\n')
-        W.write(f'    </Residue>')
+        W.write(f'    </Residue>\n')
         W.write('  </Residues>\n')
         W.write('</ForceField>\n')
         W.close()
