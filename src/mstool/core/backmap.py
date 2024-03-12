@@ -51,7 +51,7 @@ class Backmap:
                 rock = AA
                 protein = None
                 print('Some of the residues in the AA argument is not recognizable in openMM')
-                print(f'Using protein="{AA}"')
+                print(f'Using rock="{AA}"')
 
         ### Ungroup
         Ungroup(structure, out=workdir + f'/step{fileindex}_ungroup.dms', 

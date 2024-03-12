@@ -201,7 +201,7 @@ class SphereBuilder:
             noprotein.cell = u.cell
             noprotein.write(workdir + '/step3.noprotein.dms')
             Backmap(workdir + '/step3.noprotein.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
-                    AA=workdir + '/protein.pdb', fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
+                    AA=workdir + '/protein.dms', fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
                     use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype, rockrcut=rockrcut, rockENM=rockENM)
         else:
             Backmap(workdir + '/step3.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
