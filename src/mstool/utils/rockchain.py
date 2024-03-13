@@ -32,7 +32,7 @@ class RockChain:
 
             names = []
             for j, (idx, atom) in enumerate(u.atoms[bA].iterrows()):
-                names.append(atom['name'][0] + str(j))
+                names.append(atom['type'][0] + str(j))
             u.atoms.loc[bA, 'name'] = names
 
             W.write(f'    <Residue name="{resn}">\n')
