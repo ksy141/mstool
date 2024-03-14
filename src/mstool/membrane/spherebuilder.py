@@ -1,6 +1,7 @@
 import os
 import shutil
 from  .sphere                import Sphere
+from  .sphereprotein         import SphereProtein
 from  ..core.map             import Map
 from  ..core.backmap         import Backmap
 from  ..core.readmartini     import ReadMartini
@@ -110,14 +111,21 @@ class SphereBuilder:
 
         if protein:
             if isinstance(protein, str):
-                proteinU = Universe(protein)    
-                Hatoms   = proteinU.atoms.name.str.startswith('H')
-                proteinU.atoms.bfactor = 0.0
-                proteinU.atoms.loc[~Hatoms, 'bfactor'] = 1.0
-                proteinU.write(workdir + '/protein.dms', wrap=False)
-                proteinU.write(workdir + '/protein.pdb', wrap=False)
-                proteinU.write(workdir + '/step8_protein.pdb', wrap=False)
                 proteinU = Universe(protein)
+
+            elif isinstance(protein, dict):
+                SphereProtein(radius=radius, protein=protein, out=workdir + '/protein.dms')
+                proteinU = Universe(workdir + '/protein.dms')
+
+            Hatoms   = proteinU.atoms.name.str.startswith('H')
+            proteinU.atoms.bfactor = 0.0
+            proteinU.atoms.loc[~Hatoms, 'bfactor'] = 1.0
+            proteinU.write(workdir + '/protein.dms', wrap=False)
+            proteinU.write(workdir + '/protein.pdb', wrap=False)
+            proteinU.write(workdir + '/step8_protein.pdb', wrap=False)
+            proteinU = Universe(protein)
+
+                
        
         ### Read Martini
         #martiniff = ReadMartini(ff=martini, ff_add=martini_add, define={'FLEXIBLE': 'True'})
