@@ -428,7 +428,8 @@ class Universe:
             self.atoms.drop('resn', axis=1, inplace=True)
         
         # make a tmp instance that is sorted
-        dg = self.atoms.sort_values(by=['chain', 'resid', 'resname'])
+        # dg = self.atoms.sort_values(by=['chain', 'resid', 'resname'])
+        dg = self.atoms
         
         # slow
         #self.atoms['resn'] = -1
@@ -793,16 +794,18 @@ def Merge(*args, sort=False, ignore_index=True):
     >>> u.write('final.pdb')
     '''
 
-    u = Universe()
-    bonds = []
-
     #index = 0
     #for arg in args:
     #    bonds.extend(list(np.array(arg.universe.bonds) + index))
     #    index += len(arg)
+    
+    u = Universe()
 
-    u.atoms = pd.concat(args, ignore_index=ignore_index)
-    u.bonds = bonds
+    atoms = [arg for arg in args if len(arg) > 0]
+    if len(atoms) == 0:
+        return u
+    
+    u.atoms = pd.concat(atoms, ignore_index=ignore_index)
     if sort: u.sort()
     return u
 
@@ -839,6 +842,9 @@ def RemoveOverlappedResidues(atoms1, atoms2, rcut, dimensions=None, returnoverla
     from ..lib.distance import distance_overlap
     u1 = Universe(data=atoms1)
     u2 = Universe(data=atoms2)
+
+    if len(u2.atoms) == 0:
+        return u1
 
     pos1 = u1.atoms[['x','y','z']].to_numpy()
     pos2 = u2.atoms[['x','y','z']].to_numpy()

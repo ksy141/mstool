@@ -83,8 +83,7 @@ mstool.SphereBuilder(radius=100,
                      upper={'POPC': 1600, 'DOPS': 990, 'CHL1': 10},
                      lower={'POPC': 1000, 'DOPS': 400, 'CHL1': 10},
                      aa_nsteps=aa_nsteps,
-                     remove_solvent=True,
-                     rockENM=False)
+                     remove_solvent=True)
 
 os.chdir('../')
 

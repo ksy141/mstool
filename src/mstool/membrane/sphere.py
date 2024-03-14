@@ -117,6 +117,7 @@ class Sphere(Lipid):
  
 
         ### New Universe
+        #proteinU = Merge(protein.atoms, transU.atoms) if len(transU.atoms) > 0 else protein
         proteinU = Merge(protein.atoms, transU.atoms)
         lipidU   = Merge(upperU.atoms,  lowerU.atoms)
         u        = RemoveOverlappedResidues(lipidU.atoms, proteinU.atoms, rcut=rcut)

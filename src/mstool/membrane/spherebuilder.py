@@ -109,14 +109,15 @@ class SphereBuilder:
             os.mkdir(workdir)
 
         if protein:
-            proteinU = Universe(protein)
-            Hatoms   = proteinU.atoms.name.str.startswith('H')
-            proteinU.atoms.bfactor = 0.0
-            proteinU.atoms.loc[~Hatoms, 'bfactor'] = 1.0
-            proteinU.write(workdir + '/protein.dms', wrap=False)
-            proteinU.write(workdir + '/protein.pdb', wrap=False)
-            proteinU.write(workdir + '/step8_protein.pdb', wrap=False)
-            proteinU = Universe(protein)
+            if isinstance(protein, str):
+                proteinU = Universe(protein)    
+                Hatoms   = proteinU.atoms.name.str.startswith('H')
+                proteinU.atoms.bfactor = 0.0
+                proteinU.atoms.loc[~Hatoms, 'bfactor'] = 1.0
+                proteinU.write(workdir + '/protein.dms', wrap=False)
+                proteinU.write(workdir + '/protein.pdb', wrap=False)
+                proteinU.write(workdir + '/step8_protein.pdb', wrap=False)
+                proteinU = Universe(protein)
        
         ### Read Martini
         #martiniff = ReadMartini(ff=martini, ff_add=martini_add, define={'FLEXIBLE': 'True'})

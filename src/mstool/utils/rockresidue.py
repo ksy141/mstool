@@ -27,18 +27,14 @@ class RockResidue:
         u.atoms['name'] = u.atoms.groupby('resn').apply(generate_list).explode().reset_index(level=0, drop=True)
 
         
-        # change atom type
-        bAH = u.atoms['name'].str.startswith('H')
-        u.atoms.loc[bAH,  'type'] = rockHtype
-        u.atoms.loc[~bAH, 'type'] = rockCtype
-        resns = pd.unique(u.atoms.resn)
-        
-
         # obtain unique residues
         uniques = {}
         for name in u.atoms.groupby('resn').name:
             namelist = name[1].tolist()
             resname  = 'ROCK' + ''.join(namelist)
+
+            #if len(namelist) != len(set(namelist)):
+            #    assert 0 == 1, print(namelist)
 
             if resname not in uniques.keys():
                 uniques[resname] = namelist
