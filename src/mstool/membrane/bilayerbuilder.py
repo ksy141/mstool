@@ -16,7 +16,7 @@ pwd = os.path.dirname(os.path.realpath(__file__))
 
 class BilayerBuilder:
     def __init__(self, workdir='workdir', protein=None, upper={}, lower={}, dx=8.0, waterz=50.0, rcut=3.0, 
-                 mode='shift', dN=5, rockCtype='CTL3', rockHtype='HAL3', rockrcut=1.2, rockENM=False,
+                 mode='shift', dN=5, rockCtype='CTL3', rockHtype='HAL3',
                  martini=[], martini_add=[], lipidpath=pwd+'/../../../FF/martini2.2/structures/',
                  mapping=[], mapping_add=[],
                  ff=[], ff_add=[],
@@ -214,9 +214,9 @@ class BilayerBuilder:
             noprotein.write(workdir + '/step3.noprotein.dms')
             Backmap(workdir + '/step3.noprotein.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
                     AA=workdir + '/protein.dms', fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
-                    use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype, rockrcut=rockrcut, rockENM=rockENM)
+                    use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype)
         else:
             Backmap(workdir + '/step3.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
                     AA=None, fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
-                    use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype, rockrcut=rockrcut, rockENM=rockENM)
+                    use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype)
 

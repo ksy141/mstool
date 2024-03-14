@@ -483,9 +483,13 @@ def addCisTransTorsions(u, Kcistrans, mapping, exclude=[], turn_off_torsion_warn
     for resname in set(u.atoms.resname):
         if resname in exclude: continue
         if resname not in mapping.RESI.keys():
-            if resname != 'TIP3':
+            if resname == 'TIP3':
+                continue
+            elif resname.startswith('ROCK'):
+                continue
+            else:
                 print(f'Warning: {resname} not in the mapping scheme - skipping CisTransTorsions for this residue')
-            continue
+                continue
         for isomer in ['cis', 'trans']:
             atomset = mapping.RESI[resname][isomer]
             for atoms in atomset:
@@ -534,9 +538,13 @@ def addDihedralTorsions(u, Kdihedral, mapping, exclude=[], turn_off_torsion_warn
     for resname in set(u.atoms.resname):
         if resname in exclude: continue
         if resname not in mapping.RESI.keys():
-            if resname != 'TIP3':
+            if resname == 'TIP3':
+                continue
+            elif resname.startswith('ROCK'):
+                continue
+            else:
                 print(f'Warning: {resname} not in the mapping scheme - skipping DihedralTorsions for this residue')
-            continue
+                continue
 
         dihedrals = mapping.RESI[resname]['dihedral']
         for dihedral in dihedrals:
@@ -582,9 +590,13 @@ def addChiralTorsions(u, Kchiral, mapping, exclude=[], turn_off_torsion_warning=
     for resname in set(u.atoms.resname):
         if resname in exclude: continue
         if resname not in mapping.RESI.keys():
-            if resname != 'TIP3':
+            if resname == 'TIP3':
+                continue
+            elif resname.startswith('ROCK'):
+                continue
+            else:
                 print(f'Warning: {resname} not in the mapping scheme - skipping ChiralTorsions for this residue')
-            continue
+                continue
         chirals = mapping.RESI[resname]['chiral']
         for chiral in chirals:
             bA  = u.atoms.resname == resname

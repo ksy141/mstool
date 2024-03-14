@@ -35,9 +35,13 @@ class CheckStructure:
     def CheckChiral(self):
         for resname in self.resnames:
             if resname not in self.mapping.RESI.keys():
-                if resname != 'TIP3':
+                if resname == 'TIP3':
+                    continue
+                elif resname.startswith('ROCK'):
+                    continue
+                else:
                     print(f'{resname} is unrecognized residue. Skipping a chiral examination for this residue')
-                continue
+                    continue
 
             chirals = self.mapping.RESI[resname]['chiral']
             for chiral in chirals:
@@ -80,9 +84,13 @@ class CheckStructure:
     def CheckCisTrans(self):
         for resname in self.resnames:
             if resname not in self.mapping.RESI.keys():
-                if resname != 'TIP3':
+                if resname == 'TIP3':
+                    continue
+                elif resname.startswith('ROCK'):
+                    continue
+                else:
                     print(f'{resname} is unrecognized residue. Skipping a cistrans examination for this residue')
-                continue
+                    continue
 
             for isomer in ['cis', 'trans']:
                 atomset = self.mapping.RESI[resname][isomer]
@@ -135,10 +143,14 @@ class CheckStructure:
     def CheckDihedral(self):
         for resname in self.resnames:
             if resname not in self.mapping.RESI.keys():
-                if resname != 'TIP3':
-                    print(f'{resname} is unrecognized residue. Skipping a cistrans examination for this residue')
-                continue
-            
+                if resname == 'TIP3':
+                    continue
+                elif resname.startswith('ROCK'):
+                    continue
+                else:
+                    print(f'{resname} is unrecognized residue. Skipping a dihedral examination for this residue')
+                    continue
+
             dihedrals = self.mapping.RESI[resname]['dihedral']
             for dihedral in dihedrals:
                 self.counts.append(['dihedral', resname, *dihedral])

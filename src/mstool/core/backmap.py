@@ -17,12 +17,12 @@ class Backmap:
                  ff      = [], ff_add = [],
                  Kchiral=300, Kpeptide=300, Kcistrans=300, Kdihedral=300,
                  fcx=1000.0, fcy=1000.0, fcz=1000.0,
-                 rock=None, rockrcut=1.2, rockKbond=5000.0, rockname='ROCK', rockCtype='CTL3', rockHtype='HAL3', rockENM=False,
+                 rock=None, rockCtype='CTL3', rockHtype='HAL3',
                  rcut=1.2, pbc=True, A=100, C=50,
                  add_bonds = True, remversion='v4',
                  water_resname='W', water_chain=None, water_number=4, water_fibor=2.0, water_chain_dms=True, 
                  use_AA_structure=False, AA_structure=[], AA_structure_add=[], AA_shrink_factor=1.0,
-                 use_existing_workdir=False, fileindex=1, pdb=True, cospower=2,
+                 use_existing_workdir=False, fileindex=1, pdbsave=True, cospower=2,
                  nsteps=10000):
 
         ### workdir
@@ -71,8 +71,6 @@ class Backmap:
             rock        = rock,
             rockCtype   = rockCtype,
             rockHtype   = rockHtype,
-            rockrcut    = rcut,
-            rockENM     = rockENM,
             mapping     = mapping, 
             mapping_add = mapping_add,
             ff          = ff, 
@@ -98,6 +96,9 @@ class Backmap:
             if os.path.exists('ROCK.xml'): os.rename('ROCK.xml', workdir + '/ROCK.xml')
 
             u1 = Universe(AA)
+            shutil.copyfile(workdir + f'/step{fileindex+2}_nonrock.dms', 
+                            workdir + f'/step{fileindex+4}_nonprotein.dms')
+
             #u2 = Universe(workdir + f'/step{fileindex+2}_nonrock.dms',
             #              ff=ff, ff_add=ff_add, create_bonds=True)
             u2 = Universe(workdir + f'/step{fileindex+2}_nonrock.dms')
@@ -106,6 +107,10 @@ class Backmap:
             u.dimensions = u2.dimensions
             u.cell       = u2.cell
             u.write(workdir + f'/step{fileindex+3}_final.dms')
+            
+            u1.dimensions = u2.dimensions
+            u1.cell       = u2.cell
+            u1.write(workdir + f'/step{fileindex+4}_protein.pdb')
 
         else:
             #u = Universe(workdir + f'/step{fileindex+2}_em.dms', 
@@ -117,7 +122,7 @@ class Backmap:
                             workdir + f'/step{fileindex+3}_final.dms')
         
         ### PDB
-        if pdb:
+        if pdbsave:
             step1file = workdir + f'/step{fileindex}_ungroup'
             Universe(step1file + '.dms').write(step1file + '.pdb')
 

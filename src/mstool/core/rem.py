@@ -10,6 +10,7 @@ from   .checktetrahedron import CheckTetrahedron
 from   ..utils.protein_sel import three2one
 from   ..utils.rock        import Rock
 from   ..utils.rockchain   import RockChain
+from   ..utils.rockresidue import RockResidue
 from   ..utils.openmmutils import *
 
 import numpy  as np
@@ -27,9 +28,8 @@ class REM:
     # mergedPositions = modeller.positions
 
     def __init__(self, structure=None, out=None, protein=None, refposre=None, outrem=None,
-        rock=None, rockrcut=1.2, rockKbond=5000.0, rockresname='ROCK', rockout='ROCK_rem.pdb',
-        nonrockout='NONROCK.dms',
-        rockCtype='CTL3', rockHtype='HAL3', rockENM=False,
+        rock=None, rockout='ROCK_rem.pdb', nonrockout='NONROCK.dms',
+        rockCtype='CTL3', rockHtype='HAL3',
         rcut=1.2, pbc=True, 
         A=100, C=50,
         mapping = [], mapping_add = [], 
@@ -82,11 +82,16 @@ class REM:
             #                  rockHtype=rockHtype,
             #                  ENM=rockENM)
 
-            rr         = RockChain(structure=rock, 
-                                   out='ROCK', 
-                                   resname=rockresname,
-                                   rockCtype=rockCtype,
-                                   rockHtype=rockHtype)
+            #rr         = RockChain(structure=rock, 
+            #                       out='ROCK', 
+            #                       resname=rockresname,
+            #                       rockCtype=rockCtype,
+            #                       rockHtype=rockHtype)
+
+            rr         = RockResidue(structure=rock, 
+                                     out='ROCK', 
+                                     rockCtype=rockCtype,
+                                     rockHtype=rockHtype)
 
             rrdms      = DesmondDMSFile(rr.dms)
             ff_add    += ['ROCK.xml']
@@ -229,9 +234,9 @@ class REM:
  
         print("Adding Isomer Torsions - started")
         self.system.addForce(addPeptideTorsions(  u, Kpeptide))
-        self.system.addForce(addCisTransTorsions( u, Kcistrans, mapping, exclude=[rockresname], turn_off_torsion_warning=turn_off_torsion_warning))
-        self.system.addForce(addChiralTorsions(   u, Kchiral,   mapping, exclude=[rockresname], turn_off_torsion_warning=turn_off_torsion_warning))
-        self.system.addForce(addDihedralTorsions( u, Kdihedral, mapping, exclude=[rockresname], turn_off_torsion_warning=turn_off_torsion_warning))
+        self.system.addForce(addCisTransTorsions( u, Kcistrans, mapping, turn_off_torsion_warning=turn_off_torsion_warning))
+        self.system.addForce(addChiralTorsions(   u, Kchiral,   mapping, turn_off_torsion_warning=turn_off_torsion_warning))
+        self.system.addForce(addDihedralTorsions( u, Kdihedral, mapping, turn_off_torsion_warning=turn_off_torsion_warning))
         print("Adding Isomer Torsions - finished")
 
 
@@ -264,14 +269,15 @@ class REM:
         u.atoms[['x','y','z']] = self.numpypositions
 
         if rock:
-            rockstruct = Universe(data = u.atoms[u.atoms.resname == 'ROCK'])
+            rockbA = u.atoms.resname.str.startswith('ROCK')
+            rockstruct = Universe(data = u.atoms[rockbA])
             rockstruct.dimensions = u.dimensions
             rockstruct.cell       = u.cell 
-            rockstruct.bonds      = addBonds(rockstruct, xml)
+            #rockstruct.bonds      = addBonds(rockstruct, xml)
             #rockstruct.bonds      = getBonds(rockstruct, ff=ff, ff_add=ff_add)
             rockstruct.write(rockout)
 
-            nonrockstruct = Universe(data = u.atoms[u.atoms.resname != 'ROCK'])
+            nonrockstruct = Universe(data = u.atoms[~rockbA])
             nonrockstruct.dimensions = u.dimensions
             nonrockstruct.cell       = u.cell
             nonrockstruct.bonds      = addBonds(nonrockstruct, xml)
