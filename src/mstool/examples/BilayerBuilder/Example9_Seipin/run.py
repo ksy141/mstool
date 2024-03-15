@@ -7,5 +7,6 @@ mstool.BilayerBuilder(protein='protein.pdb',
                       martini_add=mstool.TRIOMARTINI,
                       mapping_add=mstool.TRIOMAPPING,
                       ff_add=mstool.TRIOFF,
-                      cg_nsteps=500000)
+                      cg_nsteps=500000,
+                      dx=7.2)
 

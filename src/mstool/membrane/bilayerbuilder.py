@@ -20,7 +20,7 @@ class BilayerBuilder:
                  martini=[], martini_add=[], lipidpath=pwd+'/../../../FF/martini2.2/structures/',
                  mapping=[], mapping_add=[],
                  ff=[], ff_add=[],
-                 removedr=4.5, dt=0.03, cg_nsteps=100000, aa_nsteps=10000,
+                 removedr=3.0, dt=0.03, cg_nsteps=100000, aa_nsteps=10000,
                  frictionCoeff=5.0, barfreq=1, nonbondedCutoff=1.1, 
                  improper_prefactor=0.99, use_existing_folder=False,
                  hydrophobic_thickness=30, ionconc=0.15,

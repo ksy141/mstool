@@ -844,7 +844,11 @@ def RemoveOverlappedResidues(atoms1, atoms2, rcut, dimensions=None, returnoverla
     u2 = Universe(data=atoms2)
 
     if len(u2.atoms) == 0:
-        return u1
+        if returnoverlapped:
+            return [False] * len(u1.atoms)
+
+        else:
+            return u1
 
     pos1 = u1.atoms[['x','y','z']].to_numpy()
     pos2 = u2.atoms[['x','y','z']].to_numpy()
