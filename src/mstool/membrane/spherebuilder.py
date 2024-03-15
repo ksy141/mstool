@@ -122,8 +122,6 @@ class SphereBuilder:
             proteinU.atoms.loc[~Hatoms, 'bfactor'] = 1.0
             proteinU.write(workdir + '/protein.dms', wrap=False)
             proteinU.write(workdir + '/protein.pdb', wrap=False)
-            proteinU.write(workdir + '/step8_protein.pdb', wrap=False)
-            proteinU = Universe(protein)
 
                 
        
