@@ -659,7 +659,7 @@ def addPosre(u, bfactor_posre, fcx, fcy, fcz):
         hfczd = fcz*kilojoule_per_mole/nanometer**2
         cef.addParticle(index,[ x0d, y0d, z0d, hfcxd,  hfcyd,  hfczd])
 
-    print('Adding Posre for {:d} atoms whose bfactor > {:.2f})'.format(len(df), bfactor_posre))
+    print(f'Adding Posre of ({fcx:.1f}, {fcy:.1f}, {fcz:.1f}) kJ/mol/nm^2 for {len(df):d} atoms whose bfactor > {bfactor_posre:.2f})')
     return cef
 
 def addPosrePeriodic(u, bfactor_posre, k):
@@ -685,6 +685,28 @@ def addPosrePeriodic(u, bfactor_posre, k):
         cef.addParticle(index,[ x0d, y0d, z0d, fc])
 
     print('Adding Periodic Posre for {:d} atoms whose bfactor > {:.2f})'.format(len(df), bfactor_posre))
+    return cef
+
+
+def addPosrePeriodicZ(u, bfactor_posre, k):
+    '''Apply positional restraints on atoms whose bfactors are larger than bfactor_posre'''
+    cef = CustomExternalForce("k * periodicdistance(x, y, z, x, y, z0)^2")
+    cef.addPerParticleParameter("z0")
+    cef.addPerParticleParameter("k")
+
+    if 'bfactor' not in u.atoms:
+        print('bfactor not in atoms; skipping Positional Restraints')
+        return cef
+
+    bA = u.atoms.bfactor > bfactor_posre
+    df = u.atoms[bA]
+
+    for index, row in df.iterrows():
+        z0d = (row.z * angstrom).value_in_unit(nanometer)
+        fc  = k * kilojoule_per_mole/nanometer**2
+        cef.addParticle(index,[ z0d, fc])
+
+    print('Adding Periodic Posre Z for {:d} atoms whose bfactor > {:.2f})'.format(len(df), bfactor_posre))
     return cef
 
 
@@ -925,6 +947,55 @@ def getBonds(structure, ff=[], ff_add=[]):
     print("Adding bonds - finished")
     return data
 
+def addFlatBottomZ(u, bfactor_posre, radius, rfb, R0z=0.0, fc=1000.0, chain=False):
+    '''Apply Flat-bottomed position restraints for sphere simulations
+
+    | d - radius | < rfb  ---> pot = 0
+      d - radius   < -rfb ---> pot = (radius - rfb - x)**2
+      d - radius   > +rfb ---> pot = (radius + rfb - x)**2
+    
+    Parameters
+    ----------
+    u : Universe
+    bfactor_posre : float
+        atoms whose bfactors are larger than bfactor_posre will have this restraints
+    radius : float
+        radius in unit of Angstrom
+    rfb : float
+        distance from the center with a flat potential in unit of Angstrom
+    fc : float
+        force constant in unit of kilojoule_per_mole/naometer**2
+    R0 : list or array
+        a reference position with a shape of ``(3,)``.
+    '''
+
+    pot  = "fc * (radius + rfb - d)^2 * step( d - radius - rfb) + "
+    pot += "fc * (radius - rfb - d)^2 * step(-d + radius - rfb); "
+    pot += "d =  ((z-R0z)^2)^0.5;"
+    
+    cef = CustomExternalForce(pot)
+    cef.addGlobalParameter("fc",  fc * kilojoule_per_mole/nanometer**2)
+    cef.addGlobalParameter("R0z",    R0z    * 0.1 * nanometer)
+    cef.addGlobalParameter("rfb",    rfb    * 0.1 * nanometer)
+    cef.addPerParticleParameter("radius")
+
+    bA1 = u.atoms.bfactor > bfactor_posre
+    if chain:
+        bA2 = u.atoms.chain == chain
+        df  = u.atoms[bA1 & bA2]
+    else:
+        df = u.atoms[bA1]
+
+    for index, row in df.iterrows():
+        cef.addParticle(index, [radius * 0.1 * nanometer])
+
+    if chain:
+        print(f'Adding FlatBottomZ for {len(df):d} atoms whose bfactor > {bfactor_posre:.2f} and chain is {chain})')
+    else:
+        print(f'Adding FlatBottomZ for {len(df):d} atoms whose bfactor > {bfactor_posre:.2f}')
+
+    return cef
+
 
 
 def addFlatBottomSphere(u, bfactor_posre, radius, rfb, R0=[0,0,0], fc=1000.0):
@@ -997,7 +1068,7 @@ def verifyFlatBottomSphere(radius=300, rfb=50, R0=[0,0,0], fc=1.0):
     print(y2)
 
 
-def addSpherePosre(u, bfactor_posre, radius, rfb, R0=[0,0,0], fc=1000.0, chain=None):
+def addSpherePosre(u, bfactor_posre, radius, rfb, R0=[0,0,0], fc=100.0, chain=None):
     '''Apply Flat-bottomed position restraints for sphere simulations
 
     | d - radius | < rfb  ---> pot = 0
@@ -1036,7 +1107,7 @@ def addSpherePosre(u, bfactor_posre, radius, rfb, R0=[0,0,0], fc=1000.0, chain=N
         bA2 = u.atoms.chain == chain
         df  = u.atoms[bA1 & bA2]
     else:
-        df = u.atoms[bA]
+        df = u.atoms[bA1]
 
     for index, row in df.iterrows():
         cef.addParticle(index, [radius * 0.1 * nanometer])

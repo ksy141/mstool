@@ -1,0 +1,31 @@
+show all
+turn x 90
+
+color @C* & ~protein  #909090
+color @SOD rgb(171,92,242)
+color @CLA rgb(31,240,31)
+size  @SOD atomRadius 1.02
+size  @CLA atomRadius 1.81
+color :TIP3@OH2 rgba(1., 0.051, 0.051, 0.5)
+style :SOD,CLA sphere
+
+hide all
+
+#coordset #1
+#perframe "open showhalf.py"
+open showhalf.py
+
+# color :TIP3@OH2 rgba(1., 1., 1., 0.5)
+surface :TIP3@OH2 probeRadius 6.0
+transparency 95 target s
+
+hide @H*
+hide protein
+hide :TIP3 target a
+
+view
+
+show  :P0G & ~@H*
+color :P0G & C salmon
+style :P0G sphere
+

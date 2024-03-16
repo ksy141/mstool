@@ -23,7 +23,7 @@ class Backmap:
                  water_resname='W', water_chain=None, water_number=4, water_fibor=2.0, water_chain_dms=True, 
                  use_AA_structure=False, AA_structure=[], AA_structure_add=[], AA_shrink_factor=1.0,
                  use_existing_workdir=False, fileindex=1, pdbsave=True, cospower=2,
-                 nsteps=10000):
+                 nsteps=10000, T=310):
 
         ### workdir
         if not use_existing_workdir: os.mkdir(workdir)
@@ -80,7 +80,8 @@ class Backmap:
             cospower    = cospower,
             rcut        = rcut,
             pbc         = pbc,
-            nsteps      = nsteps)
+            nsteps      = nsteps,
+            T           = T)
         
 
         ### CheckStructure
@@ -97,7 +98,7 @@ class Backmap:
 
             u1 = Universe(AA)
             shutil.copyfile(workdir + f'/step{fileindex+2}_nonrock.dms', 
-                            workdir + f'/step{fileindex+4}_nonprotein.dms')
+                            workdir + f'/step{fileindex+3}_nonprotein.dms')
 
             #u2 = Universe(workdir + f'/step{fileindex+2}_nonrock.dms',
             #              ff=ff, ff_add=ff_add, create_bonds=True)
@@ -107,10 +108,11 @@ class Backmap:
             u.dimensions = u2.dimensions
             u.cell       = u2.cell
             u.write(workdir + f'/step{fileindex+3}_final.dms')
+            u.write(workdir + f'/step{fileindex+3}_final.pdb')
             
             u1.dimensions = u2.dimensions
             u1.cell       = u2.cell
-            u1.write(workdir + f'/step{fileindex+4}_protein.pdb')
+            u1.write(workdir + f'/step{fileindex+3}_protein.pdb')
 
         else:
             #u = Universe(workdir + f'/step{fileindex+2}_em.dms', 
@@ -120,6 +122,8 @@ class Backmap:
             #u.write(workdir + f'/step{fileindex+3}_final.dms')
             shutil.copyfile(workdir + f'/step{fileindex+2}_em.dms',
                             workdir + f'/step{fileindex+3}_final.dms')
+            Universe(workdir + f'/step{fileindex+3}_final.dms').write(
+                     workdir + f'/step{fileindex+3}_final.pdb')
         
         ### PDB
         if pdbsave:
@@ -132,9 +136,9 @@ class Backmap:
             step3file = workdir + f'/step{fileindex+2}_em'
             Universe(step3file + '.dms').write(step3file + '.pdb')
 
-            step3file = workdir + f'/step{fileindex+3}_final'
-            Universe(step3file + '.dms').write(step3file + '.pdb')
-            CheckTetrahedron(step3file + '.dms', ff=ff, ff_add=ff_add)
+            #step3file = workdir + f'/step{fileindex+3}_final'
+            #Universe(step3file + '.dms').write(step3file + '.pdb')
+            #CheckTetrahedron(step3file + '.dms', ff=ff, ff_add=ff_add)
 
 
     def checkMappingXML(self, map, xml):

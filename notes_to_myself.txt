@@ -56,3 +56,44 @@ Jan. 30, 2024
 Ungroup with backbone=True places C-terminus atoms near origin. Fixed in 0.1.1.
 
 
+Mar. 15, 2024
+Tapering="shift" is required for Martini "NPT" simulations for proper equilibrium.
+Volume and area will be different if tapering=None.
+However, this will change the potential energy.
+Therefore, in order to compare gromacs and openMM potential energy, tapering should be None.
+
+If there is a protein:
+    protein has x,y,z restraints...
+    MembraneBarostat does not seem to be affected by Z restraints on lipids
+If there is no protein:
+    MembraneBarosat + Z restraints do not like each other...
+    SO I removed Z restraints if there is no protein.
+
+
+Mar.16 2024 
+After some tests, here is what I ended up.
+
+OpenMM EM is good enough with simply Martini Force Field.
+Therefore, there is no need for REM.
+
+CHL1 is problematic with whatever the existing models. 
+It does not show up as a problem in REM but with regular Martini, yes.
+Therefore, I made a fake CHL1 model without dihedrals but with bonds (like ENM)
+
+MembraneBarostat + Z restraints do not like each other.
+MembraneBarostat + Z restraints on lipids + XYZ restraints on protein seem ok.
+MembraneBarostat + Sphere restraints on lipids also look ok.
+Therefore,
+1. For non-protein, remove Z restraints.
+   Also, instead of shifiting back by the original shift,
+   shift back by the center of the geometry of non W, non ions 
+
+2. For protein, have a weak Z restraints.
+   If there is protein, because it has XYZ restraints,
+   the lipids seem fine to have a weak Z restraints.
+   shift back by 
+
+3. For sphere, lipids have a sphereposre (kinda xyz restraints)
+   Therefore, it doesn't mess up with positional restraints
+
+ 

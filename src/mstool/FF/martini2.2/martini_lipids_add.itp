@@ -163,10 +163,73 @@
 ;   biomolecular simulations. JPC-B, 111:7812-7824, 2007. doi:10.1021/jp071097f 
 ;   S.J. Marrink, A.H. de Vries, T.A. Harroun, J. Katsaras, S.R. Wassall. Cholesterol shows preference for the interior of 
 ;   polyunsaturated lipid membranes. JACS, 130:10-11, 2008. doi:10.1021/ja076641c
-;
 
-; This is an old topology without any virtual sites (yes!!!)
-[moleculetype] 	; This topology is stable with an integration timestep of 30 fs.
+
+;; This is an old topology without any virtual sites (yes!!!)
+;[moleculetype] 	; This topology is stable with an integration timestep of 30 fs.
+;; molname 	nrexcl
+;  CHL1 		1
+;                                                                                
+;[atoms]
+;; id 	type 	resnr 	residu 	atom 	cgnr 	charge
+;  1 	SP1 	1 	CHL1 	ROH 	1 	0
+;  2 	SC1 	1 	CHL1 	R1 	    2 	0
+;  3 	SC3 	1 	CHL1 	R2 	    3 	0
+;  4 	SC1 	1 	CHL1 	R3 	    4 	0
+;  5 	SC1 	1 	CHL1 	R4 	    5 	0
+;  6 	SC1 	1 	CHL1 	R5 	    6 	0
+;  7 	SC1 	1 	CHL1 	C1 	    7 	0
+;  8 	C1 	    1 	CHL1 	C2 	    8 	0
+;                                                                                
+;[bonds]
+;; i j 	funct 	length 	force.c.
+;  1 2 	1 	0.242 	20000
+;  2 3 	1 	0.260 	20000
+;  2 4 	1 	0.341 	20000
+;  4 6 	1 	0.213 	20000
+;  4 7 	1 	0.544 	20000 
+;  5 6 	1 	0.203 	20000
+;  6 7 	1 	0.368 	20000
+;  7 8 	1 	0.425 	1250
+;                                                                                
+;#ifndef FLEXIBLE
+;[ constraints ]
+;#endif
+;; i j 	funct 	length ; cholesterol frame constraint
+;  1 3 	1 	0.493  100000
+;  1 4 	1 	0.604  100000
+;  3 4 	1 	0.272  100000
+;  3 5 	1 	0.346  100000
+;  4 5 	1 	0.294  100000
+;  5 7 	1 	0.406  100000
+;                                                                                
+;[angles]
+;; i j k 	funct 	angle 	force.c.
+;  4 7 8 	2 	180.0   25.0
+;                                                                                
+;[dihedrals]
+;; i j k l 	funct 	angle 	force.c.  ; multiple dihedrals work better
+;  1 3 5 7 	2 	0.0 	100.0 
+;  1 3 5 4 	2 	0.0 	100.0
+;  1 4 5 3 	2 	0.0 	100.0
+;  4 7 5 3 	2 	0.0 	100.0
+;  3 5 7 4 	2 	0.0 	100.0
+;  2 1 3 4 	2 	-45.0 	300.0
+;  2 4 3 1 	2 	45.0 	300.0
+;  6 4 5 7 	2 	-45.0 	300.0
+;  6 7 5 4 	2 	45.0 	300.0
+;                                                                                
+;[exclusions]
+;   1 2 3 4 5 6 7
+;   2 3 4 5 6 7
+;   3 4 5 6 7
+;   4 5 6 7
+;   5 6 7
+;   6 7
+
+
+; This is a fake CHL1 model
+[moleculetype] 
 ; molname 	nrexcl
   CHL1 		1
                                                                                 
@@ -183,52 +246,33 @@
                                                                                 
 [bonds]
 ; i j 	funct 	length 	force.c.
-  1 2 	1 	0.242 	20000
-  2 3 	1 	0.260 	20000
-  2 4 	1 	0.341 	20000
-  4 6 	1 	0.213 	20000
-  4 7 	1 	0.544 	20000 
-  5 6 	1 	0.203 	20000
-  6 7 	1 	0.368 	20000
+  1 2 	1 	0.242 	5000
+  1 3 	1 	0.493   5000
+  1 4 	1 	0.604   5000
+  1 5   1   0.815   5000 ; new
+  1 6   1   0.790   5000 ; new
+  2 3 	1 	0.260 	5000
+  2 4 	1 	0.341 	5000
+  2 5   1   0.570   5000 ; new
+  2 6   1   0.540   5000 ; new
+  3 4 	1 	0.272   5000
+  3 5 	1 	0.346   5000
+  3 6   1   0.380   5000 ; new
+  4 5 	1 	0.294   5000
+  4 6 	1 	0.213 	5000
+  4 7 	1 	0.544 	5000 
+  5 6 	1 	0.203 	5000
+  5 7 	1 	0.406   5000
+  6 7 	1 	0.368 	5000
   7 8 	1 	0.425 	1250
-                                                                                
-#ifndef FLEXIBLE
-[ constraints ]
-#endif
-; i j 	funct 	length ; cholesterol frame constraint
-  1 3 	1 	0.493  100000
-  1 4 	1 	0.604  100000
-  3 4 	1 	0.272  100000
-  3 5 	1 	0.346  100000
-  4 5 	1 	0.294  100000
-  5 7 	1 	0.406  100000
                                                                                 
 [angles]
 ; i j k 	funct 	angle 	force.c.
   4 7 8 	2 	180.0   25.0
                                                                                 
-[dihedrals]
-; i j k l 	funct 	angle 	force.c.  ; multiple dihedrals work better
-  1 3 5 7 	2 	0.0 	100.0 
-  1 3 5 4 	2 	0.0 	100.0
-  1 4 5 3 	2 	0.0 	100.0
-  4 7 5 3 	2 	0.0 	100.0
-  3 5 7 4 	2 	0.0 	100.0
-  2 1 3 4 	2 	-45.0 	300.0
-  2 4 3 1 	2 	45.0 	300.0
-  6 4 5 7 	2 	-45.0 	300.0
-  6 7 5 4 	2 	45.0 	300.0
-                                                                                
-[exclusions]
-   1 2 3 4 5 6 7
-   2 3 4 5 6 7
-   3 4 5 6 7
-   4 5 6 7
-   5 6 7
-   6 7
-
-
-
+;[exclusions]
+;   2 5 6
+;
 [moleculetype]
 ; molname      nrexcl
   DMPC          1

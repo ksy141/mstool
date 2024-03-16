@@ -160,12 +160,15 @@ class DMSFile(object):
         positions = []
         velocities = []
         boxVectors = []
+        self.cell  = []
 
         #assume cell dimensions are set in the first file
         #the other molecules inherit the same cell
         conn = self._conn[0]
         for x, y, z in conn.execute('SELECT x, y, z FROM global_cell'):
             boxVectors.append(mm.Vec3(x, y, z))
+            self.cell.append([x * 0.1, y * 0.1, z * 0.1])
+
         unitCellDimensions = [boxVectors[0][0], boxVectors[1][1], boxVectors[2][2]]
         top.setUnitCellDimensions(unitCellDimensions*angstrom)
 
@@ -323,9 +326,11 @@ class DMSFile(object):
     def createSystem(self, nonbondedMethod='CutoffPeriodic', nonbondedCutoff=1.2,
                      ewaldErrorTolerance=0.0005, removeCMMotion=True, hydrogenMass=None,
                      OPLS=False, implicitSolvent=None, AGBNPVersion=1, REM=False, A=100, C=50, martini=False,
-                     improper_prefactor=0.99):
+                     improper_prefactor=0.99, tapering='shift'):
         """Construct an OpenMM System representing the topology described by this
-        DMS file
+        DMS file. tapering='shift' is must for Martini simulations because
+        openMM uses MCBarostat, and for LJ-dominant systems like Martini 
+        (rather than charged interactions dominant), MCBarostat will not work well.
 
         Parameters
         ----------
@@ -391,11 +396,11 @@ class DMSFile(object):
 
         if REM and martini:
             # REM martini simulation
-            self._addNonbondedForceToSystemTableMartiniREM(sys, nonbondedCutoff, nonbondedMethod, A, C)
+            self._addNonbondedForceToSystemTableMartiniREM(sys, nonbondedCutoff, nonbondedMethod, A, C, tapering)
 
         elif not REM and martini:
             # Normal martini simulations
-            self._addNonbondedForceToSystemTableMartini(sys, nonbondedCutoff, nonbondedMethod)
+            self._addNonbondedForceToSystemTableMartini(sys, nonbondedCutoff, nonbondedMethod, tapering)
 
         elif REM and not martini:
             # REM all-atom simulations
@@ -1034,13 +1039,25 @@ class DMSFile(object):
 
     def _addNonbondedForceToSystemTableMartini(self, sys, 
                                                nonbondedCutoff=1.1, 
-                                               nonbondedMethod='CutoffPeriodic'):
+                                               nonbondedMethod='CutoffPeriodic',
+                                               tapering='shift'):
         """Create the nonbonded force using TabulatedFunction for Martini"""
         
-        energy = ("4*eps*((sig/r)^12-(sig/r)^6) + 138.911*q1*q2/r; "
-                  "eps = epsilon(type1, type2); "
-                  "sig = sigma(type1, type2); ")
+        if tapering:
+            if tapering == 'shift':
+                energy = ("4*eps*((sig/r)^12-(sig/r)^6) + 138.911*q1*q2/r "
+                         f"- 4*eps*((sig/{nonbondedCutoff})^12-(sig/{nonbondedCutoff})^6) "
+                         f"- 138.911*q1*q2/{nonbondedCutoff}; "
+                          "eps = epsilon(type1, type2); "
+                          "sig = sigma(type1, type2); ")
+            else:
+                raise ValueError('tapering should be either "shift" or False')
 
+        else:
+            energy = ("4*eps*((sig/r)^12-(sig/r)^6) + 138.911*q1*q2/r; "
+                      "eps = epsilon(type1, type2); "
+                      "sig = sigma(type1, type2); ")
+        
         cnb = mm.CustomNonbondedForce(energy)
         cnb.setNonbondedMethod(methodMap[nonbondedMethod])
         cnb.setCutoffDistance(nonbondedCutoff)
@@ -1101,15 +1118,31 @@ class DMSFile(object):
     def _addNonbondedForceToSystemTableMartiniREM(self, sys, 
                                                   nonbondedCutoff=1.1, 
                                                   nonbondedMethod='CutoffPeriodic',
-                                                  A=100, C=50):
+                                                  A=100, C=50, tapering='shift'):
         """Create the REM nonbonded force using TabulatedFunction for Martini"""
-        
-        energy = ("min(rep, LJ) + coul; "
-                  "rep = A * (cos(pi/2 * r/sig))^2; "
-                  "LJ = 4*eps*((sig/r)^12-(sig/r)^6); "
-                  "coul = C * q1 * q2 * (cos(pi/2 * r / rcut))^2; "
-                  "eps=epsilon(type1, type2); sig=sigma(type1, type2); ")
 
+        if tapering:
+            if tapering == 'shift':
+                # Both rep and coul have pot = 0 at cutoff
+                # adjust only LJ
+                energy = ("min(rep, LJ) + coul - LJ0; "
+                          "rep  = A * (cos(pi/2 * r/sig))^2; "
+                          "LJ   = 4*eps*((sig/r)^12-(sig/r)^6); "
+                          "coul = C * q1 * q2 * (cos(pi/2 * r / rcut))^2; "
+                         f"LJ0  = 4*eps*((sig/{nonbondedCutoff})^12-(sig/{nonbondedCutoff})^6);"
+                          "eps=epsilon(type1, type2); sig=sigma(type1, type2); ")
+
+
+            else:
+                raise ValueError('tapering should be either "shift" or False')
+
+        else:
+            energy = ("min(rep, LJ) + coul; "
+                      "rep = A * (cos(pi/2 * r/sig))^2; "
+                      "LJ = 4*eps*((sig/r)^12-(sig/r)^6); "
+                      "coul = C * q1 * q2 * (cos(pi/2 * r / rcut))^2; "
+                      "eps=epsilon(type1, type2); sig=sigma(type1, type2); ")
+        
         cnb = mm.CustomNonbondedForce(energy)
         cnb.setNonbondedMethod(methodMap[nonbondedMethod])
         cnb.setCutoffDistance(nonbondedCutoff)
@@ -1576,7 +1609,7 @@ class DMSFile(object):
     def runEMNPT(self, out=None, emout=None,
         nonbondedCutoff=1.1, 
         nsteps=10000, dcdfreq=1000, csvfreq=1000, dt=0.02, P=1.0, T=310, 
-        semiisotropic=False, barfreq=100, addForces=[], frictionCoeff=5.0):
+        semiisotropic=False, barfreq=100, addForces=[], frictionCoeff=5.0, EM=True):
         '''Perform EM, followed by NPT. I used this mostly to run Martini simulations.
         Therefore, the default parameters (dt=0.02) are tuned for martini simulations.
         However, this does not mean that you cannot use this function in all-atom simulations.
@@ -1600,7 +1633,7 @@ class DMSFile(object):
         csvfreq : int=1000
             Simulaitonal data frequencuy
         '''
-    
+        
         ### ADD BAROSTAT
         if barfreq > 0:
             if semiisotropic:
@@ -1616,19 +1649,25 @@ class DMSFile(object):
         integrator = mm.LangevinMiddleIntegrator(T*kelvin, frictionCoeff/picosecond, dt*picoseconds)
         simulation = Simulation(self.topology, self.system, integrator)
         simulation.context.setPositions(self.getPositions())
+        simulation.context.setPeriodicBoxVectors(self.cell[0], self.cell[1], self.cell[2])
         platform = simulation.context.getPlatform().getName()
         
+        # boxSize = self.topology.getUnitCellDimensions()
+        # unitCellDimensions = [boxVectors[0][0], boxVectors[1][1], boxVectors[2][2]]
+        # top.setUnitCellDimensions(unitCellDimensions*angstrom)
+
         ### RUN EM
         print('-------------------------------')
         print("Platform: ", platform)
+        print('dt: %.1f fs' %(dt * 1e3))
         print('E0: %.5e kJ/mol' %getEnergy(simulation))
-        simulation.minimizeEnergy()
+        if EM: simulation.minimizeEnergy()
         print('E1: %.5e kJ/mol' %getEnergy(simulation))
         print('-------------------------------')
-        self.positions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)._value
 
         ### SAVE EM
         if emout:
+            self.positions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)._value
             shutil.copy(self._file[0], emout)
             conn    = sqlite3.connect(emout)
             cursor  = conn.cursor()
@@ -1642,12 +1681,14 @@ class DMSFile(object):
             conn.close()
     
         ### RUN NVT/NPT
-        prefix = '.'.join(out.split('.')[:-1])
-        simulation.reporters.append(DCDReporter(      prefix + '.dcd', dcdfreq))
-        simulation.reporters.append(StateDataReporter(prefix + '.csv', csvfreq, step=True, potentialEnergy=True, temperature=True))
+        if out:
+            prefix = '.'.join(out.split('.')[:-1])
+            simulation.reporters.append(DCDReporter(      prefix + '.dcd', dcdfreq))
+            simulation.reporters.append(StateDataReporter(prefix + '.csv', csvfreq, step=True, potentialEnergy=True, temperature=True))
+
         simulation.step(nsteps)
         self.positions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)._value
-        cell = getCell(simulation)
+        self.cell = getCell(simulation)
     
         ### SAVE THE LAST FRAME
         if out is not None and out.split('.')[-1] == 'dms':
@@ -1666,9 +1707,9 @@ class DMSFile(object):
             # global_cell id starts from 1 while particle id starts from 0 (why?)
             ids = sorted([tmp[0] for tmp in cursor.execute('SELECT id FROM global_cell;').fetchall()])
             assert len(set(ids)) == 3, f'global_cell has {len(set(ids))} entries (it should have been 3)'
-            cursor.execute('UPDATE global_cell SET x=?, y=?, z=? WHERE id=?', (*cell[0], ids[0]))
-            cursor.execute('UPDATE global_cell SET x=?, y=?, z=? WHERE id=?', (*cell[1], ids[1]))
-            cursor.execute('UPDATE global_cell SET x=?, y=?, z=? WHERE id=?', (*cell[2], ids[2]))
+            cursor.execute('UPDATE global_cell SET x=?, y=?, z=? WHERE id=?', (*self.cell[0] * 10, ids[0]))
+            cursor.execute('UPDATE global_cell SET x=?, y=?, z=? WHERE id=?', (*self.cell[1] * 10, ids[1]))
+            cursor.execute('UPDATE global_cell SET x=?, y=?, z=? WHERE id=?', (*self.cell[2] * 10, ids[2]))
     
             conn.commit()
             conn.close()
@@ -1678,7 +1719,7 @@ def getEnergy(simulation):
     return simulation.context.getState(getEnergy=True).getPotentialEnergy()._value
 
 def getCell(simulation):
-    return simulation.context.getState().getPeriodicBoxVectors(asNumpy=True)._value * 10
+    return simulation.context.getState().getPeriodicBoxVectors(asNumpy=True)._value
 
 def getPositions(simulation):
     return simulation.context.getState(getPositions=True).getPositions(asNumpy=True)._value

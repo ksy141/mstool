@@ -2,7 +2,6 @@ import os
 import shutil
 from  .bilayer               import Bilayer
 from  ..core.map             import Map
-from  ..core.backmap         import Backmap
 from  ..core.readmartini     import ReadMartini
 from  ..core.solvate_martini import SolvateMartini
 from  ..core.martinizedms    import MartinizeDMS
@@ -10,23 +9,26 @@ from  ..core.dmsfile         import DMSFile
 from  ..core.universe        import Universe
 from  ..core.backmap         import Backmap
 from  ..utils.dump           import dumpsql
-from  ..utils.openmmutils    import addPosre
+from  ..utils.openmmutils    import addPosre, addPosrePeriodicZ, addFlatBottomZ
 from  ..utils.protein_sel    import one2three, three2one
 pwd = os.path.dirname(os.path.realpath(__file__))
 
 class BilayerBuilder:
-    def __init__(self, workdir='workdir', protein=None, upper={}, lower={}, dx=8.0, waterz=50.0, rcut=3.0, 
+    def __init__(self, workdir='workdir', protein=None, upper={}, lower={}, dx=8.0, waterz=50.0, rcut=4.0, 
                  mode='shift', dN=5, rockCtype='CTL3', rockHtype='HAL3',
                  martini=[], martini_add=[], lipidpath=pwd+'/../../../FF/martini2.2/structures/',
                  mapping=[], mapping_add=[],
                  ff=[], ff_add=[],
-                 removedr=3.0, dt=0.03, cg_nsteps=100000, aa_nsteps=10000,
+                 removedr=6.0, aa_nsteps=0, fc=10.0, 
+                 dt=0.020, cg_nsteps=200000, dt_rem=0.025, cg_nsteps_rem=100000,
                  frictionCoeff=5.0, barfreq=1, nonbondedCutoff=1.1, 
                  improper_prefactor=0.99, use_existing_folder=False,
-                 hydrophobic_thickness=30, ionconc=0.15,
+                 hydrophobic_thickness=30, ionconc=0.15, T=310,
                  use_AA_structure=True,
                  remove_solvent=False,
-                 solvate=True):
+                 solvate=True,
+                 tapering='shift',
+                 REM=False):
 
         '''Bilayer builder.
         Parameters
@@ -131,13 +133,14 @@ class BilayerBuilder:
         if protein: Map(workdir + '/protein.dms', workdir + '/protein_CG.dms', add_notavailableAAAtoms=False)
 
         ### Construct a bilayer
-        u = Bilayer(protein=workdir + '/protein_CG.dms' if protein else None, 
-                    upper=upper, lower=lower, 
-                    dx=dx, waterz=waterz, rcut=rcut,
-                    out=workdir + '/step1.bilayer.dms', 
-                    mode=mode, dN=dN, martini=martiniff, 
-                    lipidpath=lipidpath,
-                    hydrophobic_thickness=hydrophobic_thickness)
+        instance = Bilayer(protein=workdir + '/protein_CG.dms' if protein else None, 
+                           upper=upper, lower=lower, 
+                           waterz=waterz, rcut=rcut,
+                           out=workdir + '/step1.bilayer.dms', 
+                           martini=martiniff, 
+                           lipidpath=lipidpath,
+                           hydrophobic_thickness=hydrophobic_thickness,
+                           mode=mode, dN=dN, dx=dx)
 
         ### Solvate
         if solvate:
@@ -147,7 +150,7 @@ class BilayerBuilder:
                 usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc, membrane=True)
 
         else:
-            usol = u.universe
+            usol = instance.universe
             # make it NVT
             barfreq=0
             # remove_solvent is redundant
@@ -165,8 +168,6 @@ class BilayerBuilder:
         ### Translate
         shift = usol.dimensions[0:3] / 2
         usol.atoms[['x','y','z']] += shift
-        #This will add posx, posy, and posz
-        #usol.atoms.loc[(usol.atoms.name == 'GL1') | (usol.atoms.name == 'GL2'), 'bfactor'] = 1.0
         usol.write(workdir + '/step1.sol.dms')
         usol.write(workdir + '/step1.sol.pdb')
 
@@ -175,16 +176,66 @@ class BilayerBuilder:
         dumpsql(workdir + '/step1.martini.dms')
 
         ### Create system & add posz to GL1 and GL2
-        dms = DMSFile(workdir + '/step1.martini.dms')
-        dms.createSystem(REM=True, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=False)
+        # dms = DMSFile(workdir + '/step1.martini.dms')
+        # martiniU = Universe(workdir + '/step1.martini.dms')
+        # martiniU.atoms.loc[((martiniU.atoms.name == 'GL1')), 'bfactor'] = 1.0
+        # positional restraints and barostat do not like each other....
+        # https://github.com/openmm/openmm/issues/1854
+        #posre = addPosrePeriodicZ(martiniU, bfactor_posre=0.5, k=fc)
+        #dms.createSystem(REM=False, tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=False)
+        #dms.system.addForce(posre)
+
+        #dms = DMSFile(workdir + '/step1.martini.dms')
+        #dms.createSystem(REM=REM, tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
+        #dms.runEMNPT(dt=0.002, nsteps=cg_nsteps_2fs, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=True)
+        #dms.runEMNPT(dt=0.005, nsteps=cg_nsteps_5fs, frictionCoeff=frictionCoeff, barfreq=0,       T=T, EM=False)
+        #dms.runEMNPT(dt=dt,    nsteps=cg_nsteps,     frictionCoeff=frictionCoeff, barfreq=0,       T=T, EM=False, out=workdir + '/step2.dms')
+
+        #dms = DMSFile(workdir + '/step1.martini.dms')
+        #dms.createSystem(REM=REM, tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
+        #dms.runEMNPT(dt=0.002, nsteps=cg_nsteps_2fs, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=True)
+        #dms.runEMNPT(dt=0.005, nsteps=cg_nsteps_5fs, frictionCoeff=frictionCoeff, barfreq=0,       T=T, EM=False)
+        #dms.runEMNPT(dt=dt,    nsteps=cg_nsteps,     frictionCoeff=frictionCoeff, barfreq=0,       T=T, EM=False, out=workdir + '/step2.dms')
+
+        ### REM BEFORE NPT
+        #dms.createSystem(REM=True, tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=False)
+        #dms.system.addForce(posre)
+        #dms.runEMNPT(workdir + '/step2.rem.dms', emout=None, dt=dt, nsteps=0, frictionCoeff=frictionCoeff, barfreq=0, T=T)
+        
         martiniU = Universe(workdir + '/step1.martini.dms')
         martiniU.atoms.loc[((martiniU.atoms.name == 'GL1')), 'bfactor'] = 1.0
-        dms.system.addForce(addPosre(martiniU, bfactor_posre=0.5, fcx=0.0, fcy=0.0, fcz=1000.0))
-        dms.runEMNPT(workdir + '/step2.dms', emout=workdir + '/step2.em.dms', dt=dt, nsteps=cg_nsteps, frictionCoeff=frictionCoeff, barfreq=barfreq)
+
+        dms = DMSFile(workdir + '/step1.martini.dms')
+        #dms.createSystem(REM=True,  tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
+        #if protein: dms.system.addForce(addPosre(martiniU, bfactor_posre=0.5, fcx=0.0, fcy=0.0, fcz=fc))
+        #dms.system.addForce(addFlatBottomZ(martiniU, bfactor_posre=0.5, radius=hydrophobic_thickness/2, rfb=0.1, R0z=shift[2], fc=fc, chain='UPPER'))
+        #dms.system.addForce(addFlatBottomZ(martiniU, bfactor_posre=0.5, radius=hydrophobic_thickness/2, rfb=0.1, R0z=shift[2], fc=fc, chain='LOWER'))
+        #dms.runEMNPT(dt=dt_rem, nsteps=cg_nsteps_rem, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=True, out=workdir + '/step2.rem.dms')
+
+        #dms = DMSFile(workdir + '/step2.rem.dms')
+        dms.createSystem(REM=False, tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
+        if protein: dms.system.addForce(addPosre(martiniU, bfactor_posre=0.5, fcx=0.0, fcy=0.0, fcz=fc))
+        dms.runEMNPT(dt=dt, nsteps=cg_nsteps, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=True, out=workdir + '/step2.dms')
         
         ### Translate Back
         u = Universe(workdir + '/step2.dms')
-        u.atoms[['x','y','z']] -= shift
+
+        if protein:
+            membranecenter = shift
+        else:
+            bA1  = u.atoms.resname == 'W'
+            bA2  = u.atoms.chain   == 'ZZ1'
+            bA3  = u.atoms.chain   == 'ZZ2'
+            bA   = bA1 | bA2 | bA3
+            membranecenter = u.atoms[~bA][['x','y','z']].mean(axis=0).to_numpy()
+
+        u.atoms[['x','y','z']] -= membranecenter
+
+
+        ### APL
+        Ntotal = instance.upperN + instance.lowerN
+        APL = u.dimensions[0] * u.dimensions[1] / (Ntotal / 2)
+        print(f'APL: {APL:.2f} A^2')
 
         if remove_solvent:
             dimensions = u.dimensions
@@ -196,7 +247,7 @@ class BilayerBuilder:
             u    = Universe(data=u.atoms[~bA])
             u.dimensions = dimensions
             u.cell = cell
-        
+
         u.write(workdir + '/step3.dms', wrap=True)
         u.write(workdir + '/step3.pdb', wrap=True)
         #u.atoms[['x','y','z']] -= u.dimensions[0:3] / 2
@@ -214,9 +265,9 @@ class BilayerBuilder:
             noprotein.write(workdir + '/step3.noprotein.dms')
             Backmap(workdir + '/step3.noprotein.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
                     AA=workdir + '/protein.dms', fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
-                    use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype)
+                    use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype, T=T)
         else:
             Backmap(workdir + '/step3.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
                     AA=None, fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
-                    use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype)
+                    use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype, T=T)
 

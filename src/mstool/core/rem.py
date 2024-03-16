@@ -39,7 +39,8 @@ class REM:
         bfactor_posre = 0.5, add_bonds=True, sort=False, version='v4',
         cospower=2, turn_off_torsion_warning=False,
         nsteps=10000,
-        turn_off_EMNVT=False):
+        turn_off_EMNVT=False,
+        T=310):
         
         # v3 should not be used
         # protein: version = 'v4' seems the best
@@ -49,6 +50,7 @@ class REM:
         self.fcy = fcy
         self.fcz = fcz
         self.bfactor_posre = bfactor_posre
+        self.T = T
 
 
         ### NonbondedMethod
@@ -124,7 +126,7 @@ class REM:
                     pdb.topology.addBond(pdbatoms[bond[0]], pdbatoms[bond[1]])
 
             realpbc = pdb.topology.getPeriodicBoxVectors()
-            print(realpbc)
+            #print(realpbc)
 
         else:
             raise IOError('Please provide a pdb or dms file')
@@ -170,7 +172,7 @@ class REM:
 
         self.final = modeller
         print(self.final.topology)
-        print(self.final.topology.getPeriodicBoxVectors())
+        #print(self.final.topology.getPeriodicBoxVectors())
 
 
         ### Make a universe
@@ -446,7 +448,7 @@ class REM:
 
 
     def runREM(self):
-        integrator = LangevinIntegrator(310*kelvin, 1/picosecond, 0.002*picoseconds)
+        integrator = LangevinIntegrator(self.T*kelvin, 1/picosecond, 0.002*picoseconds)
         simulation = Simulation(self.final.topology, self.system, integrator)
         simulation.context.setPositions(self.positions)
         platform = simulation.context.getPlatform().getName()
@@ -462,7 +464,7 @@ class REM:
 
 
     def runEMNVT(self):
-        integrator = LangevinIntegrator(310*kelvin, 1/picosecond, 0.002*picoseconds)
+        integrator = LangevinIntegrator(self.T*kelvin, 1/picosecond, 0.002*picoseconds)
         system     = self.forcefield.createSystem(self.final.topology, 
                                                   nonbondedMethod=self.nonbondedMethod, 
                                                   nonbondedCutoff=self.rcut*nanometers)

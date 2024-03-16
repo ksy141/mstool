@@ -4,86 +4,74 @@
 # The default is nsteps=10000, which is 2 ps.
 
 import mstool
-import shutil
-import os
 
 aa_nsteps = 1000
 
 ### Example 1
-os.makedirs('Example1_POPC')
-os.chdir('Example1_POPC')
-mstool.BilayerBuilder(upper={'POPC': 40}, lower={'POPC': 40}, aa_nsteps=aa_nsteps)
-os.chdir('../')
+mstool.BilayerBuilder(workdir='Example1_POPC', 
+                      upper={'POPC': 40}, lower={'POPC': 40}, 
+                      aa_nsteps=aa_nsteps)
 
 ### Example 2
-os.makedirs('Example2_Lipids')
-os.chdir('Example2_Lipids')
 lipids = {'DPPC': 5, 'DOPC': 5, 'DMPC': 5, 'DSPC': 5, 'POPC': 5,
           'DOPS': 5, 'POPS': 5, 'POPG': 5, 'DOPG': 5, 'CHL1': 5,
           'POPA': 5, 'DOPA': 5, 'POPE': 5, 'DOPE': 5}
-mstool.BilayerBuilder(upper=lipids, lower=lipids, 
+mstool.BilayerBuilder(workdir='Example2_Lipids',
+                      upper=lipids, lower=lipids, 
                       aa_nsteps=aa_nsteps, remove_solvent=True)
-os.chdir('../')
 
 ### Example 3
-os.makedirs('Example3_Triolein')
-os.chdir('Example3_Triolein')
-mstool.BilayerBuilder(upper={'POPC':100, 'TRIO':10},
+mstool.BilayerBuilder(workdir='Example3_Triolein',
+                      upper={'POPC':100, 'TRIO':10},
                       lower={'POPC':100, 'TRIO':10},
                       mapping_add=mstool.TRIOMAPPING,
                       martini_add=mstool.TRIOMARTINI,
                       ff_add=mstool.TRIOFF,
                       aa_nsteps=aa_nsteps,
                       remove_solvent=True)
-os.chdir('../')
 
 ### Example 4
-os.makedirs('Example4_MembraneProtein')
-os.chdir('Example4_MembraneProtein')
-mstool.BilayerBuilder(protein=mstool.MPAA2,
+mstool.BilayerBuilder(workdir='Example4_MembraneProtein',
+                      protein=mstool.MPAA2,
                       upper={'POPC':100},
                       lower={'POPC':100},
                       aa_nsteps=aa_nsteps,
                       remove_solvent=True)
-os.chdir('../')
 
 
 ### Example 5
-os.makedirs('Example5_GPCR')
-os.chdir('Example5_GPCR')
-mstool.BilayerBuilder(protein=mstool.GPCR,
+mstool.BilayerBuilder(workdir='Example5_GPCR',
+                      protein=mstool.GPCR,
                       upper={'POPC':100},
                       lower={'POPC':100},
                       aa_nsteps=aa_nsteps,
                       remove_solvent=True)
-os.chdir('../')
 
 
 ### Example 6
-os.makedirs('Example6_Sphere')
-os.chdir('Example6_Sphere')
-mstool.SphereBuilder(radius=60, 
-                     upper={'POPC': 1090, 'CHL1': 10},
-                     lower={'POPC':  390, 'CHL1': 10},
+upper = {'DPPC': 80, 'DOPC': 80, 'DMPC': 80, 'DSPC': 80, 'POPC': 80,
+         'DOPS': 80, 'POPS': 80, 'POPG': 80, 'DOPG': 80, 'CHL1': 80,
+         'POPA': 80, 'DOPA': 80, 'POPE': 80, 'DOPE': 80}
+
+lower = {'DPPC': 30, 'DOPC': 30, 'DMPC': 30, 'DSPC': 30, 'POPC': 30,
+         'DOPS': 30, 'POPS': 30, 'POPG': 30, 'DOPG': 30, 'CHL1': 30,
+         'POPA': 30, 'DOPA': 30, 'POPE': 30, 'DOPE': 30}
+
+mstool.SphereBuilder(workdir='Example6_Sphere',
+                     radius=60, 
+                     upper=upper,
+                     lower=lower,
                      aa_nsteps=aa_nsteps,
                      remove_solvent=True)
-os.chdir('../')
 
 
 ### Example 7
-os.makedirs('Example7_SphereProtein')
-os.chdir('Example7_SphereProtein')
-mstool.SphereProtein(radius=100,
-                     protein={mstool.Universe(mstool.MPAA2): 5,
+mstool.SphereBuilder(workdir='Example7_SphereProtein',
+                     radius=100, 
+                     protein={mstool.Universe(mstool.MPAA2): 5, 
                               mstool.Universe(mstool.GPCR):  5},
-                     out='protein.dms')
-
-mstool.SphereBuilder(radius=100, 
-                     protein='protein.dms',
                      upper={'POPC': 1600, 'DOPS': 990, 'CHL1': 10},
                      lower={'POPC': 1000, 'DOPS': 400, 'CHL1': 10},
                      aa_nsteps=aa_nsteps,
                      remove_solvent=True)
-
-os.chdir('../')
 

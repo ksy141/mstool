@@ -128,11 +128,12 @@ class Ungroup(Universe):
             prefix   = '/'.join(os.path.abspath(ifile).split('/')[:-1])
             resname  = basename.split('_')[0]
             path     = prefix + f'/{resname}.{ext}'
-            print('Using AA structure: ' + path)
 
             if not os.path.exists(path):
                 print(f'{path} does not exist')
                 continue
+
+            print('Using AA structure: ' + path)
             self.exclude_residues.append(resname)
             
             bA1 = self.u.atoms.resname == resname

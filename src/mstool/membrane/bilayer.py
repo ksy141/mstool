@@ -195,6 +195,8 @@ class Bilayer(Lipid):
 
         if out: u.write(out)
         self.universe = u
+        self.upperN = upperN
+        self.lowerN = lowerN
 
 
 
