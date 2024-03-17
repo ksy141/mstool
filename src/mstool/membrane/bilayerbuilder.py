@@ -20,8 +20,9 @@ class BilayerBuilder:
                  mapping=[], mapping_add=[],
                  ff=[], ff_add=[],
                  removedr=6.0, aa_nsteps=0, fc=10.0, 
-                 dt=0.020, cg_nsteps=200000, dt_rem=0.025, cg_nsteps_rem=100000,
-                 frictionCoeff=5.0, barfreq=1, nonbondedCutoff=1.1, 
+                 dt_rem=0.025, cg_nsteps_rem=100000,
+                 dt=0.020, cg_nsteps=100000,
+                 frictionCoeff=10.0, barfreq=10, nonbondedCutoff=1.05, 
                  improper_prefactor=0.99, use_existing_folder=False,
                  hydrophobic_thickness=30, ionconc=0.15, T=310,
                  use_AA_structure=True,
@@ -206,11 +207,11 @@ class BilayerBuilder:
         martiniU.atoms.loc[((martiniU.atoms.name == 'GL1')), 'bfactor'] = 1.0
 
         dms = DMSFile(workdir + '/step1.martini.dms')
-        #dms.createSystem(REM=True,  tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
-        #if protein: dms.system.addForce(addPosre(martiniU, bfactor_posre=0.5, fcx=0.0, fcy=0.0, fcz=fc))
+        dms.createSystem(REM=True,  tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
+        if protein: dms.system.addForce(addPosre(martiniU, bfactor_posre=0.5, fcx=0.0, fcy=0.0, fcz=fc))
         #dms.system.addForce(addFlatBottomZ(martiniU, bfactor_posre=0.5, radius=hydrophobic_thickness/2, rfb=0.1, R0z=shift[2], fc=fc, chain='UPPER'))
         #dms.system.addForce(addFlatBottomZ(martiniU, bfactor_posre=0.5, radius=hydrophobic_thickness/2, rfb=0.1, R0z=shift[2], fc=fc, chain='LOWER'))
-        #dms.runEMNPT(dt=dt_rem, nsteps=cg_nsteps_rem, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=True, out=workdir + '/step2.rem.dms')
+        dms.runEMNPT(dt=dt_rem, nsteps=cg_nsteps_rem, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=True, out=workdir + '/step2.rem.dms')
 
         #dms = DMSFile(workdir + '/step2.rem.dms')
         dms.createSystem(REM=False, tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)

@@ -1685,7 +1685,8 @@ class DMSFile(object):
             prefix = '.'.join(out.split('.')[:-1])
             simulation.reporters.append(DCDReporter(      prefix + '.dcd', dcdfreq))
             simulation.reporters.append(StateDataReporter(prefix + '.csv', csvfreq, step=True, potentialEnergy=True, temperature=True))
-
+        
+        simulation.context.setVelocitiesToTemperature(T)
         simulation.step(nsteps)
         self.positions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)._value
         self.cell = getCell(simulation)

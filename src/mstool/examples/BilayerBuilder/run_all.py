@@ -1,51 +1,36 @@
-# copy this script to somewhere else
-# and then execute this script
-# to save time, I reduced the number of NVT steps (nsteps=1000)
-# The default is nsteps=10000, which is 2 ps.
-
 import mstool
-
-aa_nsteps = 1000
 
 ### Example 1
 mstool.BilayerBuilder(workdir='Example1_POPC', 
-                      upper={'POPC': 40}, lower={'POPC': 40}, 
-                      aa_nsteps=aa_nsteps)
+                      upper={'POPC': 40}, lower={'POPC': 40})
 
 ### Example 2
 lipids = {'DPPC': 5, 'DOPC': 5, 'DMPC': 5, 'DSPC': 5, 'POPC': 5,
           'DOPS': 5, 'POPS': 5, 'POPG': 5, 'DOPG': 5, 'CHL1': 5,
           'POPA': 5, 'DOPA': 5, 'POPE': 5, 'DOPE': 5}
 mstool.BilayerBuilder(workdir='Example2_Lipids',
-                      upper=lipids, lower=lipids, 
-                      aa_nsteps=aa_nsteps, remove_solvent=True)
+                      upper=lipids, lower=lipids)
 
 ### Example 3
 mstool.BilayerBuilder(workdir='Example3_Triolein',
-                      upper={'POPC':100, 'TRIO':10},
-                      lower={'POPC':100, 'TRIO':10},
+                      upper={'POPC':100, 'TRIO':6},
+                      lower={'POPC':100, 'TRIO':6},
                       mapping_add=mstool.TRIOMAPPING,
                       martini_add=mstool.TRIOMARTINI,
-                      ff_add=mstool.TRIOFF,
-                      aa_nsteps=aa_nsteps,
-                      remove_solvent=True)
+                      ff_add=mstool.TRIOFF)
 
 ### Example 4
 mstool.BilayerBuilder(workdir='Example4_MembraneProtein',
                       protein=mstool.MPAA2,
-                      upper={'POPC':100},
-                      lower={'POPC':100},
-                      aa_nsteps=aa_nsteps,
-                      remove_solvent=True)
+                      upper={'POPC':100, 'POPS': 10, 'POPE': 10, 'CHL1': 10},
+                      lower={'POPC':100, 'POPS': 10, 'POPE': 10, 'CHL1': 10})
 
 
 ### Example 5
 mstool.BilayerBuilder(workdir='Example5_GPCR',
                       protein=mstool.GPCR,
-                      upper={'POPC':100},
-                      lower={'POPC':100},
-                      aa_nsteps=aa_nsteps,
-                      remove_solvent=True)
+                      upper={'DOPC':100, 'DOPS': 10, 'DOPE': 10, 'CHL1': 10},
+                      lower={'DOPC':100, 'DOPS': 10, 'DOPE': 10, 'CHL1': 10})
 
 
 ### Example 6
@@ -57,21 +42,15 @@ lower = {'DPPC': 30, 'DOPC': 30, 'DMPC': 30, 'DSPC': 30, 'POPC': 30,
          'DOPS': 30, 'POPS': 30, 'POPG': 30, 'DOPG': 30, 'CHL1': 30,
          'POPA': 30, 'DOPA': 30, 'POPE': 30, 'DOPE': 30}
 
-mstool.SphereBuilder(workdir='Example6_Sphere',
-                     radius=60, 
-                     upper=upper,
-                     lower=lower,
-                     aa_nsteps=aa_nsteps,
-                     remove_solvent=True)
+mstool.SphereBuilder(workdir='Example7_Sphere',
+                     radius=60, upper=upper, lower=lower)
 
 
 ### Example 7
-mstool.SphereBuilder(workdir='Example7_SphereProtein',
+mstool.SphereBuilder(workdir='Example8_SphereProtein',
                      radius=100, 
                      protein={mstool.Universe(mstool.MPAA2): 5, 
                               mstool.Universe(mstool.GPCR):  5},
                      upper={'POPC': 1600, 'DOPS': 990, 'CHL1': 10},
-                     lower={'POPC': 1000, 'DOPS': 400, 'CHL1': 10},
-                     aa_nsteps=aa_nsteps,
-                     remove_solvent=True)
+                     lower={'POPC': 1000, 'DOPS': 400, 'CHL1': 10})
 

@@ -21,9 +21,10 @@ class SphereBuilder:
                  martini=[], martini_add=[], lipidpath=pwd+'/../../../FF/martini2.2/structures/',
                  mapping=[], mapping_add=[],
                  ff=[], ff_add=[],
-                 removedr=4.5, aa_nsteps=0, fc=10.0, dtrem=0.025,
-                 dt=0.020, cg_nsteps=100000, 
-                 frictionCoeff=5.0, barfreq=100, nonbondedCutoff=1.1, 
+                 removedr=4.5, aa_nsteps=0, fc=10.0,
+                 dt_rem=0.025, cg_nsteps_rem=100000,
+                 dt=0.020, cg_nsteps=100000,
+                 frictionCoeff=10.0, barfreq=10, nonbondedCutoff=1.05, 
                  improper_prefactor=0.99, use_existing_folder=False,
                  hydrophobic_thickness=30, ionconc=0.15, T=310,
                  use_AA_structure=True,
@@ -208,15 +209,16 @@ class SphereBuilder:
         martiniU.atoms.loc[((martiniU.atoms.name == 'GL1')), 'bfactor'] = 1.0
 
         dms = DMSFile(workdir + '/step1.martini.dms')
-        #dms.createSystem(REM=True, tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
-        #dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius + hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc, chain='UPPER'))
-        #dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius - hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc, chain='LOWER'))
-        #dms.runEMNPT(dt=dtrem, nsteps=cg_nsteps, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=False, out=workdir + '/step2.rem.dms')
+        dms.createSystem(REM=True,  tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
+        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius + hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc, chain='UPPER'))
+        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius - hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc, chain='LOWER'))
+        dms.runEMNPT(dt=dt_rem, nsteps=cg_nsteps_rem, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=False, out=workdir + '/step2.rem.dms')
 
         dms.createSystem(REM=False, tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
         dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius + hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc, chain='UPPER'))
         dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius - hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc,chain='LOWER'))
         dms.runEMNPT(dt=dt, nsteps=cg_nsteps, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=False, out=workdir + '/step2.dms')
+
 
         #dms.runEMNPT(dt=0.002, nsteps=cg_nsteps_2fs, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=False)
         #dms.runEMNPT(dt=0.005, nsteps=cg_nsteps_5fs, frictionCoeff=frictionCoeff, barfreq=0,       T=T, EM=False)

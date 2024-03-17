@@ -71,10 +71,15 @@ If there is no protein:
 
 
 Mar.16 2024 
-After some tests, here is what I ended up.
+mass = 0 will not move in openMM. Check if any atoms do not move their positions
 
 OpenMM EM is good enough with simply Martini Force Field.
 Therefore, there is no need for REM.
+> Well, actually, not true. If I don't run this, TRIO systems freezee....
+> I think it is related to an initial structure.
+> If you run REM, it at least squeezes a system and make an initial structure better
+
+Tapering="shift" is must for regular Martini Force Field because of MonteCarloBarostat
 
 CHL1 is problematic with whatever the existing models. 
 It does not show up as a problem in REM but with regular Martini, yes.
