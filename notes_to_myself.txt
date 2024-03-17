@@ -101,4 +101,13 @@ Therefore,
 3. For sphere, lipids have a sphereposre (kinda xyz restraints)
    Therefore, it doesn't mess up with positional restraints
 
- 
+ Mar.17 2024
+Interestingly, depending on bilayer construction with 
+solvation(membrane=True) or solvation(membrane=False),
+the APL becomes slightly different.
+
+I no longer think solvation(membrane=True) is necessary.
+I increased the nonbondedCutoff to 1.1 nm from 1.05 nm
+
+Maybe this is why Triolein system get crystalized?
+

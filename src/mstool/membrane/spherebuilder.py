@@ -24,7 +24,7 @@ class SphereBuilder:
                  removedr=4.5, aa_nsteps=0, fc=10.0,
                  dt_rem=0.025, cg_nsteps_rem=100000,
                  dt=0.020, cg_nsteps=100000,
-                 frictionCoeff=10.0, barfreq=10, nonbondedCutoff=1.05, 
+                 frictionCoeff=10.0, barfreq=10, nonbondedCutoff=1.1, 
                  improper_prefactor=0.99, use_existing_folder=False,
                  hydrophobic_thickness=30, ionconc=0.15, T=310,
                  use_AA_structure=True,
