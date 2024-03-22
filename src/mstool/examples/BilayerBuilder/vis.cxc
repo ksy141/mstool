@@ -25,7 +25,7 @@ hide :TIP* target a
 
 view
 
-show  :P0G & ~@H*
+#show  :P0G & ~@H*
 color :P0G & C salmon
 style :P0G sphere
 
