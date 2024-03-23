@@ -84,8 +84,10 @@ def ionize(u, out=None, qtot=None,
         qtot = qtot
     else:
         qtot = round(u.atoms.charge.sum())
-
-    vol  = u.dimensions[0] * u.dimensions[1] * u.dimensions[2]
+    
+    # instead of using vol, use the number of water * water volume per each bead
+    # vol  = u.dimensions[0] * u.dimensions[1] * u.dimensions[2]
+    vol = len(u.atoms[u.atoms.name == 'W']) * 4.93 ** 3
 
     if pos in ['MG', 'CAL', 'BAR', 'ZN2', 'CD2']:
         factor = 2
