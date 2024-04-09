@@ -300,7 +300,10 @@ class REM:
                 #u.bonds = self.bonds
 
             if out:
-                u.write(out, wrap=True)
+                if pbc:
+                    u.write(out, wrap=True)
+                else:
+                    u.write(out)
         
         #CheckTetrahedron(out, ff=ff, ff_add=ff_add)
         self.universe = u
