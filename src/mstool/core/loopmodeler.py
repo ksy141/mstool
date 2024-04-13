@@ -12,6 +12,7 @@ from   .map                   import Map
 from   .readmartini           import ReadMartini
 from   .martinizedms          import MartinizeDMS
 from   .dms2openmm            import DMS2openmm
+from   .dmsfile               import DMSFile
 from   .rem                   import REM
 from   .checkstructure        import CheckStructure
 from   .ungroup               import Ungroup
@@ -106,26 +107,31 @@ class LoopModeler:
 
 
         ### step6: run Martini simulation
-        runMartiniEM(dms_in = workdir + '/step5_ff.dms',
-                     out    = workdir + '/step6_minimized.pdb',
-                     soft   = soft,
-                     nonbondedMethod = nonbondedMethod,
-                     nonbondedCutoff = 1.1)
+        dms = DMSFile(workdir + '/step5_ff.dms')
+        dms.createSystem(REM=True, tapering='shift', martini=True, nonbondedMethod=nonbondedMethod)
+        dms.runEMNPT(dt=dt, nsteps=nsteps, dcdfreq=dcdfreq, csvfreq=csvfreq, semiisotropic=False, out=workdir + '/step6_minimized.dms')
+        Universe(workdir + '/step6_minimized.dms').write(workdir + '/step6_minimized.pdb')
+
+        #runMartiniEM(dms_in = workdir + '/step5_ff.dms',
+        #             out    = workdir + '/step6_minimized.pdb',
+        #             soft   = soft,
+        #             nonbondedMethod = nonbondedMethod,
+        #             nonbondedCutoff = 1.1)
 
         if t == 0 or t is None or nsteps == 0:
             shutil.copy(workdir + '/step6_minimized.pdb',
                         workdir + '/step6_NPT.pdb')
-        else:
-            runMartiniEMNPT(dms_in = workdir + '/step5_ff.dms',
-                            pos_in = workdir + '/step6_minimized.pdb',
-                            out    = workdir + '/step6_NPT.pdb',
-                            soft   = False,
-                            nonbondedMethod = nonbondedMethod,
-                            nonbondedCutoff = 1.1,
-                            dt      = dt,
-                            nsteps  = nsteps,
-                            dcdfreq = dcdfreq,
-                            csvfreq = csvfreq)
+        #else:
+        #    runMartiniEMNPT(dms_in = workdir + '/step5_ff.dms',
+        #                    pos_in = workdir + '/step6_minimized.pdb',
+        #                    out    = workdir + '/step6_NPT.pdb',
+        #                    soft   = False,
+        #                    nonbondedMethod = nonbondedMethod,
+        #                    nonbondedCutoff = 1.1,
+        #                    dt      = dt,
+        #                    nsteps  = nsteps,
+        #                    dcdfreq = dcdfreq,
+        #                    csvfreq = csvfreq)
 
 
         ### step7: ungroup (output must be a pdb so that openMM recognizes protein residues)
