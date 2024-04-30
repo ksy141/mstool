@@ -3,7 +3,7 @@ import shutil
 from  .bilayer               import Bilayer
 from  ..core.map             import Map
 from  ..core.readmartini     import ReadMartini
-from  ..core.solvate_martini import SolvateMartini, ionize
+from  ..core.solvate_martini import SolvateMartini
 from  ..core.martinizedms    import MartinizeDMS
 from  ..core.dmsfile         import DMSFile
 from  ..core.universe        import Universe
@@ -14,7 +14,7 @@ from  ..utils.protein_sel    import one2three, three2one
 pwd = os.path.dirname(os.path.realpath(__file__))
 
 class BilayerBuilder:
-    def __init__(self, workdir='workdir', protein=None, upper={}, lower={}, between={}, sep=0.0, dx=8.0, waterz=50.0, rcut=4.0, 
+    def __init__(self, workdir='workdir', protein=None, upper={}, lower={}, dx=8.0, waterz=50.0, rcut=4.0, 
                  mode='shift', dN=5, rockCtype='CTL3', rockHtype='HAL3',
                  martini=[], martini_add=[], lipidpath=pwd+'/../../../FF/martini2.2/structures/',
                  mapping=[], mapping_add=[],
@@ -135,7 +135,7 @@ class BilayerBuilder:
 
         ### Construct a bilayer
         instance = Bilayer(protein=workdir + '/protein_CG.dms' if protein else None, 
-                           upper=upper, lower=lower, between=between, sep=sep,
+                           upper=upper, lower=lower, 
                            waterz=waterz, rcut=rcut,
                            out=workdir + '/step1.bilayer.dms', 
                            martini=martiniff, 
@@ -145,19 +145,7 @@ class BilayerBuilder:
 
         ### Solvate
         if solvate:
-            usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=0.0)
-            cell = usol.cell
-            dim  = usol.dimensions
-            bA1  = usol.atoms.name == 'W'
-            bA2  = usol.atoms.z    <  hydrophobic_thickness / 2 + sep/2 + 10
-            bA3  = usol.atoms.z    > -hydrophobic_thickness / 2 - sep/2 - 10
-            usol = Universe(data=usol.atoms[~(bA1 & bA2 & bA3)])
-            usol = ionize(usol, conc=ionconc)
-            usol.dimensions = dim
-            usol.cell       = cell
- 
-
-            #usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc)
+            usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc)
             #if protein:
             #    usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc)
             #else:
@@ -165,9 +153,20 @@ class BilayerBuilder:
 
         else:
             usol = instance.universe
-            barfreq=0 # make it NVT
-            remove_solvent=False # remove_solvent is redundant
+            # make it NVT
+            barfreq=0
+            # remove_solvent is redundant
+            remove_solvent=False
 
+        cell = usol.cell
+        dim  = usol.dimensions
+        bA1  = usol.atoms.name == 'W'
+        bA2  = usol.atoms.z    <  hydrophobic_thickness / 2 + 10
+        bA3  = usol.atoms.z    > -hydrophobic_thickness / 2 - 10
+        usol = Universe(data=usol.atoms[~(bA1 & bA2 & bA3)])
+        usol.dimensions = dim
+        usol.cell       = cell
+        
         ### Translate
         shift = usol.dimensions[0:3] / 2
         usol.atoms[['x','y','z']] += shift
@@ -231,7 +230,6 @@ class BilayerBuilder:
             bA3  = u.atoms.chain   == 'ZZ2'
             bA   = bA1 | bA2 | bA3
             membranecenter = u.atoms[~bA][['x','y','z']].mean(axis=0).to_numpy()
-            NtotalW = len(u.atoms[bA1])
 
         u.atoms[['x','y','z']] -= membranecenter
 
@@ -239,9 +237,7 @@ class BilayerBuilder:
         ### APL
         Ntotal = instance.upperN + instance.lowerN
         APL = u.dimensions[0] * u.dimensions[1] / (Ntotal / 2)
-        WL  = NtotalW * 4 / Ntotal
         print(f'APL: {APL:.2f} A^2')
-        print(f'W/L: {WL:.2f}')
 
         if remove_solvent:
             dimensions = u.dimensions

@@ -6,9 +6,9 @@ import glob
 pwd = os.path.dirname(os.path.realpath(__file__))
 
 class Bilayer(Lipid):
-    def __init__(self, protein=None, upper={}, lower={}, trans={}, between={},
+    def __init__(self, protein=None, upper={}, lower={}, trans={},
                  dx=8.0, waterz=25.0, rcut=3, out=None, mode='shift',
-                 dN=5, martini=None, hydrophobic_thickness=30.0, sep=0.0,
+                 dN=5, martini=None, hydrophobic_thickness=30.0, 
                  lipidpath=pwd + '/../../../FF/martini2.2/structures/'):
 
         '''Make a plane bilayer (or monolayer) with the provided numbers of lipids.
@@ -82,7 +82,6 @@ class Bilayer(Lipid):
         upperN = int(np.sum(list(upper.values())))
         lowerN = int(np.sum(list(lower.values())))
         transN = int(np.sum(list(trans.values())))
-        betweenN = int(np.sum(list(between.values())))
         Nmol   = len(list(upper.values()) + list(lower.values())) + len(trans.values())
         assert Nmol > 0, 'Please provide upper and/or lower, e.g., upper = {"POPC": 100}'
 
@@ -92,9 +91,9 @@ class Bilayer(Lipid):
         ### monolayer_keys = ['POPC', 'DOPE', 'SAPI']
         ### monolayer_list = [0, 0, 0, 1, 1, 2]
 
-        monolayers     = {'upper': upper, 'lower': lower, 'trans': trans, 'between': between}
-        monolayer_keys = {'upper': [], 'lower': [], 'trans': [], 'between': []}
-        monolayer_list = {'upper': [], 'lower': [], 'trans': [], 'between': []}
+        monolayers     = {'upper': upper, 'lower': lower, 'trans': trans}
+        monolayer_keys = {'upper': [], 'lower': [], 'trans': []}
+        monolayer_list = {'upper': [], 'lower': [], 'trans': []}
 
         for layerkey, monolayer in monolayers.items():
             for key in monolayer.keys():
@@ -112,11 +111,13 @@ class Bilayer(Lipid):
         ### Construct plane monolayer
         # upper
         upperP, unused_upperP = self.make_rect2(upperN, dx, dN)
-        upperU = self.make_monolayer(upperP, monolayer_keys['upper'], monolayer_list['upper'], chain='UPPER', dz=+hydrophobic_thickness/2 + sep/2, inverse=+1.0)
+        upperU = self.make_monolayer(upperP, 
+            monolayer_keys['upper'], monolayer_list['upper'], chain='UPPER', dz=+hydrophobic_thickness/2, inverse=+1.0)
 
         # lower
         lowerP, unused_lowerP = self.make_rect2(lowerN, dx, dN)
-        lowerU = self.make_monolayer(lowerP, monolayer_keys['lower'], monolayer_list['lower'], chain='LOWER', dz=-hydrophobic_thickness/2 - sep/2, inverse=-1.0)
+        lowerU = self.make_monolayer(lowerP, 
+            monolayer_keys['lower'], monolayer_list['lower'], chain='LOWER', dz=-hydrophobic_thickness/2, inverse=-1.0)
 
         # pbc
         half_pbcx = max(upperP.max(), abs(upperP.min()), lowerP.max(), abs(lowerP.min()))
@@ -126,22 +127,15 @@ class Bilayer(Lipid):
         transP = np.random.rand(transN, 3) - 0.5
         transP[:,2] = 0.0
         transP *= half_pbcx
-        transU = self.make_monolayer(transP, monolayer_keys['trans'], monolayer_list['trans'], chain='TRANS', dz=0.0, inverse=+1.0)
-        
-        # between
-        betweenP       = (np.random.rand(betweenN, 3) - 0.5) * np.array([[pbcx, pbcx, sep]])
-        betweenU       = self.make_monolayer(betweenP, monolayer_keys['between'], monolayer_list['between'], chain='BETWEEN', dz=0.0, inverse=+1.0)
+        transU = self.make_monolayer(transP, 
+            monolayer_keys['trans'], monolayer_list['trans'], chain='TRANS', dz=0.0, inverse=+1.0)
 
         # protein
         if protein:
-            if instance(protein, str):
-                try:
-                    protein = Universe(protein)
-                except:
-                    protein = protein
-
-            elif isinstance(protein, dict):
-                pass
+            try:
+                protein = Universe(protein)
+            except:
+                protein = protein
 
         else:
             # construct an empty protein universe
@@ -150,7 +144,7 @@ class Bilayer(Lipid):
 
         ### New Universe
         proteinU = Merge(protein.atoms, transU.atoms)
-        lipidU   = Merge(upperU.atoms,  lowerU.atoms,  betweenU.atoms)
+        lipidU   = Merge(upperU.atoms,  lowerU.atoms)
 
        
         if mode == 'remove':
@@ -298,9 +292,8 @@ class Bilayer(Lipid):
 
             else:
                 assert 0 == 1, 'resname does not exist or input structure cannot be found'
-            
-            finalpositions = inverse * np.array(positions) + points[i] + np.array([0,0,dz])
 
+            finalpositions = inverse * np.array(positions) + points[i] + np.array([0,0,dz])
             data['chain'].extend(save_chain)
             data['resname'].extend(save_resname)
             data['resid'].extend(save_resid)
