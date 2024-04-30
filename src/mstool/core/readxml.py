@@ -5,7 +5,8 @@ import xml.etree.ElementTree as ET
 pwd  = os.path.dirname(os.path.realpath(__file__))
 aaff = [pwd + '/../FF/charmm36/charmm36.xml',
         pwd + '/../FF/charmm36/pip.xml',
-        pwd + '/../FF/charmm36/water.xml']
+        pwd + '/../FF/charmm36/water.xml',
+        pwd + '/../FF/charmm36/chyo.xml']
 
 class ReadXML:
     def __init__(self, ff=[], ff_add=[]):
