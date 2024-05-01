@@ -271,6 +271,7 @@
   4 7 8 	2 	180.0   25.0
  
 
+
 ; This is a fake CHYO model
 [moleculetype] 
 ; molname 	nrexcl
@@ -321,12 +322,12 @@
                                                                                 
 [angles]
 ; i j k 	funct 	angle 	force.c.
-  4 7 8 	2 	180.0   25.0
+   4     7    8 	  2  180.000     25.0
    1     9   10       2  180.000     25.0
    9    10   11       2  180.000     25.0
   10    11   12       2  120.000     45.0
   11    12   13       2  180.000     25.0 
-
+   2     1    9       2  180.000     60.0
 
 [moleculetype]
 ; molname      nrexcl

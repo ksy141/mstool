@@ -25,7 +25,7 @@ class BilayerBuilder:
                  frictionCoeff=10.0, barfreq=10, nonbondedCutoff=1.1, 
                  improper_prefactor=0.99, use_existing_folder=False,
                  hydrophobic_thickness=30, ionconc=0.15, T=310,
-                 use_AA_structure=True,
+                 use_AA_structure=True, AA_shrink_factor=0.8,
                  remove_solvent=False,
                  solvate=True,
                  tapering='shift',
@@ -271,9 +271,9 @@ class BilayerBuilder:
             noprotein.write(workdir + '/step3.noprotein.dms')
             Backmap(workdir + '/step3.noprotein.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
                     AA=workdir + '/protein.dms', fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
-                    use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype, T=T)
+                    use_AA_structure=use_AA_structure, AA_shrink_factor=AA_shrink_factor, rockCtype=rockCtype, rockHtype=rockHtype, T=T)
         else:
             Backmap(workdir + '/step3.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
                     AA=None, fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
-                    use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype, T=T)
+                    use_AA_structure=use_AA_structure, AA_shrink_factor=AA_shrink_factor, rockCtype=rockCtype, rockHtype=rockHtype, T=T)
 

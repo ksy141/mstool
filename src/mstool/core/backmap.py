@@ -21,7 +21,7 @@ class Backmap:
                  rcut=1.2, pbc=True, A=100, C=50,
                  add_bonds = True, remversion='v4',
                  water_resname='W', water_chain=None, water_number=4, water_fibor=2.0, water_chain_dms=True, 
-                 use_AA_structure=False, AA_structure=[], AA_structure_add=[], AA_shrink_factor=1.0,
+                 use_AA_structure=False, AA_structure=[], AA_structure_add=[], AA_shrink_factor=0.8,
                  use_existing_workdir=False, fileindex=1, pdbsave=True, cospower=2,
                  nsteps=10000, T=310):
 
@@ -60,7 +60,7 @@ class Backmap:
                 water_chain=water_chain, water_number=water_number,
                 water_fibor=water_fibor, water_chain_dms=water_chain_dms,
                 sort=True, use_AA_structure=use_AA_structure,
-                AA_structure=AA_structure, AA_structure_add=AA_structure_add)
+                AA_structure=AA_structure, AA_structure_add=AA_structure_add, AA_shrink_factor=0.8)
         
         REM(structure   = workdir + f'/step{fileindex}_ungroup.dms', 
             outrem      = workdir + f'/step{fileindex+1}_rem.dms',

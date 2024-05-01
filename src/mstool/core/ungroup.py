@@ -19,7 +19,7 @@ class Ungroup(Universe):
         sort=True,
         guess_atomic_number=False, fibor=0.5, version='v1',
         water_resname='W', water_chain=None, water_number=4, water_fibor=2.0, water_chain_dms=False,
-        use_AA_structure=False, AA_structure=[], AA_structure_add=[], AA_shrink_factor=0.7):
+        use_AA_structure=False, AA_structure=[], AA_structure_add=[], AA_shrink_factor=0.8):
 
         self.data = {'resid': [], 'resname': [], 'chain': [], 'name': [], 'x': [], 'y': [], 'z': []}
         #self.xml           = ReadXML(ff, ff_add)
@@ -35,6 +35,9 @@ class Ungroup(Universe):
         self.water_number  = water_number
         self.water_fibor   = water_fibor
         self.water_chain_dms = water_chain_dms
+
+        ### tmp field
+        self.u.atoms['constructed'] = 0
 
         ### Change BB -> CA
         bA2 = self.u.atoms.resname.isin(self.prot_resnames)
@@ -129,29 +132,31 @@ class Ungroup(Universe):
             resname  = basename.split('_')[0]
             path     = prefix + f'/{resname}.{ext}'
 
+            mobatoms = Universe(path).atoms
+            mobpos   = mobatoms[['x','y','z']].values
+            mobcog   = np.average(mobpos, axis=0)
+            bA0      = self.u.atoms['name'].isin(mobatoms['name'])
+
             if not os.path.exists(path):
                 print(f'{path} does not exist')
                 continue
 
             print('Using AA structure: ' + path)
-            self.exclude_residues.append(resname)
+            #self.exclude_residues.append(resname)
             
             bA1 = self.u.atoms.resname == resname
             if bA1.sum() == 0: continue
+            self.u.atoms.loc[bA0 & bA1, 'constructed'] = 1
 
             resns = self.u.atoms[bA1]['resn'].unique()
             for resn in resns:
                 bA2 = self.u.atoms.resn == resn
-                refatoms = self.u.atoms[bA1 & bA2]
+                refatoms = self.u.atoms[bA0 & bA1 & bA2]
                 resid    = refatoms['resid'].values[0]
                 chain    = refatoms['chain'].values[0]
 
-                refpos   = self.u.atoms[bA1 & bA2][['x','y','z']].values
+                refpos   = self.u.atoms[bA0 & bA1 & bA2][['x','y','z']].values
                 refcog   = np.average(refpos, axis=0)
-
-                mobatoms = Universe(path).atoms
-                mobpos   = mobatoms[['x','y','z']].values
-                mobcog   = np.average(mobpos, axis=0)
 
                 R, min_rmsd = rotation_matrix(mobpos - mobcog, refpos - refcog)
                 
@@ -359,8 +364,8 @@ class Ungroup(Universe):
                     print(f'Warning: mapping does not have {resname}. Skipping backmapping for this molecule.')
                 continue
 
-            if resname in self.exclude_residues:
-                continue
+            #if resname in self.exclude_residues:
+            #    continue
 
             for CGAtom, AAAtoms in self.mapping.RESI[resname]['CGAtoms'].items():
                 # if you already construct backbones accroding to cg2aa, skip backbone
@@ -369,7 +374,8 @@ class Ungroup(Universe):
 
                 bA1 = self.u.atoms.resname == resname
                 bA2 = self.u.atoms.name    == CGAtom
-                CG  = self.u.atoms[bA1 & bA2]
+                bA3 = self.u.atoms.constructed == 0
+                CG  = self.u.atoms[bA1 & bA2 & bA3]
 
                 n_atoms  = len(AAAtoms)
                 name     = AAAtoms * len(CG)
