@@ -134,7 +134,7 @@ class Bilayer(Lipid):
 
         # protein
         if protein:
-            if instance(protein, str):
+            if isinstance(protein, str):
                 try:
                     protein = Universe(protein)
                 except:
