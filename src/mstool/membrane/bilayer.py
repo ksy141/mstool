@@ -112,11 +112,11 @@ class Bilayer(Lipid):
         ### Construct plane monolayer
         # upper
         upperP, unused_upperP = self.make_rect2(upperN, dx, dN)
-        upperU = self.make_monolayer(upperP, monolayer_keys['upper'], monolayer_list['upper'], chain='UPPER', dz=+hydrophobic_thickness/2 + sep/2, inverse=+1.0)
+        upperU = self.make_monolayer(upperP, monolayer_keys['upper'], monolayer_list['upper'], chain='0', dz=+hydrophobic_thickness/2 + sep/2, inverse=+1.0)
 
         # lower
         lowerP, unused_lowerP = self.make_rect2(lowerN, dx, dN)
-        lowerU = self.make_monolayer(lowerP, monolayer_keys['lower'], monolayer_list['lower'], chain='LOWER', dz=-hydrophobic_thickness/2 - sep/2, inverse=-1.0)
+        lowerU = self.make_monolayer(lowerP, monolayer_keys['lower'], monolayer_list['lower'], chain='1', dz=-hydrophobic_thickness/2 - sep/2, inverse=-1.0)
 
         # pbc
         half_pbcx = max(upperP.max(), abs(upperP.min()), lowerP.max(), abs(lowerP.min()))
@@ -126,11 +126,11 @@ class Bilayer(Lipid):
         transP = np.random.rand(transN, 3) - 0.5
         transP[:,2] = 0.0
         transP *= half_pbcx
-        transU = self.make_monolayer(transP, monolayer_keys['trans'], monolayer_list['trans'], chain='TRANS', dz=0.0, inverse=+1.0)
+        transU = self.make_monolayer(transP, monolayer_keys['trans'], monolayer_list['trans'], chain='2', dz=0.0, inverse=+1.0)
         
         # between
         betweenP       = (np.random.rand(betweenN, 3) - 0.5) * np.array([[pbcx, pbcx, sep]])
-        betweenU       = self.make_monolayer(betweenP, monolayer_keys['between'], monolayer_list['between'], chain='BETWEEN', dz=0.0, inverse=+1.0)
+        betweenU       = self.make_monolayer(betweenP, monolayer_keys['between'], monolayer_list['between'], chain='3', dz=0.0, inverse=+1.0)
 
         # protein
         if protein:

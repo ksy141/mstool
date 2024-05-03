@@ -70,7 +70,8 @@ def solvate(u, out=None,
 
 
 def ionize(u, out=None, qtot=None,
-           conc = 0.15, pos='SOD', neg='CLA', waterresname='W', ionchain=''):
+           conc = 0.15, pos='SOD', neg='CLA', waterresname='W', ionchain='',
+           posionchain=None, negionchain=None):
     """Add ions at a given concentration.
     conc = ( N_positive_ion / 6.02e23 ) / ( V * 1e-27 ) = (N * 1e4) / (V * 6.02)
     """
@@ -115,7 +116,10 @@ def ionize(u, out=None, qtot=None,
     wateratoms.loc[0:Npos-1, 'charge']  = factor
     wateratoms.loc[0:Npos-1, 'name']    = pos
     wateratoms.loc[0:Npos-1, 'resname'] = pos
-    wateratoms.loc[0:Npos-1, 'chain']   = ionchain + '1'
+    if posionchain:
+        wateratoms.loc[0:Npos-1, 'chain']   = posionchain
+    else:
+        wateratoms.loc[0:Npos-1, 'chain']   = ionchain + '1'
     
     pos_preexisting = u.atoms[u.atoms['name'] == pos]
     if len(pos_preexisting) == 0:
@@ -131,7 +135,10 @@ def ionize(u, out=None, qtot=None,
     wateratoms.loc[Npos:Npos+Nneg-1, 'charge']  = -1
     wateratoms.loc[Npos:Npos+Nneg-1, 'name']    = neg
     wateratoms.loc[Npos:Npos+Nneg-1, 'resname'] = neg
-    wateratoms.loc[Npos:Npos+Nneg-1, 'chain']   = ionchain + '2'
+    if negionchain:
+        wateratoms.loc[Npos:Npos+Nneg-1, 'chain']   = negionchain
+    else:
+        wateratoms.loc[Npos:Npos+Nneg-1, 'chain']   = ionchain + '2'
 
     neg_preexisting = u.atoms[u.atoms['name'] == neg]
     if len(neg_preexisting) == 0:
@@ -169,7 +176,7 @@ def SolvateMartini(structure=None, out=None, t=None,
                    dimensions=None,
                    solventdr=4.93, removedr=6.0, waterslab=0.8, waterchain='W', center=True,
                    conc=0.15, qtot=None, pos='SOD', neg='CLA', waterresname='W', ionchain='ZZ', pbc=True,
-                   membrane=False):
+                   membrane=False, posionchain=None, negionchain=None):
         
     # make a water box
     if dimensions:
@@ -209,6 +216,6 @@ def SolvateMartini(structure=None, out=None, t=None,
 
 
     ionizedu  = ionize(solvatedu, out=out, qtot=qtot, conc=conc, pos=pos, neg=neg, 
-                       waterresname=waterresname, ionchain=ionchain)
+                       waterresname=waterresname, ionchain=ionchain, posionchain=posionchain, negionchain=negionchain)
     return ionizedu
 

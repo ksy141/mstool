@@ -146,7 +146,8 @@ class SphereBuilder:
 
         ### Solvate
         if solvate:
-            usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc)
+            usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc, 
+                                  posionchain='4', negionchain='5', waterchain='6')
         else:
             usol = instance.universe
             # make it NVT
@@ -210,13 +211,13 @@ class SphereBuilder:
 
         dms = DMSFile(workdir + '/step1.martini.dms')
         dms.createSystem(REM=True,  tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
-        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius + hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc, chain='UPPER'))
-        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius - hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc, chain='LOWER'))
+        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius + hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc, chain='0'))
+        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius - hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc, chain='1'))
         dms.runEMNPT(dt=dt_rem, nsteps=cg_nsteps_rem, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=False, out=workdir + '/step2.rem.dms')
 
         dms.createSystem(REM=False, tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
-        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius + hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc, chain='UPPER'))
-        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius - hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc,chain='LOWER'))
+        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius + hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc, chain='0'))
+        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius - hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc,chain='1'))
         dms.runEMNPT(dt=dt, nsteps=cg_nsteps, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=False, out=workdir + '/step2.dms')
 
 
@@ -232,8 +233,8 @@ class SphereBuilder:
             dimensions = u.dimensions
             cell = u.cell
             bA1  = u.atoms.resname == 'W'
-            bA2  = u.atoms.chain   == 'ZZ1'
-            bA3  = u.atoms.chain   == 'ZZ2'
+            bA2  = u.atoms.chain   == '4'
+            bA3  = u.atoms.chain   == '5'
             bA   = bA1 | bA2 | bA3
             u    = Universe(data=u.atoms[~bA])
             u.dimensions = dimensions
@@ -249,9 +250,9 @@ class SphereBuilder:
             noprotein.write(workdir + '/step3.noprotein.dms')
             Backmap(workdir + '/step3.noprotein.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
                     AA=workdir + '/protein.dms', fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
-                    use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype, T=T)
+                    use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype, T=T, water_chain='6789')
         else:
             Backmap(workdir + '/step3.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
                     AA=None, fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
-                    use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype, T=T)
+                    use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype, T=T, water_chain='6789')
 

@@ -88,17 +88,17 @@ class Sphere(Lipid):
 
         # upper
         upperU = self.make_sphere(r+hht, upperN,
-                    monolayer_keys['upper'], monolayer_list['upper'], chain='UPPER',
+                    monolayer_keys['upper'], monolayer_list['upper'], chain='0',
                     inverse=1, alpha=alpha, beta=beta, gamma=gamma)
                         
         # lower
         lowerU = self.make_sphere(r-hht, lowerN,
-                    monolayer_keys['lower'], monolayer_list['lower'], chain='LOWER',
+                    monolayer_keys['lower'], monolayer_list['lower'], chain='1',
                     inverse=-1, alpha=alpha, beta=beta, gamma=gamma)
 
         # trans
         transU = self.make_sphere(r, transN,
-                    monolayer_keys['trans'], monolayer_list['trans'], chain='TRANS',
+                    monolayer_keys['trans'], monolayer_list['trans'], chain='2',
                     inverse=1, alpha=alpha, beta=beta, gamma=gamma)
 
         # pbc

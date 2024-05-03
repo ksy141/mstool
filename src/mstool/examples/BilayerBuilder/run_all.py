@@ -42,15 +42,23 @@ lower = {'DPPC': 30, 'DOPC': 30, 'DMPC': 30, 'DSPC': 30, 'POPC': 30,
          'DOPS': 30, 'POPS': 30, 'POPG': 30, 'DOPG': 30, 'CHL1': 30,
          'POPA': 30, 'DOPA': 30, 'POPE': 30, 'DOPE': 30}
 
-mstool.SphereBuilder(workdir='Example7_Sphere',
+mstool.SphereBuilder(workdir='Example6_Sphere',
                      radius=60, upper=upper, lower=lower)
 
 
 ### Example 7
-mstool.SphereBuilder(workdir='Example8_SphereProtein',
+mstool.SphereBuilder(workdir='Example7_SphereProtein',
                      radius=100, 
                      protein={mstool.Universe(mstool.MPAA2): 5, 
                               mstool.Universe(mstool.GPCR):  5},
                      upper={'POPC': 1600, 'DOPS': 990, 'CHL1': 10},
                      lower={'POPC': 1000, 'DOPS': 400, 'CHL1': 10})
+
+### Example 8
+mstool.BilayerBuilder(upper={'POPC':135, 'CHL1':5},
+                      lower={'POPC':135, 'CHL1':5},
+                      between={'TRIO': 200, 'CHYO': 200},
+                      sep=80.0, ff_add=mstool.TRIOFF,
+                      martini_add=mstool.TRIOMARTINI,
+                      mapping_add=mstool.TRIOMAPPING)
 

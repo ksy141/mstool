@@ -145,14 +145,14 @@ class BilayerBuilder:
 
         ### Solvate
         if solvate:
-            usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=0.0)
+            usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=0.0, waterchain='6')
             cell = usol.cell
             dim  = usol.dimensions
             bA1  = usol.atoms.name == 'W'
             bA2  = usol.atoms.z    <  hydrophobic_thickness / 2 + sep/2 + 10
             bA3  = usol.atoms.z    > -hydrophobic_thickness / 2 - sep/2 - 10
             usol = Universe(data=usol.atoms[~(bA1 & bA2 & bA3)])
-            usol = ionize(usol, conc=ionconc)
+            usol = ionize(usol, conc=ionconc, posionchain='4', negionchain='5')
             usol.dimensions = dim
             usol.cell       = cell
  
@@ -227,8 +227,8 @@ class BilayerBuilder:
             membranecenter = shift
         else:
             bA1  = u.atoms.resname == 'W'
-            bA2  = u.atoms.chain   == 'ZZ1'
-            bA3  = u.atoms.chain   == 'ZZ2'
+            bA2  = u.atoms.chain   == '4'
+            bA3  = u.atoms.chain   == '5'
             bA   = bA1 | bA2 | bA3
             membranecenter = u.atoms[~bA][['x','y','z']].mean(axis=0).to_numpy()
             NtotalW = len(u.atoms[bA1])
@@ -247,8 +247,8 @@ class BilayerBuilder:
             dimensions = u.dimensions
             cell = u.cell
             bA1  = u.atoms.resname == 'W'
-            bA2  = u.atoms.chain   == 'ZZ1'
-            bA3  = u.atoms.chain   == 'ZZ2'
+            bA2  = u.atoms.chain   == '4'
+            bA3  = u.atoms.chain   == '5'
             bA   = bA1 | bA2 | bA3
             u    = Universe(data=u.atoms[~bA])
             u.dimensions = dimensions
@@ -271,9 +271,9 @@ class BilayerBuilder:
             noprotein.write(workdir + '/step3.noprotein.dms')
             Backmap(workdir + '/step3.noprotein.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
                     AA=workdir + '/protein.dms', fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
-                    use_AA_structure=use_AA_structure, AA_shrink_factor=AA_shrink_factor, rockCtype=rockCtype, rockHtype=rockHtype, T=T)
+                    use_AA_structure=use_AA_structure, AA_shrink_factor=AA_shrink_factor, rockCtype=rockCtype, rockHtype=rockHtype, T=T, water_chain='6789')
         else:
             Backmap(workdir + '/step3.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
                     AA=None, fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
-                    use_AA_structure=use_AA_structure, AA_shrink_factor=AA_shrink_factor, rockCtype=rockCtype, rockHtype=rockHtype, T=T)
+                    use_AA_structure=use_AA_structure, AA_shrink_factor=AA_shrink_factor, rockCtype=rockCtype, rockHtype=rockHtype, T=T, water_chain='6789')
 

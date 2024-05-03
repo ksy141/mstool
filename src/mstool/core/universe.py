@@ -21,6 +21,14 @@ pd.set_option('display.max_rows', 500)
 # if pdb file is provided, reset bfactor value to 0.0
 
 
+def custom_sort(value):
+    if isinstance(value, int):
+        return(0, value)
+    elif value.isdigit():
+        return (2, value)
+    else:
+        return (1, value)
+
 anum_mass_from_name = {
    'H':  [1,   1.00],
    'C':  [6,  12.00],
@@ -478,7 +486,8 @@ class Universe:
         #                      self.atoms.loc[i2].newindex])
         #self.bonds = bonds_tmp
 
-        self.atoms = self.atoms.sort_values(by=by, ignore_index=ignore_index)
+        #self.atoms = self.atoms.sort_values(by=by, ignore_index=ignore_index)
+        self.atoms = self.atoms.sort_values(by=by, ignore_index=ignore_index, key=lambda x: x.apply(custom_sort))
         self.bonds = []
 
 
