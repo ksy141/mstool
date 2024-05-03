@@ -141,11 +141,11 @@ class Ungroup(Universe):
                 print(f'{path} does not exist')
                 continue
 
-            print('Using AA structure: ' + path)
             #self.exclude_residues.append(resname)
             
             bA1 = self.u.atoms.resname == resname
             if bA1.sum() == 0: continue
+            print('Using AA structure: ' + path)
             self.u.atoms.loc[bA0 & bA1, 'constructed'] = 1
 
             resns = self.u.atoms[bA1]['resn'].unique()
