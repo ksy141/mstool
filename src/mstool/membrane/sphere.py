@@ -134,7 +134,7 @@ class Sphere(Lipid):
         if finalN == 0:
             return Universe()
         
-        print(chain + ' leaflet')
+        print('leaflet ' + chain)
         points = fibo(r=finalr, N=finalN, alpha=alpha, beta=beta, gamma=gamma, plot=None)
         data = {'name': [], 'resname': [], 'resid': [], 'chain': [], 'x': [], 'y': [], 'z': []}
 

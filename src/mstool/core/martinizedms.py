@@ -388,12 +388,20 @@ class MartinizeDMS:
                     epsilon = 0.0
 
                 else:
-                    sigma6  = C12 / C6
-                    sigma   = sigma6 ** (1/6)
-                    epsilon = C6 / 4 / sigma6
+                    if self.martini.martini['energy'].startswith('C12'):
+                        sigma6  = C12 / C6
+                        sigma   = sigma6 ** (1/6)
+                        epsilon = C6 / 4 / sigma6
+
+                    elif self.martini.martini['energy'].startswith('4*eps'):
+                        sigma   = C6
+                        epsilon = C12
+
+                    else:
+                        raise AssertionError('LJ function is not defined')
 
                     sigma   = sigma   * 10      # nm to A
-                    epsilon = epsilon * 0.239  # kJ/mol to kcal/mol
+                    epsilon = epsilon * 0.239   # kJ/mol to kcal/mol
 
                 self.cursor.execute(sql_insert_nonbonded_combined.format(
                     ntype1, ntype2, epsilon, sigma, ttype1 + ' ' + ttype2))

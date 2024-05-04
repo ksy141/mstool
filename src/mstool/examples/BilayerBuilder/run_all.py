@@ -55,7 +55,8 @@ mstool.SphereBuilder(workdir='Example7_SphereProtein',
                      lower={'POPC': 1000, 'DOPS': 400, 'CHL1': 10})
 
 ### Example 8
-mstool.BilayerBuilder(upper={'POPC':135, 'CHL1':5},
+mstool.BilayerBuilder(workdir='Example8_LD',
+                      upper={'POPC':135, 'CHL1':5},
                       lower={'POPC':135, 'CHL1':5},
                       between={'TRIO': 200, 'CHYO': 200},
                       sep=80.0, ff_add=mstool.TRIOFF,

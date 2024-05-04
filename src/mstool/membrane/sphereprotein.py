@@ -83,7 +83,7 @@ class SphereProtein:
                 save_chain    = np.char.add(key.atoms['chain'].tolist(), [str(i)] * len(positions))
 
             else:
-                assert 0 == 1, 'resname does not exist or input structure cannot be found'
+                assert 0 == 1, 'input structure cannot be found'
 
             finalpositions = self.place(positions, r=finalr, r_vector=points[i])
             data['chain'].extend(save_chain)

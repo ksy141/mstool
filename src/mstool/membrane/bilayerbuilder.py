@@ -1,6 +1,7 @@
 import os
 import shutil
-from  .bilayer               import Bilayer
+import numpy as np
+from  .bilayer               import Bilayer, make_rect2
 from  ..core.map             import Map
 from  ..core.readmartini     import ReadMartini
 from  ..core.solvate_martini import SolvateMartini, ionize
@@ -29,7 +30,8 @@ class BilayerBuilder:
                  remove_solvent=False,
                  solvate=True,
                  tapering='shift',
-                 REM=False):
+                 REM=False,
+                 protein_dict_pbc_shrink_factor=0.9):
 
         '''Bilayer builder.
         Parameters
@@ -116,14 +118,72 @@ class BilayerBuilder:
         ### workdir
         if (not use_existing_folder) or (use_existing_folder and not os.path.exists(workdir)):
             os.mkdir(workdir)
-
+        
+        ### protein
         if protein:
-            proteinU = Universe(protein)
+            if isinstance(protein, str):
+                proteinU = Universe(protein)
+ 
+            elif isinstance(protein, Universe):
+                proteinU = protein
+ 
+            elif isinstance(protein, dict):
+                # protein = {'GPCR.pdb': 3, 'ompf.pdb': 2}
+                # proteinlayer_keys = ['GPCR.pdb', 'ompf.pdb']
+                # proteinlayer_list = [0, 0, 0, 1, 1]
+                proteinlayer_key  = [key for key in protein.keys()]
+                proteinlayer_list = []
+                for idx, number in enumerate(protein.values()):
+                    proteinlayer_list += [idx] * number
+                np.random.shuffle(proteinlayer_list)
+                proteindata = {'name': [], 'resname': [], 'resid': [], 'chain': [], 'x': [], 'y': [], 'z': []}
+                
+                proteinN = len(proteinlayer_list)
+                pbcx = np.sqrt(max([sum(upper.values()), sum(lower.values())])) * dx * protein_dict_pbc_shrink_factor
+                proteinP, _ = make_rect2(proteinN, dx=pbcx/int(np.sqrt(proteinN)), dN=1)
+                for i in range(len(proteinP)):
+                    key = proteinlayer_key[proteinlayer_list[i]]
+                    if isinstance(key, str):
+                        # structure information exists.
+                        univ         = Universe(key)
+                        positions    = univ.atoms[['x','y','z']].to_numpy()
+                        save_resname = univ.atoms['resname'].tolist()
+                        save_name    = univ.atoms['name'].tolist()
+                        save_resid   = univ.atoms['resid'].tolist()
+                        save_chain   = np.char.add(univ.atoms['chain'].tolist(), [str(i)] * len(positions))
+        
+                    elif isinstance(key, Universe):
+                        # a structure e.g., protein or lipid with a structure
+                        positions     = key.atoms[['x','y','z']].to_numpy()
+                        save_resname  = key.atoms['resname'].tolist()
+                        save_name     = key.atoms['name'].tolist()
+                        save_resid    = key.atoms['resid'].tolist()
+                        save_chain    = np.char.add(key.atoms['chain'].tolist(), [str(i)] * len(positions))
+        
+                    else:
+                        raise IOError('input protein structure is not found')
+        
+                    finalpositions = positions + proteinP[i]
+                    proteindata['chain'].extend(save_chain)
+                    proteindata['resname'].extend(save_resname)
+                    proteindata['resid'].extend(save_resid)
+                    proteindata['name'].extend(save_name)
+                    proteindata['x'].extend(finalpositions[:,0])
+                    proteindata['y'].extend(finalpositions[:,1])
+                    proteindata['z'].extend(finalpositions[:,2])
+        
+                proteinU = Universe(data=proteindata)
+                proteinU.atoms = proteinU.atoms.astype({'resid': int})
+
+            else:
+                raise IOError('input protein structure is not found')
+
             Hatoms   = proteinU.atoms.name.str.startswith('H')
             proteinU.atoms.bfactor = 0.0
             proteinU.atoms.loc[~Hatoms, 'bfactor'] = 1.0
             proteinU.write(workdir + '/protein.dms', wrap=False)
             proteinU.write(workdir + '/protein.pdb', wrap=False)
+  
        
         ### Read Martini
         #martiniff = ReadMartini(ff=martini, ff_add=martini_add, define={'FLEXIBLE': 'True'})
@@ -131,7 +191,8 @@ class BilayerBuilder:
 
         ### Mapping & Translate
         #if protein: Map(workdir + '/protein.dms', workdir + '/protein_CG.dms', add_notavailableAAAtoms=True)
-        if protein: Map(workdir + '/protein.dms', workdir + '/protein_CG.dms', add_notavailableAAAtoms=False)
+        if protein: Map(workdir + '/protein.dms', workdir + '/protein_CG.dms', add_notavailableAAAtoms=False,
+                        mapping=mapping, mapping_add=mapping_add)
 
         ### Construct a bilayer
         instance = Bilayer(protein=workdir + '/protein_CG.dms' if protein else None, 
@@ -206,32 +267,34 @@ class BilayerBuilder:
         #dms.runEMNPT(workdir + '/step2.rem.dms', emout=None, dt=dt, nsteps=0, frictionCoeff=frictionCoeff, barfreq=0, T=T)
         
         martiniU = Universe(workdir + '/step1.martini.dms')
-        martiniU.atoms.loc[((martiniU.atoms.name == 'GL1')), 'bfactor'] = 1.0
+        martiniU.atoms.loc[((martiniU.atoms.name == 'GL1')), 'bfactor'] = 2.0
 
         dms = DMSFile(workdir + '/step1.martini.dms')
         dms.createSystem(REM=True,  tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
-        if protein: dms.system.addForce(addPosre(martiniU, bfactor_posre=0.5, fcx=0.0, fcy=0.0, fcz=fc))
+        dms.system.addForce(addPosre(martiniU, bfactor_posre=1.5, fcx=0.0, fcy=0.0, fcz=fc))
+        #if protein: dms.system.addForce(addPosre(martiniU, bfactor_posre=1.5, fcx=0.0, fcy=0.0, fcz=fc))
         #dms.system.addForce(addFlatBottomZ(martiniU, bfactor_posre=0.5, radius=hydrophobic_thickness/2, rfb=0.1, R0z=shift[2], fc=fc, chain='UPPER'))
         #dms.system.addForce(addFlatBottomZ(martiniU, bfactor_posre=0.5, radius=hydrophobic_thickness/2, rfb=0.1, R0z=shift[2], fc=fc, chain='LOWER'))
-        dms.runEMNPT(dt=dt_rem, nsteps=cg_nsteps_rem, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=True, out=workdir + '/step2.rem.dms')
+        dms.runEMNPT(dt=dt_rem, nsteps=int(cg_nsteps_rem), frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=True, out=workdir + '/step2.rem.dms')
 
         #dms = DMSFile(workdir + '/step2.rem.dms')
         dms.createSystem(REM=False, tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
-        if protein: dms.system.addForce(addPosre(martiniU, bfactor_posre=0.5, fcx=0.0, fcy=0.0, fcz=fc))
-        dms.runEMNPT(dt=dt, nsteps=cg_nsteps, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=True, out=workdir + '/step2.dms')
+        if protein: dms.system.addForce(addPosre(martiniU, bfactor_posre=1.5, fcx=0.0, fcy=0.0, fcz=fc))
+        dms.runEMNPT(dt=dt, nsteps=int(cg_nsteps), frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=True, out=workdir + '/step2.dms')
         
         ### Translate Back
         u = Universe(workdir + '/step2.dms')
 
+        bA1  = u.atoms.resname == 'W'
+        bA2  = u.atoms.chain   == '4'
+        bA3  = u.atoms.chain   == '5'
+        bA   = bA1 | bA2 | bA3
+        NtotalW = len(u.atoms[bA1])
+
         if protein:
             membranecenter = shift
         else:
-            bA1  = u.atoms.resname == 'W'
-            bA2  = u.atoms.chain   == '4'
-            bA3  = u.atoms.chain   == '5'
-            bA   = bA1 | bA2 | bA3
             membranecenter = u.atoms[~bA][['x','y','z']].mean(axis=0).to_numpy()
-            NtotalW = len(u.atoms[bA1])
 
         u.atoms[['x','y','z']] -= membranecenter
 
@@ -269,11 +332,11 @@ class BilayerBuilder:
             noprotein.dimensions = u.dimensions
             noprotein.cell = u.cell
             noprotein.write(workdir + '/step3.noprotein.dms')
-            Backmap(workdir + '/step3.noprotein.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
+            Backmap(workdir + '/step3.noprotein.dms', workdir=workdir, use_existing_workdir=True, nsteps=int(aa_nsteps),
                     AA=workdir + '/protein.dms', fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
                     use_AA_structure=use_AA_structure, AA_shrink_factor=AA_shrink_factor, rockCtype=rockCtype, rockHtype=rockHtype, T=T, water_chain='6789')
         else:
-            Backmap(workdir + '/step3.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
+            Backmap(workdir + '/step3.dms', workdir=workdir, use_existing_workdir=True, nsteps=int(aa_nsteps),
                     AA=None, fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
                     use_AA_structure=use_AA_structure, AA_shrink_factor=AA_shrink_factor, rockCtype=rockCtype, rockHtype=rockHtype, T=T, water_chain='6789')
 

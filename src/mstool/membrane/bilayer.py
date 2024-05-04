@@ -5,10 +5,60 @@ import os
 import glob
 pwd = os.path.dirname(os.path.realpath(__file__))
 
+def make_rect2(N, dx, dN=5):
+    '''
+    Try to make sqrt(N) x sqrt(N) rectangular points.
+
+      x
+
+     ccc
+     cxc
+     ccc
+
+    ooooo
+    occco
+    ocxco
+    occco
+    ooooo
+    '''
+
+    Nx = int(np.sqrt(N)) + dN
+
+    collect = []
+    for i in range(Nx):
+        pts = np.arange(-i, i+1)
+
+        # edges
+        for j in range(1, len(pts)-1):
+            collect.append([pts[0], pts[j], 0.0])
+
+        for j in range(1, len(pts)-1):
+            collect.append([pts[j], pts[0], 0.0])
+
+        for j in range(1, len(pts)-1):
+            collect.append([pts[-1], pts[j], 0.0])
+
+        for j in range(1, len(pts)-1):
+            collect.append([pts[j], pts[-1], 0.0])
+
+        # corners
+        if len(pts) == 1:
+            collect.append([0.0,0.0,0.0])
+        
+        else:
+            collect.append([pts[0], pts[0],   0.0])
+            collect.append([pts[0], pts[-1],  0.0])
+            collect.append([pts[-1], pts[0],  0.0])
+            collect.append([pts[-1], pts[-1], 0.0])
+
+    collect = np.array(collect) * dx
+    return collect[0:N], collect[N:]
+
+
 class Bilayer(Lipid):
     def __init__(self, protein=None, upper={}, lower={}, trans={}, between={},
                  dx=8.0, waterz=25.0, rcut=3, out=None, mode='shift',
-                 dN=5, martini=None, hydrophobic_thickness=30.0, sep=0.0,
+                 dN=20, martini=None, hydrophobic_thickness=30.0, sep=0.0,
                  lipidpath=pwd + '/../../../FF/martini2.2/structures/'):
 
         '''Make a plane bilayer (or monolayer) with the provided numbers of lipids.
@@ -111,12 +161,16 @@ class Bilayer(Lipid):
 
         ### Construct plane monolayer
         # upper
-        upperP, unused_upperP = self.make_rect2(upperN, dx, dN)
-        upperU = self.make_monolayer(upperP, monolayer_keys['upper'], monolayer_list['upper'], chain='0', dz=+hydrophobic_thickness/2 + sep/2, inverse=+1.0)
+        upperP, unused_upperP = make_rect2(upperN, dx, dN)
+        upperU = self.make_monolayer(upperP, 
+            monolayer_keys['upper'], monolayer_list['upper'], chain='0', 
+            dz=+hydrophobic_thickness/2 + sep/2, inverse=+1.0)
 
         # lower
-        lowerP, unused_lowerP = self.make_rect2(lowerN, dx, dN)
-        lowerU = self.make_monolayer(lowerP, monolayer_keys['lower'], monolayer_list['lower'], chain='1', dz=-hydrophobic_thickness/2 - sep/2, inverse=-1.0)
+        lowerP, unused_lowerP = make_rect2(lowerN, dx, dN)
+        lowerU = self.make_monolayer(lowerP, 
+            monolayer_keys['lower'], monolayer_list['lower'], chain='1', 
+            dz=-hydrophobic_thickness/2 - sep/2, inverse=-1.0)
 
         # pbc
         half_pbcx = max(upperP.max(), abs(upperP.min()), lowerP.max(), abs(lowerP.min()))
@@ -126,22 +180,25 @@ class Bilayer(Lipid):
         transP = np.random.rand(transN, 3) - 0.5
         transP[:,2] = 0.0
         transP *= half_pbcx
-        transU = self.make_monolayer(transP, monolayer_keys['trans'], monolayer_list['trans'], chain='2', dz=0.0, inverse=+1.0)
+        transU = self.make_monolayer(transP, 
+            monolayer_keys['trans'], monolayer_list['trans'], chain='2', 
+            dz=0.0, inverse=+1.0)
         
         # between
-        betweenP       = (np.random.rand(betweenN, 3) - 0.5) * np.array([[pbcx, pbcx, sep]])
-        betweenU       = self.make_monolayer(betweenP, monolayer_keys['between'], monolayer_list['between'], chain='3', dz=0.0, inverse=+1.0)
+        betweenP = (np.random.rand(betweenN, 3) - 0.5) * np.array([[pbcx, pbcx, sep]])
+        betweenU = self.make_monolayer(betweenP, 
+            monolayer_keys['between'], monolayer_list['between'], chain='3', dz=0.0, inverse=+1.0)
 
         # protein
         if protein:
             if isinstance(protein, str):
-                try:
-                    protein = Universe(protein)
-                except:
-                    protein = protein
+                protein = Universe(protein)
 
-            elif isinstance(protein, dict):
-                pass
+            elif isinstance(protein, Universe):
+                protein = protein
+
+            else:
+                raise IOError('input protein structure is not found')
 
         else:
             # construct an empty protein universe
@@ -204,56 +261,6 @@ class Bilayer(Lipid):
         self.upperN = upperN
         self.lowerN = lowerN
 
-
-
-    def make_rect2(self, N, dx, dN=5):
-        '''
-        Try to make sqrt(N) x sqrt(N) rectangular points.
-
-          x
-
-         ccc
-         cxc
-         ccc
-
-        ooooo
-        occco
-        ocxco
-        occco
-        ooooo
-        '''
-
-        Nx = int(np.sqrt(N)) + dN
-
-        collect = []
-        for i in range(Nx):
-            pts = np.arange(-i, i+1)
-
-            # edges
-            for j in range(1, len(pts)-1):
-                collect.append([pts[0], pts[j], 0.0])
-
-            for j in range(1, len(pts)-1):
-                collect.append([pts[j], pts[0], 0.0])
-
-            for j in range(1, len(pts)-1):
-                collect.append([pts[-1], pts[j], 0.0])
-
-            for j in range(1, len(pts)-1):
-                collect.append([pts[j], pts[-1], 0.0])
-
-            # corners
-            if len(pts) == 1:
-                collect.append([0.0,0.0,0.0])
-            
-            else:
-                collect.append([pts[0], pts[0],   0.0])
-                collect.append([pts[0], pts[-1],  0.0])
-                collect.append([pts[-1], pts[0],  0.0])
-                collect.append([pts[-1], pts[-1], 0.0])
-
-        collect = np.array(collect) * dx
-        return collect[0:N], collect[N:]
 
 
 

@@ -1,0 +1,401 @@
+; Copyright 2018 University of Groningen
+;
+; Licensed under the Apache License, Version 2.0 (the "License");
+; you may not use this file except in compliance with the License.
+; You may obtain a copy of the License at
+;
+;    http://www.apache.org/licenses/LICENSE-2.0
+;
+; Unless required by applicable law or agreed to in writing, software
+; distributed under the License is distributed on an "AS IS" BASIS,
+; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+; See the License for the specific language governing permissions and
+; limitations under the License.
+
+; Please note that this is not the original martiniv3.0.0 file.
+; I modified this file to make it compatible with my membrane builder.
+; While my modification is mainly re-formatting (not changing any parameters),
+; I have to make a big modification onto tryptophan, which is removing a virtual site.
+; I am sorry, tryptophan =(
+
+;;; GLYCINE
+[ moleculetype ]
+; molname       nrexcl
+GLY                1			
+
+[ atoms ]
+;id  type resnr residu atom cgnr   charge
+ 1   SP1   1     GLY    BB     1      0      
+
+
+;;; ALANINE
+[ moleculetype ]
+; molname       nrexcl
+ALA                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   SP2    1   ALA    BB     1      0
+ 2   TC3    1   ALA    SC1    2      0 
+
+[ constraints ]
+;  i     j   funct   length  
+   1     2   1       0.270
+
+
+;;; CYSTEINE
+[ moleculetype ]
+; molname       nrexcl
+CYS                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   P2     1   CYS    BB     1      0
+ 2   TC6    1   CYS    SC1    2      0     
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2   1       0.341     7500        
+
+
+;;; VALINE
+[ moleculetype ]
+; molname       nrexcl
+VAL                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   SP2  1     VAL     BB     1      0    
+ 2   SC3  1     VAL     SC1    2      0    
+
+[ bonds ]
+;  i     j   funct   length  
+   1     2    1       0.292  10000.0
+
+
+;;; LEUCINE
+[ moleculetype ]
+; molname       nrexcl
+LEU                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   P2   1     LEU     BB     1      0    
+ 2   SC2  1     LEU     SC1    2      0    
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.363     7500    
+
+
+;;; ISOLEUCINE
+[ moleculetype ]
+; molname       nrexcl
+ILE                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   P2   1     ILE     BB     1      0    
+ 2   SC2  1     ILE     SC1    2      0    
+
+[ bonds ]
+;  i     j   funct   length  
+   1     2    1       0.341  10000.0
+
+
+;;; METHIONINE
+[ moleculetype ]
+; molname       nrexcl
+MET                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   P2   1     MET     BB     1      0    
+ 2   C6   1     MET     SC1    2      0     
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.40     2500
+
+
+;;; PROLINE
+[ moleculetype ]
+; molname       nrexcl
+PRO                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   SP2a   1     PRO     BB     1      0    
+ 2   SC3    1     PRO     SC1    2      0    
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2   1       0.330     7500
+
+
+;;; ASPARAGINE
+[ moleculetype ]
+; molname       nrexcl
+ASN                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   P2     1     ASN     BB     1      0    
+ 2   SP5    1     ASN     SC1    2      0    
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.352     5000
+
+
+;;; GLUTAMINE
+[ moleculetype ]
+; molname       nrexcl
+GLN                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   P2    1     GLN     BB     1      0    
+ 2   P5    1     GLN     SC1    2      0    
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.400    5000     
+
+
+;;; ASPARTATE
+[ moleculetype ]
+; molname       nrexcl
+ASP                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   P2      1     ASP     BB     1      0    
+ 2   SQ5n    1     ASP     SC1    2   -1.0    
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.352     7500
+
+
+;;; GLUTAMATE
+[ moleculetype ]
+; molname       nrexcl
+GLU                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   P2     1     GLU     BB     1      0    
+ 2   Q5n    1     GLU     SC1    2   -1.0    
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.400    5000     
+
+
+;;; THREONINE
+[ moleculetype ]
+; molname       nrexcl
+THR                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+1   P2      1     THR     BB     1      0    
+2   SP1     1     THR     SC1    2      0    
+
+[ bonds ]
+;  i     j   funct   length 
+   1     2    1       0.305  10000.0
+
+
+;;; SERINE
+[ moleculetype ]
+; molname       nrexcl
+SER                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+1    P2     1    SER     BB     1      0    
+2   TP1     1    SER     SC1    2      0    
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.287     7500
+
+
+;;; LYSINE 
+[ moleculetype ]
+; molname       nrexcl
+LYS                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   P2     1     LYS     BB     1      0    
+ 2   SC3    1     LYS     SC1    2      0    
+ 3   SQ4p   1     LYS     SC2    3    1.0    
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.330     5000      
+   2     3    1       0.360     5000  
+
+[ angles ]
+;  i     j    k     funct   angle  force.c.
+   1     2    3       2   180.000    25.0      
+
+
+;;; ARGININE 
+[ moleculetype ]
+; molname       nrexcl
+ARG                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+1   P2       1     ARG     BB     1      0    
+2   SC3      1     ARG     SC1    2      0    
+3   SQ3p     1     ARG     SC2    3    1.0    
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.330     5000   
+   2     3    1       0.380     5000  
+
+[ angles ]
+;  i     j    k     funct   angle  force.c.
+   1     2    3       2   180.000    25.0      
+
+
+;;; HISTIDINE 
+[ moleculetype ]
+;molname       nrexcl
+HIS                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+1   P2      1     HIS     BB     1    0    
+2   TC4     1     HIS     SC1    2    0    ; three side chains in triangle
+3   TN6d    1     HIS     SC2    3    0    ; configuration, mimicking
+4   TN5a    1     HIS     SC3    4    0    ; ring structure
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.336     7500 
+   2     3    1       0.320  10000.0
+   2     4    1       0.300  10000.0 
+   3     4    1       0.270  10000.0
+
+[ angles ]
+;  i     j    k     funct   angle  force.c.
+   1     2    3       2   120.000   50.0  
+   1     2    4       2   120.000   50.0 
+
+[ exclusions ]
+1 2 3 4
+2 3 4
+3 4
+
+
+;;; PHENYLALANINE
+[ moleculetype ]
+; molname       nrexcl
+PHE                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+1   P2     1     PHE     BB     1    0
+2   SC4    1     PHE     SC1    2    0    ; three side chains in triangle
+3   TC5    1     PHE     SC2    3    0    ; configuration, mimicking
+4   TC5    1     PHE     SC3    4    0    ; ring structure
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.325     7500 	
+   2     3    1       0.340  10000.0
+   2     4    1       0.340  10000.0
+   3     4    1       0.290  10000.0
+
+[ angles ]
+;  i     j    k     funct   angle  force.c.
+   1     2    3        2   120.000   50.0  
+   1     2    4        2   120.000   50.0 
+
+[ exclusions ]
+1 2 3 4
+2 3 4
+3 4
+
+
+;;; TYROSINE
+[ moleculetype ]
+; molname       nrexcl
+TYR                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+1   P2     1     TYR     BB     1    0
+2   TC4    1     TYR     SC1    2    0  
+3   TC5    1     TYR     SC2    3    0 
+4   TC5    1     TYR     SC3    4    0  
+5   TN6    1     TYR     SC4    5    0
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.325   5000.0 	
+   2     3    1       0.300  10000.0
+   2     4    1       0.300  10000.0
+   3     5    1       0.285  10000.0
+   4     5    1       0.285  10000.0
+   3     4    1       0.300  10000.0
+
+[ angles ]
+;  i     j    k     funct   angle  force.c.
+   1     2    3       2   120.000   60.0  
+   1     2    4       2   120.000   60.0 
+
+[ dihedrals ]
+;  i     j    k    l   funct   angle  force.c.
+   5     3    4    2       2    180.0    50.0
+
+[ exclusions ]
+1 2 3 4 5
+2 3 4 5 
+3 4 5 
+4 5
+
+
+;;; TRYPTOPHAN
+[ moleculetype ]
+;molname       nrexcl
+TRP                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge     mass
+1   P2       1     TRP     BB     1    0       72
+2   TC4      1     TRP     SC1    2    0       36
+3   TN6d     1     TRP     SC2    3    0       36
+4   TC5      1     TRP     SC3    4    0       36
+5   TC5      1     TRP     SC4    5    0       36
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.315   5000.0 	
+   2     3    1       0.335  10000.0
+   3     5    1       0.412  10000.0
+   4     5    1       0.293  10000.0
+   2     4    1       0.404  10000.0
+   3     4    1       0.470  10000.0
+
+[ angles ]
+;  i     j    k     funct   angle  force.c.
+   1     2    3       2   120.000    60.0 
+   1     2    4       2   130.000    60.0  
+
+[ dihedrals ]
+;  i     j    k    l   funct   angle  force.c.
+   5     4    3    2       2   180.0    100.0
+
+[ exclusions ]
+1 2 3 4 5
+2 3 4 5 
+3 4 5 
+4 5

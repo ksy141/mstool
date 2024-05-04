@@ -132,7 +132,8 @@ class SphereBuilder:
 
         ### Mapping & Translate
         #if protein: Map(workdir + '/protein.dms', workdir + '/protein_CG.dms', add_notavailableAAAtoms=True)
-        if protein: Map(workdir + '/protein.dms', workdir + '/protein_CG.dms', add_notavailableAAAtoms=False)
+        if protein: Map(workdir + '/protein.dms', workdir + '/protein_CG.dms', add_notavailableAAAtoms=False,
+                        mapping=mapping, mapping_add=mapping_add)
 
         ### Construct a bilayer
         instance = Sphere( protein=workdir + '/protein_CG.dms' if protein else None, 
@@ -207,18 +208,18 @@ class SphereBuilder:
         
         ### NPT
         martiniU = Universe(workdir + '/step1.martini.dms')
-        martiniU.atoms.loc[((martiniU.atoms.name == 'GL1')), 'bfactor'] = 1.0
+        martiniU.atoms.loc[((martiniU.atoms.name == 'GL1')), 'bfactor'] = 2.0
 
         dms = DMSFile(workdir + '/step1.martini.dms')
         dms.createSystem(REM=True,  tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
-        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius + hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc, chain='0'))
-        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius - hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc, chain='1'))
-        dms.runEMNPT(dt=dt_rem, nsteps=cg_nsteps_rem, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=False, out=workdir + '/step2.rem.dms')
+        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=1.5, radius=radius + hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc, chain='0'))
+        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=1.5, radius=radius - hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc, chain='1'))
+        dms.runEMNPT(dt=dt_rem, nsteps=int(cg_nsteps_rem), frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=False, out=workdir + '/step2.rem.dms')
 
         dms.createSystem(REM=False, tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
-        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius + hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc, chain='0'))
-        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=0.5, radius=radius - hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc,chain='1'))
-        dms.runEMNPT(dt=dt, nsteps=cg_nsteps, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=False, out=workdir + '/step2.dms')
+        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=1.5, radius=radius + hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc, chain='0'))
+        dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=1.5, radius=radius - hydrophobic_thickness/2, rfb=0.1, R0=shift, fc=fc,chain='1'))
+        dms.runEMNPT(dt=dt, nsteps=int(cg_nsteps), frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=False, out=workdir + '/step2.dms')
 
 
         #dms.runEMNPT(dt=0.002, nsteps=cg_nsteps_2fs, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=False)
@@ -248,11 +249,11 @@ class SphereBuilder:
             noprotein.dimensions = u.dimensions
             noprotein.cell = u.cell
             noprotein.write(workdir + '/step3.noprotein.dms')
-            Backmap(workdir + '/step3.noprotein.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
+            Backmap(workdir + '/step3.noprotein.dms', workdir=workdir, use_existing_workdir=True, nsteps=int(aa_nsteps),
                     AA=workdir + '/protein.dms', fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
                     use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype, T=T, water_chain='6789')
         else:
-            Backmap(workdir + '/step3.dms', workdir=workdir, use_existing_workdir=True, nsteps=aa_nsteps,
+            Backmap(workdir + '/step3.dms', workdir=workdir, use_existing_workdir=True, nsteps=int(aa_nsteps),
                     AA=None, fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
                     use_AA_structure=use_AA_structure, rockCtype=rockCtype, rockHtype=rockHtype, T=T, water_chain='6789')
 

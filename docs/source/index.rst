@@ -9,9 +9,9 @@ All source code is available from `github.com/ksy141/mstool <https://github.com/
 
 When using **mstool** in published work, please cite the following paper.
 
+Siyoung Kim, `Backmapping with Mapping and Isomeric Information <https://pubs.acs.org/doi/abs/10.1021/acs.jpcb.3c05593>`_, *J. Phys. Chem. B.* 2023, 127, 49, 10488.
 
-- Siyoung Kim, `Backmapping with Mapping and Isomeric Information <https://pubs.acs.org/doi/abs/10.1021/acs.jpcb.3c05593>`_, *J. Phys. Chem. B.* 2023, 127, 49, 10488.
-- Siyoung Kim, `All-Atom Membrane Builder via Multiscale Simulation`, *submitted*.
+Siyoung Kim, `All-Atom Membrane Builder via Multiscale Simulation`, *submitted*.
 
 .. note::
    This project is under active development.

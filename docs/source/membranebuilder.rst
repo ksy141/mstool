@@ -123,3 +123,19 @@ In this example, we will incorporate five copies of ompF and five copies of GPCR
                         lower={'POPC': 1000, 'DOPS': 400, 'CHL1': 10})
 
 
+Example 8. Lipid Droplet
+------------------------
+
+Lipid droplets, found within cells, function as storage units for neutral lipids or fat. Their sizes typically vary from 500 nm to 2 micrometers. In molecular dynamics simulations, lipid droplets are commonly represented as trilayer structures, owing to their low surface curvature, with neutral lipids occupying the gap between two phospholipid layers. In this instance, we will construct a trilayer setup featuring a neutral lipid layer comprising triolein (TRIO) and cholesteryl ester (CHYO). In our model, we will position the two phospholipid leaflets 80.0 Å apart in the Z dimension and then populate the space between them with 180 molecules each of TRIO and CHYO.
+
+.. code-block:: python
+
+   import mstool
+   mstool.BilayerBuilder(upper={'POPC':135, 'CHL1':5},
+                      lower={'POPC':135, 'CHL1':5},
+                      between={'TRIO': 180, 'CHYO': 180},
+                      sep=80.0, ff_add=mstool.TRIOFF,
+                      martini_add=mstool.TRIOMARTINI,
+                      mapping_add=mstool.TRIOMAPPING)
+
+
