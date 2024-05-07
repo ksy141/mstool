@@ -32,6 +32,16 @@ mstool.BilayerBuilder(workdir='Example5_GPCR',
                       upper={'DOPC':100, 'DOPS': 10, 'DOPE': 10, 'CHL1': 10},
                       lower={'DOPC':100, 'DOPS': 10, 'DOPE': 10, 'CHL1': 10})
 
+### Example 5
+# note that the input protein already contains cis/trans bonds
+# therefore, if you see the below two in the final structure, it's ok.
+# peptide bond cis/trans: (chain A and name C O and resid 81 and resname LYS) or (chain A and name CD N and resid 82 and resname PRO)
+# peptide bond cis/trans: (chain A and name C O and resid 333 and resname ARG) or (chain A and name H N and resid 334 and resname ARG)
+mstool.BilayerBuilder(workdir='Example5_GPCR2',
+                      protein=mstool.GPCR2,
+                      upper={'DOPC':100, 'DOPS': 10, 'DOPE': 10, 'CHL1': 10},
+                      lower={'DOPC':100, 'DOPS': 10, 'DOPE': 10, 'CHL1': 10})
+
 
 ### Example 6
 upper = {'DPPC': 80, 'DOPC': 80, 'DMPC': 80, 'DSPC': 80, 'POPC': 80,

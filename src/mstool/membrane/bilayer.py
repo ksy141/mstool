@@ -57,7 +57,7 @@ def make_rect2(N, dx, dN=5):
 
 class Bilayer(Lipid):
     def __init__(self, protein=None, upper={}, lower={}, trans={}, between={},
-                 dx=8.0, waterz=25.0, rcut=3, out=None, mode='shift',
+                 dx=8.0, waterz=25.0, rcut=3, rcut_use_enclosed_protein=False, out=None, mode='shift',
                  dN=20, martini=None, hydrophobic_thickness=30.0, sep=0.0,
                  lipidpath=pwd + '/../../../FF/martini2.2/structures/'):
 
@@ -209,10 +209,25 @@ class Bilayer(Lipid):
         proteinU = Merge(protein.atoms, transU.atoms)
         lipidU   = Merge(upperU.atoms,  lowerU.atoms,  betweenU.atoms)
 
-       
+        if rcut_use_enclosed_protein:
+            from scipy.spatial import Delaunay
+            minx, miny, minz = proteinU.atoms[['x', 'y', 'z']].min(axis=0)
+            maxx, maxy, maxz = proteinU.atoms[['x', 'y', 'z']].max(axis=0)
+            x1 = np.linspace(minx, maxx, int((maxx - minx)/dx) + 1)
+            y1 = np.linspace(miny, maxy, int((maxy - miny)/dx) + 1)
+            z1 = np.linspace(minz, maxz, int((maxz - minz)/dx) + 1)
+            x2, y2, z2 = np.meshgrid(x1, y1, z1, indexing='ij')
+            grid_points = np.stack([x2.ravel(), y2.ravel(), z2.ravel()], axis=1)
+
+            coordinates = protein.atoms[protein.atoms['name'].isin(['BB', 'CA'])][['x','y','z']].to_numpy()
+            vrt_xyz = grid_points[Delaunay(coordinates).find_simplex(grid_points) >= 0]
+            VrtU = Universe(data={'x': vrt_xyz[:,0], 'y': vrt_xyz[:,1], 'z': vrt_xyz[:,2], 
+                                  'resid': np.arange(1, len(vrt_xyz) + 1)})
+
         if mode == 'remove':
             u = RemoveOverlappedResidues(
-                    lipidU.atoms, proteinU.atoms, 
+                    lipidU.atoms, 
+                    VrtU.atoms if rcut_use_enclosed_protein else proteinU.atoms, 
                     rcut=rcut)
 
         elif mode == 'shift':
@@ -221,7 +236,8 @@ class Bilayer(Lipid):
             lipidU.addResidues()
 
             bA = RemoveOverlappedResidues(
-                    lipidU.atoms, proteinU.atoms, 
+                    lipidU.atoms, 
+                    VrtU.atoms if rcut_use_enclosed_protein else proteinU.atoms, 
                     rcut=rcut,
                     returnoverlapped=True)
             

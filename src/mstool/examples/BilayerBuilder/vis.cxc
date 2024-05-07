@@ -1,3 +1,9 @@
+camera ortho
+set bgColor white
+lighting shadow true
+lighting soft
+graphics silhouettes true
+
 show all
 turn x 90
 
@@ -45,3 +51,4 @@ color :DOPA #fa9600
 color :POPE #b45ab4
 color :DOPE #ff69b4
 color :TRIO #bea06e
+color :CHYO #5a5ace

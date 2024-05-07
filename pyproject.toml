@@ -12,7 +12,8 @@ requires-python = ">= 3.7"
 dynamic     = ['version']
 dependencies = [
     "pandas",
-    "matplotlib"
+    "matplotlib",
+    "scipy"
 ]
 
 [project.urls]

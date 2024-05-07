@@ -78,7 +78,7 @@ def ionize(u, out=None, qtot=None,
     
     # if system is not parameterized, all q = 0;
     if all(u.atoms.type == 'tbd') and not all(u.atoms.resname == waterresname) and not qtot:
-        print("\nYou need to parameterize a system first before adding ions")
+        #print("\nYou need to parameterize a system first before adding ions")
         print("Adding ions while assuming the input structure has a net charge of 0")
     
     if qtot:

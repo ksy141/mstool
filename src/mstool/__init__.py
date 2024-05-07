@@ -50,6 +50,7 @@ MPCG               = pwd + '/examples/Backmapping/Example7_MembraneProtein/cg.pd
 MPAA               = pwd + '/examples/Backmapping/Example7_MembraneProtein/protein_AA.pdb'
 MPAA2              = pwd + '/examples/Backmapping/Example7_MembraneProtein/protein_AA2.pdb'
 GPCR               = pwd + '/examples/BilayerBuilder/Example5_GPCR/gpcr.pdb'
+GPCR2              = pwd + '/examples/BilayerBuilder/Example5_GPCR2/4xnv.pdb'
 SEIPIN             = pwd + '/examples/BilayerBuilder/Example6_Seipin/oligomer.pdb'
 
 

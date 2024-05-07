@@ -4,3 +4,4 @@ setuptools
 numpy
 pandas
 sqlite
+scipy

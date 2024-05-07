@@ -15,14 +15,15 @@ from  ..utils.protein_sel    import one2three, three2one
 pwd = os.path.dirname(os.path.realpath(__file__))
 
 class BilayerBuilder:
-    def __init__(self, workdir='workdir', protein=None, upper={}, lower={}, between={}, sep=0.0, dx=8.0, waterz=50.0, rcut=4.0, 
-                 mode='shift', dN=5, rockCtype='CTL3', rockHtype='HAL3',
+    def __init__(self, workdir='workdir', protein=None, upper={}, lower={}, between={}, sep=0.0, dx=8.0, waterz=50.0, 
+                 rcut=4.0, rcut_use_enclosed_protein=False, mode='shift', 
+                 dN=10, rockCtype='CTL3', rockHtype='HAL3',
                  martini=[], martini_add=[], lipidpath=pwd+'/../../../FF/martini2.2/structures/',
                  mapping=[], mapping_add=[],
                  ff=[], ff_add=[],
                  removedr=6.0, aa_nsteps=0, fc=10.0, 
                  dt_rem=0.025, cg_nsteps_rem=100000,
-                 dt=0.020, cg_nsteps=100000,
+                 dt=0.020, cg_nsteps=500000,
                  frictionCoeff=10.0, barfreq=10, nonbondedCutoff=1.1, 
                  improper_prefactor=0.99, use_existing_folder=False,
                  hydrophobic_thickness=30, ionconc=0.15, T=310,
@@ -197,7 +198,7 @@ class BilayerBuilder:
         ### Construct a bilayer
         instance = Bilayer(protein=workdir + '/protein_CG.dms' if protein else None, 
                            upper=upper, lower=lower, between=between, sep=sep,
-                           waterz=waterz, rcut=rcut,
+                           waterz=waterz, rcut=rcut, rcut_use_enclosed_protein=rcut_use_enclosed_protein,
                            out=workdir + '/step1.bilayer.dms', 
                            martini=martiniff, 
                            lipidpath=lipidpath,

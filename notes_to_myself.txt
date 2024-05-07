@@ -111,3 +111,5 @@ I increased the nonbondedCutoff to 1.1 nm from 1.05 nm
 
 Maybe this is why Triolein system get crystalized?
 
+May. 5 2024
+Abundant water helps CG equilibriation when there are proteins
