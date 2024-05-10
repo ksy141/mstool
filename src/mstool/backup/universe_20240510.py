@@ -1,11 +1,9 @@
 import pandas as pd
 import numpy  as np
 import sqlite3
-from   ..utils.amberselection import *
 from   ..utils.sqlcmd  import *
 from   .readxml        import ReadXML
 import os
-import re
 pd.set_option('display.max_rows', 500)
 
 # caution: name is a predefined variable for pandas
@@ -207,62 +205,6 @@ class Universe:
         for col in self.cols:
             if col not in self.atoms.columns:
                 self.atoms[col] = self.cols[col]
-
-    def select(self, string):
-        if '~' in string or '>' in string or '<' in string:
-            print('~ > <  currently not supported')
-            return np.array(len(self.atoms) * [False])
-
-        # first check out how many amber selection blocks are
-        amberblocks = strsplitbysepexc(string)
-        #print(amberblocks)
-
-        # amberselect for each amberblock
-        bAdict = {}
-        for i in range(len(amberblocks)):
-            if amberblocks[i] == 'all':
-                bAdict[f'bA{i}'] = np.array(len(self.atoms) * [True])
-
-            else:
-                dictselect = amberSelection(amberblocks[i])
-                #print(dictselect)
-                bAchain   = np.array(len(self.atoms) * [True])
-                bAresid   = np.array(len(self.atoms) * [True])
-                bAresname = np.array(len(self.atoms) * [True])
-                bAname    = np.array(len(self.atoms) * [True])
-
-                for key, value in dictselect.items():
-                    if key == 'resid':
-                        bAresid = self.atoms.resid.isin(value)
-                    if key == 'chain':
-                        value = [str(val) for val in value]
-                        valstar, valnostar = separateStarNoStar(value)
-                        bAstar   = self.atoms.chain.str.startswith(tuple(valstar))
-                        bAnostar = self.atoms.chain.isin(valnostar)
-                        bAchain  = bAstar | bAnostar
-                    if key == 'resname':
-                        valstar, valnostar = separateStarNoStar(value)
-                        bAstar    = self.atoms.resname.str.startswith(tuple(valstar))
-                        bAnostar  = self.atoms.resname.isin(valnostar)
-                        bAresname = bAstar | bAnostar
-                    if key == 'name':
-                        valstar, valnostar = separateStarNoStar(value)
-                        bAstar   = self.atoms['name'].str.startswith(tuple(valstar))
-                        bAnostar = self.atoms['name'].isin(valnostar)
-                        bAname   = bAstar | bAnostar
-                
-                bAdict[f'bA{i}'] = bAchain & bAresid & bAresname & bAname
-        
-        # now replace amberblock with bA0, bA1, ...
-        bAstring = ''
-        for s in strsplitbysepinc(string):
-            if s in amberblocks:
-                bAstring += 'bA' + str(amberblocks.index(s))
-            else:
-                bAstring += s
-
-        return self.atoms[eval(bAstring, bAdict)]
-
 
     def write(self, ofile, guess_atomic_number=True, wrap=False):
         if wrap: self.wrapMolecules()

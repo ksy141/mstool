@@ -113,3 +113,10 @@ Maybe this is why Triolein system get crystalized?
 
 May. 5 2024
 Abundant water helps CG equilibriation when there are proteins
+
+May. 10 2024
+Implemented amber selection. I changed the existing amberSelection,
+which is used by TruncateProtein.
+If TruncateProtein complains, check amberSelection.
+I did not run any test on TruncateProtein after updating amberSelection
+

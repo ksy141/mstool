@@ -31,7 +31,6 @@ class BilayerBuilder:
                  remove_solvent=False,
                  solvate=True,
                  tapering='shift',
-                 REM=False,
                  protein_dict_pbc_shrink_factor=0.9):
 
         '''Bilayer builder.
@@ -119,7 +118,14 @@ class BilayerBuilder:
         ### workdir
         if (not use_existing_folder) or (use_existing_folder and not os.path.exists(workdir)):
             os.mkdir(workdir)
-        
+
+        ### save args
+        args = locals()
+        with open(workdir + '/args.txt', 'w') as W:
+            for key, value in args.items():
+                if key == 'self': continue
+                W.write(f'{key:30} = {value}\n')
+
         ### protein
         if protein:
             if isinstance(protein, str):

@@ -23,7 +23,7 @@ from .utils.protein_sel     import three2one, one2three
 from .utils.dump            import dumpsql, dumpdf
 from .utils.gmx_energy      import getGMXEnergy
 from .utils.openmmutils     import *
-from .utils.amberselection  import amberSelection
+from .utils.amberselection  import *
 from .utils.add_termini_atoms import addTerminiAtoms
 from .utils.cap_termini_residues import capTerminiResidues
 from .utils.change_his import changeHIS

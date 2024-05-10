@@ -112,6 +112,14 @@ class SphereBuilder:
         if (not use_existing_folder) or (use_existing_folder and not os.path.exists(workdir)):
             os.mkdir(workdir)
 
+        ### save args
+        args = locals()
+        with open(workdir + '/args.txt', 'w') as W:
+            for key, value in args.items():
+                if key == 'self': continue
+                W.write(f'{key:30} = {value}\n')
+        
+        ### protein
         if protein:
             if isinstance(protein, str):
                 proteinU = Universe(protein)

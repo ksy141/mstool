@@ -29,6 +29,13 @@ class Backmap:
         if not use_existing_workdir: os.mkdir(workdir)
         if use_existing_workdir and not os.path.exists(workdir): os.mkdir(workdir)
 
+        ### save args
+        args = locals()
+        with open(workdir + '/args.txt', 'w') as W:
+            for key, value in args.items():
+                if key == 'self': continue
+                W.write(f'{key:30} = {value}\n')
+
         ### Read Mapping and XML and compare these two
         if not isinstance(ff_add, list): ff_add = [ff_add]
         if not isinstance(mapping_add, list): mapping_add = [mapping_add]
