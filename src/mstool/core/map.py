@@ -28,7 +28,7 @@ class Map(Universe):
 
         # save
         if out is not None:
-            self.write(out, guess_atomic_number=False)
+            self.write(out)
 
 
     def add_availableCGAtoms(self, add_notavailableAAAtoms):

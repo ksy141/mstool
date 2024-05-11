@@ -29,7 +29,7 @@ class REM:
 
     def __init__(self, structure=None, out=None, protein=None, refposre=None, outrem=None,
         rock=None, rockout='ROCK_rem.pdb', nonrockout='NONROCK.dms',
-        rockCtype='CTL3', rockHtype='HAL3',
+        rockCtype='CTL3', rockHtype='HAL3', rockprefix='ROCK',
         rcut=1.2, pbc=True, 
         A=100, C=50,
         mapping = [], mapping_add = [], 
@@ -91,12 +91,12 @@ class REM:
             #                       rockHtype=rockHtype)
 
             rr         = RockResidue(structure=rock, 
-                                     out='ROCK', 
+                                     out=rockprefix, 
                                      rockCtype=rockCtype,
                                      rockHtype=rockHtype)
 
             rrdms      = DesmondDMSFile(rr.dms)
-            ff_add    += ['ROCK.xml']
+            ff_add    += [rockprefix + '.xml']
 
 
         ### Read XML
@@ -290,7 +290,7 @@ class REM:
             new.dimensions = u.dimensions
             new.cell       = u.cell
             if out: new.write(out)
-            ff_add.remove('ROCK.xml')
+            ff_add.remove(rockprefix + '.xml')
 
         else:
             #if sort: u.sort()

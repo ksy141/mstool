@@ -131,6 +131,7 @@ class SphereBuilder:
             Hatoms   = proteinU.atoms.name.str.startswith('H')
             proteinU.atoms.bfactor = 0.0
             proteinU.atoms.loc[~Hatoms, 'bfactor'] = 1.0
+            if len(proteinU.bonds) == 0: proteinU.addBondFromDistance()
             proteinU.write(workdir + '/protein.dms', wrap=False)
             proteinU.write(workdir + '/protein.pdb', wrap=False)
        

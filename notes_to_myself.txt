@@ -120,3 +120,29 @@ which is used by TruncateProtein.
 If TruncateProtein complains, check amberSelection.
 I did not run any test on TruncateProtein after updating amberSelection
 
+May. 11 2024
+Removing guess_atomic_number
+
+siyoungkim@pool-envpn-10-232-30-36 core % grep guess_atomic_number * -n
+grep: __pycache__: Is a directory
+fill.py:45:        if out: self.write(out, guess_atomic_number=False)
+map.py:31:            self.write(out, guess_atomic_number=False)
+martinizedms.py:116:        universe.write(out, guess_atomic_number=False)
+mutate.py:22:            self.write(out, guess_atomic_number=False)
+solvate_martini.py:54:        if out: wateru.write(out, guess_atomic_number=False)
+solvate_martini.py:68:    if out: u.write(out, guess_atomic_number=False)
+solvate_martini.py:170:    if out: u.write(out, guess_atomic_number=False)
+solvate_martini.py:214:        if out: solvatedu.write(out, guess_atomic_number=False)
+ungroup.py:20:        guess_atomic_number=False, fibor=0.5, version='v1',
+ungroup.py:87:        super().__init__(data=self.data, guess_atomic_number=guess_atomic_number)
+universe.py:54:                 guess_atomic_number=False):
+universe.py:74:        guess_atomic_number : bool
+universe.py:128:        if guess_atomic_number: self.update_anum_mass()
+universe.py:218:    def write(self, ofile, guess_atomic_number=True, wrap=False):
+universe.py:226:            self.writeDMS(ofile, guess_atomic_number)
+universe.py:368:    def writeDMS(self, ofile, guess_atomic_number):
+siyoungkim@pool-envpn-10-232-30-36 utils % grep guess_atomic_number * -n
+grep: __pycache__: Is a directory
+rock.py:38:        u.write(self.dms, guess_atomic_number=True)
+rockchain.py:47:        u.write(self.dms, guess_atomic_number=True)
+rockresidue.py:45:        u.write(self.dms, guess_atomic_number=True)

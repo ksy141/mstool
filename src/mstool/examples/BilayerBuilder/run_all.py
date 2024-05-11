@@ -1,75 +1,97 @@
 import mstool
 
-### Example 1
-mstool.BilayerBuilder(workdir='Example1_POPC', 
+### Example 2A
+mstool.BilayerBuilder(workdir='Example2A_POPC', 
                       upper={'POPC': 40}, lower={'POPC': 40})
 
-### Example 2
+### Example 2B
 lipids = {'DPPC': 5, 'DOPC': 5, 'DMPC': 5, 'DSPC': 5, 'POPC': 5,
           'DOPS': 5, 'POPS': 5, 'POPG': 5, 'DOPG': 5, 'CHL1': 5,
           'POPA': 5, 'DOPA': 5, 'POPE': 5, 'DOPE': 5}
-mstool.BilayerBuilder(workdir='Example2_Lipids',
+mstool.BilayerBuilder(workdir='Example2B_Lipids',
                       upper=lipids, lower=lipids)
 
-### Example 3
-mstool.BilayerBuilder(workdir='Example3_Triolein',
+### Example 2C
+mstool.BilayerBuilder(workdir='Example2C_Triolein',
                       upper={'POPC':100, 'TRIO':6},
                       lower={'POPC':100, 'TRIO':6},
                       mapping_add=mstool.TRIOMAPPING,
                       martini_add=mstool.TRIOMARTINI,
                       ff_add=mstool.TRIOFF)
 
-### Example 4
-mstool.BilayerBuilder(workdir='Example4_MembraneProtein',
+### Example 2D
+mstool.BilayerBuilder(workdir='Example2D_ompF',
                       protein=mstool.MPAA2,
                       upper={'POPC':100, 'POPS': 10, 'POPE': 10, 'CHL1': 10},
                       lower={'POPC':100, 'POPS': 10, 'POPE': 10, 'CHL1': 10})
 
 
-### Example 5
-mstool.BilayerBuilder(workdir='Example5_GPCR',
+### Example 2E
+mstool.BilayerBuilder(workdir='Example2E_3SN6',
                       protein=mstool.GPCR,
                       upper={'DOPC':100, 'DOPS': 10, 'DOPE': 10, 'CHL1': 10},
                       lower={'DOPC':100, 'DOPS': 10, 'DOPE': 10, 'CHL1': 10})
 
-### Example 5
+### Example 2F
 # note that the input protein already contains cis/trans bonds
-# therefore, if you see the below two in the final structure, it's ok.
-# peptide bond cis/trans: (chain A and name C O and resid 81 and resname LYS) or (chain A and name CD N and resid 82 and resname PRO)
-# peptide bond cis/trans: (chain A and name C O and resid 333 and resname ARG) or (chain A and name H N and resid 334 and resname ARG)
-mstool.BilayerBuilder(workdir='Example5_GPCR2',
+# therefore, if you see the below two in the final structure, note theses are NOT flipped in mstool
+# peptide bond cis/trans: (chain A and name C O and resid 81 and resname LYS) or 
+# (chain A and name CD N and resid 82 and resname PRO)
+# peptide bond cis/trans: (chain A and name C O and resid 333 and resname ARG) or 
+# (chain A and name H N and resid 334 and resname ARG)
+mstool.BilayerBuilder(workdir='Example2F_4XNV',
                       protein=mstool.GPCR2,
                       upper={'DOPC':100, 'DOPS': 10, 'DOPE': 10, 'CHL1': 10},
                       lower={'DOPC':100, 'DOPS': 10, 'DOPE': 10, 'CHL1': 10})
 
 
-### Example 6
-upper = {'DPPC': 80, 'DOPC': 80, 'DMPC': 80, 'DSPC': 80, 'POPC': 80,
-         'DOPS': 80, 'POPS': 80, 'POPG': 80, 'DOPG': 80, 'CHL1': 80,
-         'POPA': 80, 'DOPA': 80, 'POPE': 80, 'DOPE': 80}
-
-lower = {'DPPC': 30, 'DOPC': 30, 'DMPC': 30, 'DSPC': 30, 'POPC': 30,
-         'DOPS': 30, 'POPS': 30, 'POPG': 30, 'DOPG': 30, 'CHL1': 30,
-         'POPA': 30, 'DOPA': 30, 'POPE': 30, 'DOPE': 30}
-
-mstool.SphereBuilder(workdir='Example6_Sphere',
-                     radius=60, upper=upper, lower=lower)
+### Example 3A
+mstool.BilayerBuilder(workdir='Example3A_crowded', 
+                      protein={mstool.MPAA2: 4, mstool.GPCR: 5}, 
+                      upper={'POPC':1200}, lower={'POPC': 1200}, 
+                      cg_nsteps=2000000)
 
 
-### Example 7
-mstool.SphereBuilder(workdir='Example7_SphereProtein',
-                     radius=100, 
-                     protein={mstool.Universe(mstool.MPAA2): 5, 
-                              mstool.Universe(mstool.GPCR):  5},
-                     upper={'POPC': 1600, 'DOPS': 990, 'CHL1': 10},
-                     lower={'POPC': 1000, 'DOPS': 400, 'CHL1': 10})
-
-### Example 8
-mstool.BilayerBuilder(workdir='Example8_LD',
+### Example 3B
+mstool.BilayerBuilder(workdir='Example3B_LD',
                       upper={'POPC':135, 'CHL1':5},
                       lower={'POPC':135, 'CHL1':5},
                       between={'TRIO': 200, 'CHYO': 200},
                       sep=80.0, ff_add=mstool.TRIOFF,
                       martini_add=mstool.TRIOMARTINI,
                       mapping_add=mstool.TRIOMAPPING)
+
+
+### Example 3C
+mstool.BilayerBuilder(workdir='Example3C_Seipin',
+                      protein=mstool.SEIPIN,
+                      upper={'POPC':437, 'TRIO': 27},
+                      lower={'POPC':360, 'TRIO': 21},
+                      martini_add=mstool.TRIOMARTINI,
+                      mapping_add=mstool.TRIOMAPPING,
+                      ff_add=mstool.TRIOFF,
+                      cg_nsteps=500000,
+                      dx=7.2, removedr=3.0)
+
+
+### Example 3C (is it possible to get rid of all lipids inside protein?)
+mstool.BilayerBuilder(workdir='Example3C_Seipin2',
+                      protein=mstool.SEIPIN,
+                      upper={'POPC':437, 'TRIO': 27},
+                      lower={'POPC':360, 'TRIO': 21},
+                      martini_add=mstool.TRIOMARTINI,
+                      mapping_add=mstool.TRIOMAPPING,
+                      ff_add=mstool.TRIOFF,
+                      cg_nsteps=500000,
+                      dx=7.2, removedr=3.0,
+                      rcut_use_enclosed_protein=True)
+
+### Example 4D
+mstool.SphereBuilder(workdir='Example4D_SphereProtein',
+                     radius=100, 
+                     protein={mstool.Universe(mstool.MPAA2): 5, 
+                              mstool.Universe(mstool.GPCR):  5},
+                     upper={'POPC': 1600, 'DOPS': 990, 'CHL1': 10},
+                     lower={'POPC': 1000, 'DOPS': 400, 'CHL1': 10})
+
 

@@ -17,7 +17,7 @@ class Ungroup(Universe):
         mapping=[], mapping_add=[],
         backbone=True,
         sort=True,
-        guess_atomic_number=False, fibor=0.5, version='v1',
+        fibor=0.5, version='v1',
         water_resname='W', water_chain=None, water_number=4, water_fibor=2.0, water_chain_dms=False,
         use_AA_structure=False, AA_structure=[], AA_structure_add=[], AA_shrink_factor=0.8):
 
@@ -84,7 +84,7 @@ class Ungroup(Universe):
         self.construct_water()
 
         self.data['bfactor'] = 0.0
-        super().__init__(data=self.data, guess_atomic_number=guess_atomic_number)
+        super().__init__(data=self.data)
 
         if refstructure != None:
             self.r          = Universe(refstructure)

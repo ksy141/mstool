@@ -42,7 +42,7 @@ class Fill(Universe):
         self.dimensions = self.u.dimensions
 
         ### save
-        if out: self.write(out, guess_atomic_number=False)
+        if out: self.write(out)
 
 
     def ExtendTermini(self):

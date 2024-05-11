@@ -1,7 +1,4 @@
-import numpy as np
-import pandas as pd
 from   ..core.universe import Universe
-
 
 def generate_list(group):
     index = group.groupby('resn').cumcount()
@@ -10,7 +7,6 @@ def generate_list(group):
 def get_resname(group, uniques):
     resname = 'ROCK' + ''.join(group['name'])
     return [resname] * len(group['name'])
-
 
 
 class RockResidue:
@@ -25,7 +21,8 @@ class RockResidue:
 
         # change name to C0 H1 H2 C3 H4 H5 for each residue
         u.atoms['name'] = u.atoms.groupby('resn').apply(generate_list).explode().reset_index(level=0, drop=True)
-
+        anum, mass, vdw = u.update_anum_mass_vdw_from_name()
+        u.atoms['anum'] = anum
         
         # obtain unique residues
         uniques = {}
@@ -42,7 +39,7 @@ class RockResidue:
 
         # change resname
         u.atoms['resname'] = u.atoms.groupby('resn').apply(get_resname, uniques=uniques).explode().reset_index(level=0, drop=True)
-        u.write(self.dms, guess_atomic_number=True)
+        u.write(self.dms)
         self.bonds = []
         
 

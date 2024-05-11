@@ -19,7 +19,7 @@ class Mutate(Universe):
 
         ### save
         if out is not None:
-            self.write(out, guess_atomic_number=False)
+            self.write(out)
 
     def fixmutation(self):
         '''

@@ -1,11 +1,13 @@
 import pandas as pd
 import numpy  as np
 import sqlite3
+from   ..utils.mdautils import *
+from   ..utils.atomic_data import anum_mass_vdw_from_name
 from   ..utils.amberselection import *
 from   ..utils.sqlcmd  import *
 from   .readxml        import ReadXML
+from   ..lib.distance  import distance_matrix
 import os
-import re
 pd.set_option('display.max_rows', 500)
 
 # caution: name is a predefined variable for pandas
@@ -24,83 +26,17 @@ pd.set_option('display.max_rows', 500)
 
 
 def custom_sort(value):
+    # 0 ... 9 A ... Z '1' ... '9'
     if isinstance(value, int):
-        return(0, value)
+        return (0, value)
     elif value.isdigit():
         return (2, value)
     else:
         return (1, value)
 
-anum_mass_from_name = {
-   'H':  [1,   1.00],
-   'C':  [6,  12.00],
-   'N':  [7,  14.00],
-   'O':  [8,  16.00],
-   'F':  [9,  19.00],
-   'NA': [11, 23.00],
-   'MG': [12, 24.30],
-   'P':  [15, 31.00],
-   'S':  [16, 32.00],
-   'CL': [17, 35.00],
-   'ZN': [30, 65.38],
-}
-
-update_anum_mass_cmdline = '''
-UPDATE particle SET 
-
-anum = CASE 
-WHEN name = "CL"     THEN 17
-WHEN name = "Cl"     THEN 17
-WHEN name = "CLA"    THEN 17
-WHEN name = "NA"     THEN 11
-WHEN name = "Na"     THEN 11
-WHEN name = "SOD"    THEN 11
-WHEN name = "Zn"     THEN 30
-WHEN name = "ZN"     THEN 30
-WHEN name = "MG"     THEN 12
-WHEN name = "Mg"     THEN 12
-WHEN name = "BB"     THEN 6
-WHEN name = "W"      THEN 8
-WHEN name LIKE "SC%" THEN 6 
-WHEN name LIKE "H%"  THEN 1
-WHEN name LIKE "C%"  THEN 6
-WHEN name LIKE "N%"  THEN 7
-WHEN name LIKE "O%"  THEN 8
-WHEN name LIKE "F%"  THEN 9
-WHEN name LIKE "P%"  THEN 15
-WHEN name LIKE "S%"  THEN 16
-ELSE 1
-END, 
-
-mass = CASE 
-WHEN name = "CL"     THEN 35.00
-WHEN name = "Cl"     THEN 35.00
-WHEN name = "CLA"    THEN 35.00
-WHEN name = "NA"     THEN 23.00
-WHEN name = "Na"     THEN 23.00
-WHEN name = "SOD"    THEN 23.00
-WHEN name = "Zn"     THEN 65.38
-WHEN name = "ZN"     THEN 65.38
-WHEN name = "MG"     THEN 24.30
-WHEN name = "Mg"     THEN 24.30
-WHEN name = "BB"     THEN 12.00
-WHEN name = "W"      THEN 16.00
-WHEN name LIKE "SC%" THEN 12.00
-WHEN name LIKE "H%"  THEN 1.00
-WHEN name LIKE "C%"  THEN 12.00
-WHEN name LIKE "N%"  THEN 14.00
-WHEN name LIKE "O%"  THEN 16.00
-WHEN name LIKE "F%"  THEN 19.00
-WHEN name LIKE "P%"  THEN 31.00
-WHEN name LIKE "S%"  THEN 32.00
-ELSE 0.0
-END;
-'''
-
 
 class Universe:
-    def __init__(self, ifile=None, data=None, create_bonds=False, ff=[], ff_add=[], 
-                 guess_atomic_number=False):
+    def __init__(self, data=None, sort=False):
         '''Create an universe object. 
         Provide a structure file (.pdb or .dms),
         dictionary as data argument, or
@@ -109,24 +45,12 @@ class Universe:
 
         Parameters
         ----------
-        ifile : str
+        data : str or dict or pd.DataFrame
             Filename of a structure file (*.dms or *.pdb). 
-            The default is None.
-        data : dict or pd.DataFrame
             If a structure file is not provided, use this to create a universe object.
             The default is None.
-        create_bonds : bool
-            create bonds for non-protein molecules using forcefield information.
-            The default is None.
-        ff : list
-        ff_add : list
-        guess_atomic_number : bool
-            Guess atomic number and mass from atom names. 
-            This part is significantly slow. Do not use it unless you have to.
-            The default is ``False``.
-        wrap : bool
-            Wrap moleculees when writing a structure. Default is ``False``.
-
+        sort : bool
+            Sort before adding resn. The default is False.
         
         Attributes
         ----------
@@ -138,29 +62,32 @@ class Universe:
         bonds : list
             a list of bonds in the universe. 
             Initialized to [] unless DMS file contains bonds or 
-            you create bonds via ``create_bonds=True`` 
+            you create bonds
         '''
         
-        #if not isinstance(add_columns, list): add_columns = [add_columns]
+        ### INITIAL VALUES
         self.cell       = [[1,0,0], [0,1,0], [0,0,1]] #triclinic_vectors
         self.dimensions = [0, 0, 0, 90, 90, 90]       #triclinic_box
         self.bonds = []
         self.cols  = {'anum': -1, 'name': 'tbd', 'charge': 0.0, 'mass': 0.0,
                       'type': 'tbd', 'nbtype': 0, 'resname': 'tbd', 'resid': 0, 
-                      'segname': '', 'chain': 'A', 
-                      'x': 0.0, 'y': 0.0, 'z': 0.0, 'bfactor': 0.0}
-        self.create_bonds = create_bonds
+                      'segname': '', 'chain': 'X', 
+                      'x': 0.0, 'y': 0.0, 'z': 0.0, 'bfactor': 0.0, 'vdw': 0.0}
 
-        if ifile:
-            if not os.path.exists(ifile):
-                raise ValueError(ifile, " does not exist")
-            ext = ifile.split('.')[-1]
-            if ext not in ['pdb', 'dms']:
-                raise ValueError('only pdb and dms are supported')
+
+        ### READ DATA
+        if isinstance(data, str):
+            if not os.path.exists(data):
+                raise ValueError(data, " does not exist")
+            ext = data.split('.')[-1]
+            if ext.lower() not in ['pdb', 'dms', 'gro']:
+                raise ValueError('only pdb, dms, and gro are supported')
             if ext == 'pdb' or ext == 'PDB':
-                self.readPDB(ifile)
+                self.readPDB(data)
             if ext == 'dms' or ext == 'DMS':
-                self.readDMS(ifile)
+                self.readDMS(data)
+            if ext == 'gro' or ext == 'GRO':
+                self.readGRO(data)
 
         elif isinstance(data, dict):
             self.construct_from_dict(data)
@@ -170,14 +97,26 @@ class Universe:
 
         else:
             self.atoms = pd.DataFrame(columns = self.cols)
-        
         self.atoms.universe = self
+        
 
-        # Update atomic numbers and masses based on names
-        if guess_atomic_number: self.update_anum_mass()
+        ### IF atomic number / mass / vdw is not in input
+        anum_sum = np.sum(self.atoms.anum == -1)
+        mass_sum = np.sum(self.atoms.mass == 0.0)
+        vdw_sum  = np.sum(self.atoms.vdw  == 0.0)
+        anum_mass_vdw_sum  = anum_sum + mass_sum + vdw_sum
 
-        self.xml      = ReadXML(ff=ff, ff_add=ff_add)
-        self.resnames = set(self.atoms.resname)
+        if anum_mass_vdw_sum > 0.5:
+            anum, mass, vdw = self.update_anum_mass_vdw_from_name()
+            if anum_sum > 0.5: self.atoms.anum = anum
+            if mass_sum > 0.5: self.atoms.mass = mass
+            if vdw_sum  > 0.5: self.atoms.vdw  = vdw
+
+
+        # if sort is needed before adding resn
+        if sort: self.sort()
+
+        # add "resn"
         self.addResidues()
 
 
@@ -263,16 +202,22 @@ class Universe:
 
         return self.atoms[eval(bAstring, bAdict)]
 
+    def clone(self, string):
+        u = Universe(self.select(string))
+        u.dimensions = self.dimensions
+        u.cell = self.cell
+        return u
 
-    def write(self, ofile, guess_atomic_number=True, wrap=False):
+    def write(self, ofile, wrap=False):
         if wrap: self.wrapMolecules()
 
         ext = ofile.split('.')[-1]
         if ext == 'pdb' or ext == 'PDB':
             self.writePDB(ofile)
         elif ext == 'dms' or ext == 'DMS':
-            if self.create_bonds: self.addBonds()
-            self.writeDMS(ofile, guess_atomic_number)
+            self.writeDMS(ofile)
+        elif ext == 'gro' or ext == 'GRO':
+            self.writeGRO(ofile)
         else:
             print('the file format should be either pdb or dms')
 
@@ -313,7 +258,7 @@ class Universe:
                                                 line[24:33], line[33:40],
                                                 line[40:47], line[47:54]],
                                                 dtype=np.float32)
-                    self.cell = self.triclinic_vectors(self.dimensions)
+                    self.cell = triclinic_vectors(self.dimensions)
 
                 if line.startswith(('ATOM', 'HETATM')):
                     name = line[12:16].strip()
@@ -358,36 +303,86 @@ class Universe:
                 # if len(name) = 1,2,3, add space
                 if len(name) in [1,2,3]: name = f' {name:s}'
                 W.write(fmt['ATOM'].format(
-                    self.ltruncate_int(i, 5), name[:4], '', atom.resname[:4],
-                    atom.chain[:1], self.ltruncate_int(atom.resid, 4), '',
+                    ltruncate_int(i, 5), name[:4], '', atom.resname[:4],
+                    atom.chain[:1] if atom.chain else '', ltruncate_int(atom.resid, 4), '',
                     atom.x, atom.y, atom.z, 0.0, atom.bfactor,
                     atom.segname, ''))
                 i += 1
+    
+    def readGRO(self, ifile):
+        data = {'name': [], 'resname': [], 'resid': [], 
+                'x': [], 'y': [], 'z': []}
 
+        with open(ifile) as fp:
+            lines = fp.readlines()
+            for i in range(len(lines)):
+                if i == 0:
+                    continue
+                elif i == 1:
+                    n_atoms = int(lines[i].strip())
+                else:
+                    sl = lines[i].strip().split()
+                    if isfloat(sl[0]) and isfloat(sl[1]) and isfloat(sl[2]):
+                        if len(sl) == 3:
+                            dimx = float(sl[0].strip()) * 10.0
+                            dimy = float(sl[1].strip()) * 10.0
+                            dimz = float(sl[2].strip()) * 10.0
+                            self.dimensions = [dimx, dimy, dimz, 90, 90, 90]
+                            self.cell       = triclinic_vectors(self.dimensions)
 
-    def ltruncate_int(self, value, ndigits):
-        """Truncate an integer, retaining least significant digits
-    
-        Parameters
-        ----------
-        value : int
-          value to truncate
-        ndigits : int
-          number of digits to keep
-    
-        Returns
-        -------
-        truncated : int
-          only the `ndigits` least significant digits from `value`
-    
-        Examples
-        --------
-        >>> ltruncate_int(123, 2)
-        23
-        >>> ltruncate_int(1234, 5)
-        1234
-        """
-        return int(str(value)[-ndigits:])
+                        if len(sl) == 9:
+                            v1x = float(sl[0].strip()) * 10.0
+                            v2y = float(sl[1].strip()) * 10.0
+                            v3z = float(sl[2].strip()) * 10.0
+                            v1y = float(sl[3].strip()) * 10.0
+                            v1z = float(sl[4].strip()) * 10.0
+                            v2x = float(sl[5].strip()) * 10.0
+                            v2z = float(sl[6].strip()) * 10.0
+                            v3x = float(sl[7].strip()) * 10.0
+                            v3y = float(sl[8].strip()) * 10.0
+                            x = [v1x, v1y, v1z]
+                            y = [v2x, v2y, v2z]
+                            z = [v3x, v3y, v3z]
+                            self.dimensions = triclinic_box(x, y, z)
+                            self.cell       = triclinic_vectors(self.dimensions)
+
+                    else:
+                        data['resid'].append(int(lines[i][0:5].strip()))
+                        data['resname'].append(lines[i][5:10].strip())
+                        data['name'].append(lines[i][10:15].strip())
+                        data['x'].append(float(lines[i][20:28].strip()) * 10.0)
+                        data['y'].append(float(lines[i][28:36].strip()) * 10.0)
+                        data['z'].append(float(lines[i][36:44].strip()) * 10.0)
+        
+        if n_atoms != len(data['x']):
+            print(f"""WARNING: n_atoms is not consistent: {n_atoms} and {len(data['x'])}""")
+        self.construct_from_dict(data)
+
+    def writeGRO(self, ofile):
+        with open(ofile, 'w') as W:
+            # n_atoms (the note field should not be empty; otherwise VMD does not like it)
+            W.write("   \n{0:5d}\n".format(len(self.atoms)))
+            
+            # atoms
+            i = 1
+            for index, atom in self.atoms.iterrows():
+                idx     = ltruncate_int(i, 5)
+                name    = atom['name']
+                resid   = ltruncate_int(atom['resid'], 5)
+                resname = atom['resname']
+                x       = atom['x'] * 0.1
+                y       = atom['y'] * 0.1
+                z       = atom['z'] * 0.1
+                W.write(f"{resid:>5d}{resname:<5.5s}{name:>5.5s}{idx:>5d}{x:8.3f}{y:8.3f}{z:8.3f}\n")
+                i += 1
+
+            # cell
+            b = self.cell.flatten() * 0.1
+            if b[1] == 0 and b[2] == 0 and b[5] == 0:
+                W.write(f"{b[0]:10.5f} {b[4]:9.5f} {b[8]:9.5f}")
+            else:
+                W.write(f"{b[0]:10.5f} {b[4]:9.5f} {b[8]:9.5f} {b[1]:9.5f} {b[2]:9.5f} {b[3]:9.5f} {b[5]:9.5f} {b[6]:9.5f} {b[7]:9.5f}")
+ 
 
     def readDMS(self, ifile):
         conn = sqlite3.connect(ifile, isolation_level=None, detect_types=sqlite3.PARSE_COLNAMES)
@@ -407,14 +402,14 @@ class Universe:
                 self.cell[i][1] = y
                 self.cell[i][2] = z
 
-            self.dimensions = self.triclinic_box(self.cell[0], self.cell[1], self.cell[2])
+            self.dimensions = triclinic_box(self.cell[0], self.cell[1], self.cell[2])
         except:
             pass
 
         conn.close()
 
 
-    def writeDMS(self, ofile, guess_atomic_number):
+    def writeDMS(self, ofile):
         if os.path.exists(ofile): os.remove(ofile)
         conn   = sqlite3.connect(ofile)
         cursor = conn.cursor()
@@ -448,21 +443,22 @@ class Universe:
         for bond in self.bonds:
             cursor.execute(sql_insert_bond.format(bond[0], bond[1], 1))
         
-        ### Update anum and mass
-        if guess_atomic_number: cursor.execute(update_anum_mass_cmdline)
-        
         ### Save
         conn.commit()
         conn.close()
 
 
-    def addBonds(self):
-        for resname in self.resnames:
-            if resname not in self.xml.RESI.keys():
+    def addBondFromXML(self, ff=[], ff_add=[]):
+        self.bonds = []
+        xml = ReadXML(ff=ff, ff_add=ff_add)
+        resnames = set(self.atoms.resname)
+
+        for resname in set(self.atoms.resname):
+            if resname not in xml.RESI.keys():
                 print(f'Warning: openMM xml does not have {resname}')
                 continue
 
-            bonds = self.xml.RESI[resname]['bonds']
+            bonds = xml.RESI[resname]['bonds']
 
             for bond in bonds:
                 bA    = self.atoms.resname == resname
@@ -472,13 +468,24 @@ class Universe:
                 atomA = self.atoms[bA & bA0].index
                 atomB = self.atoms[bA & bA1].index
 
-                assert len(atomA) == len(atomB), "the length of atoms for bonds is different"
+                assert len(atomA) == len(atomB), f":{resname}@{bond[0]},{bond[1]}={len(atomA)},{len(atomB)}"
 
                 for a, b in zip(atomA, atomB):
                     self.bonds.append([a, b])
+    
+    def addBondFromDistance(self):
+        # two atoms are bonded if 0.1 < d < 0.55 * (R1 + R2)
+        if self.dimensions[0] * self.dimensions[1] * self.dimensions[2] < 1.5:
+            dist = distance_matrix(self.positions, self.positions, dimensions=None)
+        else:
+            dist = distance_matrix(self.positions, self.positions, dimensions=self.dimensions)
 
-
-
+        vdw = self.atoms.vdw.values
+        bA1 = dist < 0.55 * (np.array([vdw]).T + np.array([vdw]))
+        bA2 = 0.2  < dist
+        bA3 = np.tri(*bA1.shape).astype(bool)
+        self.bonds = np.transpose(np.where(bA1 & bA2 & bA3))
+        
     def addResidues(self):
         '''Add residue number. The atoms must be sorted before this.
         Universe.atoms do not have a residue level unlike MDAnalysis.
@@ -493,31 +500,8 @@ class Universe:
         if 'resn' in self.atoms.keys():
             self.atoms.drop('resn', axis=1, inplace=True)
         
-        # make a tmp instance that is sorted
-        # dg = self.atoms.sort_values(by=['chain', 'resid', 'resname'])
         dg = self.atoms
         
-        # slow
-        #self.atoms['resn'] = -1
-        #resna_prev = '-1000'
-        #resid_prev = -1000
-        #chain_prev = '-1000'
-        #value = -1
-
-        #for i in range(len(dg)):
-        #    resna = dg.iloc[i].resname
-        #    resid = dg.iloc[i].resid
-        #    chain = dg.iloc[i].chain
-        #    index = dg.iloc[i].name
-
-        #    if not (resid == resid_prev and chain == chain_prev and resna == resna_prev):
-        #        value += 1
-        #        resid_prev = resid
-        #        resna_prev = resna
-        #        chain_prev = chain
-
-        #    self.atoms.loc[index, 'resn'] = value
-
         # fast
         chains = dg.chain.values
         resids = dg.resid.values
@@ -548,196 +532,29 @@ class Universe:
         self.atoms = self.atoms.sort_values(by=by, ignore_index=ignore_index, key=lambda x: x.apply(custom_sort))
         self.bonds = []
 
+    
+    def update_anum_mass_vdw_from_name(self):
+        names  = self.atoms['name'].str.upper().values
+        masses = np.zeros(len(names))
+        anums  = np.zeros(len(names), dtype=np.int64) 
+        vdws   = np.zeros(len(names))
 
-    def guess_anum_mass(self, name):
-        anum = 0
-        mass = 0.0
+        for i, name in enumerate(names):
+            upper_name = name.upper()
+            if upper_name in anum_mass_vdw_from_name.keys():
+                anum, mass, vdw = anum_mass_vdw_from_name[upper_name]
 
-        try:
-            return anum_mass_from_name[name.upper()]
-        except:
-            pass
+            elif upper_name[0] in anum_mass_vdw_from_name.keys():
+                anum, mass, vdw = anum_mass_vdw_from_name[upper_name[0]]
 
-        try:
-            return anum_mass_from_name[name.upper()[0]]
-        except:
-            pass
-
-        return anum, mass
-
-
-    def update_anum_mass(self):
-        for index, atom in self.atoms.iterrows():
-            name = atom['name']
-            anum, mass = self.guess_anum_mass(name)
-            self.atoms.loc[index, 'mass'] = mass
-            self.atoms.loc[index, 'anum'] = anum
-
-
-    ### the below is copied from MDAnalysis 2.4.1
-    def triclinic_box(self, x, y, z):
-        """Convert the three triclinic box vectors to
-        ``[lx, ly, lz, alpha, beta, gamma]``.
-
-        If the resulting box is invalid, i.e., any box length is zero or negative,
-        or any angle is outside the open interval ``(0, 180)``, a zero vector will
-        be returned.
-
-        All angles are in degrees and defined as follows:
-
-        * ``alpha = angle(y,z)``
-        * ``beta  = angle(x,z)``
-        * ``gamma = angle(x,y)``
-
-        Parameters
-        ----------
-        x : array_like
-            Array of shape ``(3,)`` representing the first box vector
-        y : array_like
-            Array of shape ``(3,)`` representing the second box vector
-        z : array_like
-            Array of shape ``(3,)`` representing the third box vector
-
-        Returns
-        -------
-        numpy.ndarray
-            A numpy array of shape ``(6,)`` and dtype ``np.float32`` providing the
-            unitcell dimensions in the same format as returned by
-            :attr:`MDAnalysis.coordinates.timestep.Timestep.dimensions`:\n
-            ``[lx, ly, lz, alpha, beta, gamma]``.\n
-            Invalid boxes are returned as a zero vector.
-
-        Note
-        ----
-        Definition of angles: http://en.wikipedia.org/wiki/Lattice_constant
-
-        See Also
-        --------
-        :func:`~MDAnalysis.lib.mdamath.triclinic_vectors`
-
-
-        .. versionchanged:: 0.20.0
-           Calculations are performed in double precision and invalid box vectors
-           result in an all-zero box.
-        """
-        x = np.asarray(x, dtype=np.float64)
-        y = np.asarray(y, dtype=np.float64)
-        z = np.asarray(z, dtype=np.float64)
-        lx = np.linalg.norm(x)
-        ly = np.linalg.norm(y)
-        lz = np.linalg.norm(z)
-        if lx == 0 or ly ==0 or lz == 0:
-            return np.zeros(6, dtype=np.float32)
-        alpha = np.rad2deg(np.arccos(np.dot(y, z) / (ly * lz)))
-        beta = np.rad2deg(np.arccos(np.dot(x, z) / (lx * lz)))
-        gamma = np.rad2deg(np.arccos(np.dot(x, y) / (lx * ly)))
-        box = np.array([lx, ly, lz, alpha, beta, gamma], dtype=np.float32)
-        # Only positive edge lengths and angles in (0, 180) are allowed:
-        if np.all(box > 0.0) and alpha < 180.0 and beta < 180.0 and gamma < 180.0:
-            return box
-        # invalid box, return zero vector:
-        return np.zeros(6, dtype=np.float32)
-
-
-
-    def triclinic_vectors(self, dimensions, dtype = np.float32):
-        """Convert ``[lx, ly, lz, alpha, beta, gamma]`` to a triclinic matrix
-        representation.
-
-        Original `code by Tsjerk Wassenaar`_ posted on the Gromacs mailinglist.
-
-        If `dimensions` indicates a non-periodic system (i.e., all lengths are
-        zero), zero vectors are returned. The same applies for invalid `dimensions`,
-        i.e., any box length is zero or negative, or any angle is outside the open
-        interval ``(0, 180)``.
-
-        .. _code by Tsjerk Wassenaar:
-           http://www.mail-archive.com/gmx-users@gromacs.org/msg28032.html
-
-        Parameters
-        ----------
-        dimensions : array_like
-            Unitcell dimensions provided in the same format as returned by
-            :attr:`MDAnalysis.coordinates.timestep.Timestep.dimensions`:\n
-            ``[lx, ly, lz, alpha, beta, gamma]``.
-        dtype: numpy.dtype
-            The data type of the returned box matrix.
-
-        Returns
-        -------
-        box_matrix : numpy.ndarray
-            A numpy array of shape ``(3, 3)`` and dtype `dtype`,
-            with ``box_matrix[0]`` containing the first, ``box_matrix[1]`` the
-            second, and ``box_matrix[2]`` the third box vector.
-
-        Notes
-        -----
-        * The first vector is guaranteed to point along the x-axis, i.e., it has the
-          form ``(lx, 0, 0)``.
-        * The second vector is guaranteed to lie in the x/y-plane, i.e., its
-          z-component is guaranteed to be zero.
-        * If any box length is negative or zero, or if any box angle is zero, the
-          box is treated as invalid and an all-zero-matrix is returned.
-
-
-        .. versionchanged:: 0.7.6
-           Null-vectors are returned for non-periodic (or missing) unit cell.
-        .. versionchanged:: 0.20.0
-           * Calculations are performed in double precision and zero vectors are
-             also returned for invalid boxes.
-           * Added optional output dtype parameter.
-        """
-        dim = np.asarray(dimensions, dtype=np.float64)
-        lx, ly, lz, alpha, beta, gamma = dim
-        # Only positive edge lengths and angles in (0, 180) are allowed:
-        if not (np.all(dim > 0.0) and
-                alpha < 180.0 and beta < 180.0 and gamma < 180.0):
-            # invalid box, return zero vectors:
-            box_matrix = np.zeros((3, 3), dtype=dtype)
-        # detect orthogonal boxes:
-        elif alpha == beta == gamma == 90.0:
-            # box is orthogonal, return a diagonal matrix:
-            box_matrix = np.diag(dim[:3].astype(dtype, copy=False))
-        # we have a triclinic box:
-        else:
-            box_matrix = np.zeros((3, 3), dtype=np.float64)
-            box_matrix[0, 0] = lx
-            # Use exact trigonometric values for right angles:
-            if alpha == 90.0:
-                cos_alpha = 0.0
             else:
-                cos_alpha = np.cos(np.deg2rad(alpha))
-            if beta == 90.0:
-                cos_beta = 0.0
-            else:
-                cos_beta = np.cos(np.deg2rad(beta))
-            if gamma == 90.0:
-                cos_gamma = 0.0
-                sin_gamma = 1.0
-            else:
-                gamma = np.deg2rad(gamma)
-                cos_gamma = np.cos(gamma)
-                sin_gamma = np.sin(gamma)
-            box_matrix[1, 0] = ly * cos_gamma
-            box_matrix[1, 1] = ly * sin_gamma
-            box_matrix[2, 0] = lz * cos_beta
-            box_matrix[2, 1] = lz * (cos_alpha - cos_beta * cos_gamma) / sin_gamma
-            box_matrix[2, 2] = np.sqrt(lz * lz - box_matrix[2, 0] ** 2 -
-                                       box_matrix[2, 1] ** 2)
-            # The discriminant of the above square root is only negative or zero for
-            # triplets of box angles that lead to an invalid box (i.e., the sum of
-            # any two angles is less than or equal to the third).
-            # We don't need to explicitly test for np.nan here since checking for a
-            # positive value already covers that.
-            if box_matrix[2, 2] > 0.0:
-                # all good, convert to correct dtype:
-                box_matrix = box_matrix.astype(dtype, copy=False)
-            else:
-                # invalid box, return zero vectors:
-                box_matrix = np.zeros((3, 3), dtype=dtype)
-        return box_matrix
+                anum, mass, vdw = 6, 12.0, 1.0
 
-
+            anums[i]  = anum
+            masses[i] = mass
+            vdws[i]   = vdw
+                
+        return anums, masses, vdws
 
     def box_volume(self, dimensions):
         """Return the volume of the unitcell described by `dimensions`.
@@ -936,15 +753,8 @@ def RemoveOverlappedResidues(atoms1, atoms2, rcut, dimensions=None, returnoverla
 
     if dimensions is not None:
         u.dimensions = dimensions
-        u.cell       = u.triclinic_vectors(dimensions)
+        u.cell       = triclinic_vectors(dimensions)
 
     return u
 
-
-
-def UpdateAtomicNumberAndMassDMS(dms):
-    conn = sqlite3.connect(dms)
-    conn.execute(update_anum_mass_cmdline)
-    conn.commit()
-    conn.close()
 

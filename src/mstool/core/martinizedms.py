@@ -113,7 +113,7 @@ class MartinizeDMS:
             universe.atoms.loc[index, 'nbtype'] = universe.t2n[t]
             universe.atoms.loc[index, 'type']   = t
 
-        universe.write(out, guess_atomic_number=False)
+        universe.write(out)
 
 
     def updateBonds(self):

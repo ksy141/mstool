@@ -51,7 +51,7 @@ def solvate(u, out=None,
         
     # waterbox
     if len(u.atoms) == 0:
-        if out: wateru.write(out, guess_atomic_number=False)
+        if out: wateru.write(out)
         return wateru
     
     pos1 = wateru.atoms[['x','y', 'z']].to_numpy(dtype=np.float64)
@@ -65,7 +65,7 @@ def solvate(u, out=None,
 
     u.atoms = pd.concat([u.atoms, wateru.atoms[bA]], ignore_index=True)
 
-    if out: u.write(out, guess_atomic_number=False)
+    if out: u.write(out)
     return u
 
 
@@ -167,7 +167,7 @@ def ionize(u, out=None, qtot=None,
     print(f"{neg}: {Nneg}")
     print(f"{pos}.{neg}: {conc_final:.3f} M\n")
     
-    if out: u.write(out, guess_atomic_number=False)
+    if out: u.write(out)
     return u
 
 
@@ -211,7 +211,7 @@ def SolvateMartini(structure=None, out=None, t=None,
     solvatedu = solvate(u, solventdr=solventdr, removedr=removedr, waterslab=waterslab,
                         waterchain=waterchain, center=center, pbc=pbc, membrane=membrane)
     if conc == 0.0:
-        if out: solvatedu.write(out, guess_atomic_number=False)
+        if out: solvatedu.write(out)
         return solvatedu
 
 

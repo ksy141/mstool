@@ -35,7 +35,7 @@ class Rock:
             u.atoms.bfactor = 1.0
         u.atoms.charge  = 0.0
         self.dms = out + '.dms'
-        u.write(self.dms, guess_atomic_number=True)
+        u.write(self.dms)
 
 
         ### Save it to XML

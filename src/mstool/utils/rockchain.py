@@ -44,6 +44,6 @@ class RockChain:
         W.write('</ForceField>\n')
         W.close()
 
-        u.write(self.dms, guess_atomic_number=True)
+        u.write(self.dms)
         self.bonds = []
 

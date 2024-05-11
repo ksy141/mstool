@@ -29,6 +29,8 @@ from .utils.cap_termini_residues import capTerminiResidues
 from .utils.change_his import changeHIS
 from .utils.performance import Performance
 from .utils.saveargs import saveargs
+from .utils.rockresidue import RockResidue
+from .core.orient import *
 
 from .lib.align import rotation_matrix, _fit_to
 from .membrane.bilayerbuilder import BilayerBuilder
@@ -49,8 +51,8 @@ TRIOMARTINI        = pwd + '/examples/Backmapping/Example6_TRIO/martini.itp'
 MPCG               = pwd + '/examples/Backmapping/Example7_MembraneProtein/cg.pdb'
 MPAA               = pwd + '/examples/Backmapping/Example7_MembraneProtein/protein_AA.pdb'
 MPAA2              = pwd + '/examples/Backmapping/Example7_MembraneProtein/protein_AA2.pdb'
-GPCR               = pwd + '/examples/BilayerBuilder/Example5_GPCR/gpcr.pdb'
-GPCR2              = pwd + '/examples/BilayerBuilder/Example5_GPCR2/4xnv.pdb'
-SEIPIN             = pwd + '/examples/BilayerBuilder/Example6_Seipin/oligomer.pdb'
+GPCR               = pwd + '/examples/BilayerBuilder/3sn6.pdb'
+GPCR2              = pwd + '/examples/BilayerBuilder/4xnv.pdb'
+SEIPIN             = pwd + '/examples/BilayerBuilder/6ds5.pdb'
 
 

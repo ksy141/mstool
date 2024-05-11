@@ -74,6 +74,7 @@ class Backmap:
             out         = workdir + f'/step{fileindex+2}_em.dms',
             rockout     = workdir + f'/step{fileindex+2}_rock.dms',
             nonrockout  = workdir + f'/step{fileindex+2}_nonrock.dms',
+            rockprefix  = workdir + '/ROCK',
             protein     = protein,
             rock        = rock,
             rockCtype   = rockCtype,
@@ -104,14 +105,14 @@ class Backmap:
             if os.path.exists('ROCK.xml'): os.rename('ROCK.xml', workdir + '/ROCK.xml')
 
             u1 = Universe(AA)
+            if len(u1.bonds) == 0: u1.addBondFromDistance()
+
             shutil.copyfile(workdir + f'/step{fileindex+2}_nonrock.dms', 
                             workdir + f'/step{fileindex+3}_nonprotein.dms')
 
-            #u2 = Universe(workdir + f'/step{fileindex+2}_nonrock.dms',
-            #              ff=ff, ff_add=ff_add, create_bonds=True)
             u2 = Universe(workdir + f'/step{fileindex+2}_nonrock.dms')
             u = Merge(u1.atoms, u2.atoms)
-            u.bonds = len(u1.atoms) + np.array(u2.bonds)
+            u.bonds = list(u1.bonds) + list(len(u1.atoms) + np.array(u2.bonds))
             u.dimensions = u2.dimensions
             u.cell       = u2.cell
             u.write(workdir + f'/step{fileindex+3}_final.dms')
@@ -122,11 +123,6 @@ class Backmap:
             u1.write(workdir + f'/step{fileindex+3}_protein.pdb')
 
         else:
-            #u = Universe(workdir + f'/step{fileindex+2}_em.dms', 
-            #              ff=ff, ff_add=ff_add,
-            #              create_bonds=True)
-            #u = Universe(workdir + f'/step{fileindex+2}_em.dms')
-            #u.write(workdir + f'/step{fileindex+3}_final.dms')
             shutil.copyfile(workdir + f'/step{fileindex+2}_em.dms',
                             workdir + f'/step{fileindex+3}_final.dms')
             Universe(workdir + f'/step{fileindex+3}_final.dms').write(
