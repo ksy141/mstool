@@ -1,5 +1,5 @@
 # strings = ['/A-E:34-45@CA,BB', '  /A-E :34-37,47-49,TRP,ACE @CA,CA,CA ', ':34-47']
-# for string in strings: print(amberselect(string))
+# for string in strings: print(amberSelection(string))
 
 import numpy as np
 from   .protein_sel import three2one

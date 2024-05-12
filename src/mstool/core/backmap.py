@@ -23,7 +23,9 @@ class Backmap:
                  water_resname='W', water_chain=None, water_number=4, water_fibor=2.0, water_chain_dms=True, 
                  use_AA_structure=False, AA_structure=[], AA_structure_add=[], AA_shrink_factor=0.8,
                  use_existing_workdir=False, fileindex=1, pdbsave=True, cospower=2,
-                 nsteps=10000, T=310):
+                 nsteps=10000, T=310, sanitizeMartini=True,
+                 changename={':CHOL':':CHL1',':ION@NA':':SOD@SOD',':NA@NA':':SOD@SOD',
+                             ':ION@CL':':CLA@CLA',':CL@CL':':CLA@CLA',':ION@CA':':CAL@CAL'}):
 
         ### workdir
         if not use_existing_workdir: os.mkdir(workdir)
@@ -61,6 +63,10 @@ class Backmap:
                 print(f'Using rock="{AA}"')
 
         ### Ungroup
+        if sanitizeMartini:
+            structure = Universe(structure)
+            structure.changeName(changename)
+
         Ungroup(structure, out=workdir + f'/step{fileindex}_ungroup.dms', 
                 mapping=mapping, mapping_add=mapping_add, backbone=backbone,
                 water_resname=water_resname,

@@ -21,10 +21,14 @@ class Ungroup(Universe):
         water_resname='W', water_chain=None, water_number=4, water_fibor=2.0, water_chain_dms=False,
         use_AA_structure=False, AA_structure=[], AA_structure_add=[], AA_shrink_factor=0.8):
 
+        if isinstance(structure, str):
+            self.u = Universe(structure)
+        else:
+            self.u = structure
+
         self.data = {'resid': [], 'resname': [], 'chain': [], 'name': [], 'x': [], 'y': [], 'z': []}
         #self.xml           = ReadXML(ff, ff_add)
         self.mapping       = ReadMappings(mapping, mapping_add)
-        self.u             = Universe(structure)
         self.prot_resnames = list(three2one.keys())
         self.bond          = []
         self.backbone      = backbone

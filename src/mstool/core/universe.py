@@ -36,7 +36,7 @@ def custom_sort(value):
 
 
 class Universe:
-    def __init__(self, data=None, sort=False):
+    def __init__(self, data=None, sort=False, fixResid=False):
         '''Create an universe object. 
         Provide a structure file (.pdb or .dms),
         dictionary as data argument, or
@@ -71,11 +71,12 @@ class Universe:
         self.bonds = []
         self.cols  = {'anum': -1, 'name': 'tbd', 'charge': 0.0, 'mass': 0.0,
                       'type': 'tbd', 'nbtype': 0, 'resname': 'tbd', 'resid': 0, 
-                      'segname': '', 'chain': 'X', 
+                      'segname': '', 'chain': 'S', 
                       'x': 0.0, 'y': 0.0, 'z': 0.0, 'bfactor': 0.0, 'vdw': 0.0}
 
 
         ### READ DATA
+        self.ext = None
         if isinstance(data, str):
             if not os.path.exists(data):
                 raise ValueError(data, " does not exist")
@@ -88,6 +89,7 @@ class Universe:
                 self.readDMS(data)
             if ext == 'gro' or ext == 'GRO':
                 self.readGRO(data)
+            self.ext = ext.lower()
 
         elif isinstance(data, dict):
             self.construct_from_dict(data)
@@ -118,6 +120,9 @@ class Universe:
 
         # add "resn"
         self.addResidues()
+        
+        # fix resid
+        if fixResid: self.fixResid()
 
 
     @property
@@ -147,7 +152,7 @@ class Universe:
             if col not in self.atoms.columns:
                 self.atoms[col] = self.cols[col]
 
-    def select(self, string):
+    def select(self, string, returnbA=False):
         if '~' in string or '>' in string or '<' in string:
             print('~ > <  currently not supported')
             return np.array(len(self.atoms) * [False])
@@ -199,8 +204,18 @@ class Universe:
                 bAstring += 'bA' + str(amberblocks.index(s))
             else:
                 bAstring += s
+        
+        if returnbA:
+            return eval(bAstring, bAdict)
+        else:
+            return self.atoms[eval(bAstring, bAdict)]
 
-        return self.atoms[eval(bAstring, bAdict)]
+    def changeName(self, change):
+        for key, value in change.items():
+            bA = self.select(key, returnbA=True)
+
+            for key2, value2 in amberSelection(value).items():
+                self.atoms.loc[bA, key2] = value2[0]
 
     def clone(self, string):
         u = Universe(self.select(string))
@@ -377,7 +392,7 @@ class Universe:
                 i += 1
 
             # cell
-            b = self.cell.flatten() * 0.1
+            b = np.array(self.cell).flatten() * 0.1
             if b[1] == 0 and b[2] == 0 and b[5] == 0:
                 W.write(f"{b[0]:10.5f} {b[4]:9.5f} {b[8]:9.5f}")
             else:
@@ -513,6 +528,48 @@ class Universe:
         bAfinal = bAchain & bAresna & bAresid
         dg['resn'] = np.insert(np.cumsum((~bAfinal)), 0, 0)
         self.atoms['resn'] = dg['resn']
+
+
+    def fixResid(self):
+        lastres = max(self.atoms.resn)
+        grouped = self.atoms.groupby('resn')
+        modify  = False
+        diff    = 0
+        previous_group = None
+        updates = {}
+
+        if self.ext == 'pdb':
+            limit = 10000
+        elif self.ext == 'gro':
+            limit = 100000
+        else:
+            return
+
+        for resn, current_group in grouped:
+            if previous_group is not None:
+                # new chain
+                if previous_group['chain'].iloc[0] != current_group['chain'].iloc[0]:
+                    modify = False
+                    diff = 0
+                else:
+                    resid0 = previous_group['resid'].iloc[0]
+                    resid1 = current_group['resid'].iloc[0]
+    
+                    # Check for transition in resid numbers
+                    if resid0 % limit == (limit-1) and (resid1 == 0 or resid1 == 1):
+                        modify = True
+                        diff = limit * (resid0 // limit + 1)
+    
+                # Apply modification if flagged
+                if modify:
+                    updates[tuple(current_group.index)] = resid1 + diff
+    
+            # Move to next group
+            previous_group = current_group
+    
+        # Apply all accumulated changes in one operation
+        for idx_tuple, new_resid in updates.items():
+            self.atoms.loc[list(idx_tuple), 'resid'] = new_resid
 
 
     def sort(self, by=['chain', 'resid'], ignore_index=True):

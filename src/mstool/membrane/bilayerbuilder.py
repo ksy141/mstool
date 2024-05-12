@@ -324,7 +324,8 @@ class BilayerBuilder:
             u    = Universe(data=u.atoms[~bA])
             u.dimensions = dimensions
             u.cell = cell
-
+        
+        u.sort()
         u.write(workdir + '/step3.dms', wrap=True)
         u.write(workdir + '/step3.pdb', wrap=True)
         #u.atoms[['x','y','z']] -= u.dimensions[0:3] / 2
