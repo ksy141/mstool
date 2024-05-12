@@ -1,3 +1,8 @@
+### HOW TO RELEASE
+python -m build
+twine upload dist/*
+
+
 Dec. 12, 2023
 I noticed that mass = 0 leads to a weird behavior in CG simulations.
 The beads whose masses are 0 look like they have positional restraints.
