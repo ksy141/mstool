@@ -25,7 +25,8 @@ class Backmap:
                  use_existing_workdir=False, fileindex=1, pdbsave=True, cospower=2,
                  nsteps=10000, T=310, sanitizeMartini=True,
                  changename={':CHOL':':CHL1',':ION@NA':':SOD@SOD',':NA@NA':':SOD@SOD',
-                             ':ION@CL':':CLA@CLA',':CL@CL':':CLA@CLA',':ION@CA':':CAL@CAL'}):
+                             ':ION@CL':':CLA@CLA',':CL@CL':':CLA@CLA',':ION@CA':':CAL@CAL'},
+                 changename_add={}):
 
         ### workdir
         if not use_existing_workdir: os.mkdir(workdir)
@@ -65,6 +66,8 @@ class Backmap:
         ### Ungroup
         if sanitizeMartini:
             structure = Universe(structure)
+            for key, value in changename_add.items():
+                changename[key] = value
             structure.changeName(changename)
 
         Ungroup(structure, out=workdir + f'/step{fileindex}_ungroup.dms', 
