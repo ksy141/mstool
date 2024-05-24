@@ -38,7 +38,7 @@ class REM:
         fcx = 1000.0, fcy = 1000.0, fcz = 1000.0,
         bfactor_posre = 0.5, add_bonds=True, sort=False, version='v4',
         cospower=2, turn_off_torsion_warning=False,
-        nsteps=10000,
+        nsteps=10000, rem_nsteps=0,
         turn_off_EMNVT=False,
         T=310):
         
@@ -66,7 +66,8 @@ class REM:
         self.rcut  = rcut
         self.cospower = cospower
         self.nsteps   = nsteps
-        u          = Universe(structure)
+        self.rem_nsteps = rem_nsteps
+        u = Universe(structure)
         self.protein = protein
 
 
@@ -239,6 +240,7 @@ class REM:
         self.system.addForce(addCisTransTorsions( u, Kcistrans, mapping, turn_off_torsion_warning=turn_off_torsion_warning))
         self.system.addForce(addChiralTorsions(   u, Kchiral,   mapping, turn_off_torsion_warning=turn_off_torsion_warning))
         self.system.addForce(addDihedralTorsions( u, Kdihedral, mapping, turn_off_torsion_warning=turn_off_torsion_warning))
+        self.system.addForce(addAntiDihedralTorsions( u, Kdihedral, mapping, turn_off_torsion_warning=turn_off_torsion_warning))
         print("Adding Isomer Torsions - finished")
 
 
@@ -266,7 +268,7 @@ class REM:
             self.runEMNVT()
         elif rock:
             print("EM+NVT is turned off with ROCK (AA)")
-
+        
         ### Save
         u.atoms[['x','y','z']] = self.numpypositions
 
@@ -449,7 +451,6 @@ class REM:
         return customforce
 
 
-
     def runREM(self):
         integrator = LangevinIntegrator(self.T*kelvin, 1/picosecond, 0.002*picoseconds)
         simulation = Simulation(self.final.topology, self.system, integrator)
@@ -460,6 +461,9 @@ class REM:
         print("E0: %.3e kJ/mol" %simulation.context.getState(getEnergy=True).getPotentialEnergy()._value)
         simulation.minimizeEnergy()
         print("E1: %.3e kJ/mol" %simulation.context.getState(getEnergy=True).getPotentialEnergy()._value)
+        if self.rem_nsteps > 0:
+            simulation.step(self.rem_nsteps)
+            print("E2: %.3e kJ/mol" %simulation.context.getState(getEnergy=True).getPotentialEnergy()._value)
         print("-------------------------------")
 
         self.positions      = simulation.context.getState(getPositions=True).getPositions()

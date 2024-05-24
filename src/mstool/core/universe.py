@@ -337,6 +337,9 @@ class Universe:
                     n_atoms = int(lines[i].strip())
                 else:
                     sl = lines[i].strip().split()
+                    if len(sl) < 3:
+                        continue
+
                     if isfloat(sl[0]) and isfloat(sl[1]) and isfloat(sl[2]):
                         if len(sl) == 3:
                             dimx = float(sl[0].strip()) * 10.0

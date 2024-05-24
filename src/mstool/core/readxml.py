@@ -53,6 +53,6 @@ class ReadXML:
                         'bonds': np.array(bonds)}
 
                 if resname in self.RESI.keys():
-                    raise Exception("residue already defined")
+                    raise Exception(f"residue {resname} already defined")
                 else:
                     self.RESI[resname] = data

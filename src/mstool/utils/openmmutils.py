@@ -577,6 +577,59 @@ def addDihedralTorsions(u, Kdihedral, mapping, exclude=[], turn_off_torsion_warn
     return ctf
 
 
+def addAntiDihedralTorsions(u, Kdihedral, mapping, exclude=[], turn_off_torsion_warning=False):
+    if not isinstance(exclude, list):
+        exclude = [exclude]
+
+    ctf = CustomTorsionForce("k * (acos(0.999 * cos(theta-theta0)))^2")
+    ctf.setName('AntiDihedralTorsion')
+    ctf.addPerTorsionParameter("k")
+    ctf.addPerTorsionParameter("theta0")
+
+
+    N = 0
+    for resname in set(u.atoms.resname):
+        if resname in exclude: continue
+        if resname not in mapping.RESI.keys():
+            if resname == 'TIP3':
+                continue
+            elif resname.startswith('ROCK'):
+                continue
+            else:
+                print(f'Warning: {resname} not in the mapping scheme - skipping AntiDihedralTorsions for this residue')
+                continue
+
+        dihedrals = mapping.RESI[resname]['dihedral']
+        for dihedral in dihedrals:
+            for ii in range(len(dihedral) // 5):
+                dihe = dihedral[ii * 5 : (ii+1) * 5]
+
+                bA  = u.atoms.resname == resname
+                bA0 = u.atoms.name    == dihe[0]
+                bA1 = u.atoms.name    == dihe[1]
+                bA2 = u.atoms.name    == dihe[2]
+                bA3 = u.atoms.name    == dihe[3]
+
+                atomA = u.atoms[bA & bA0].index
+                atomB = u.atoms[bA & bA1].index
+                atomC = u.atoms[bA & bA2].index
+                atomD = u.atoms[bA & bA3].index
+
+                checkbA = not (len(atomA) == len(atomB) == len(atomC) == len(atomD))
+                if checkbA and turn_off_torsion_warning: continue
+
+                assert len(atomA) == len(atomB) == \
+                    len(atomC) == len(atomD), \
+                    "the length of atoms for dihedral torsions is different"
+
+                for a, b, c, d in zip(atomA, atomB, atomC, atomD):
+                    N += 1
+                    ctf.addTorsion(a, b, c, d, [-Kdihedral, float(dihe[4]) * 3.141592 / 180])
+
+    print('Adding AntiDihedralTorsion for {:d} isomers'.format(N))
+    return ctf
+
+
 def addChiralTorsions(u, Kchiral, mapping, exclude=[], turn_off_torsion_warning=False):
     if not isinstance(exclude, list):
         exclude = [exclude]

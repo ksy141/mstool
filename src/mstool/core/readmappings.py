@@ -56,12 +56,13 @@ class ReadMappings:
                             print('updating with the latest one\n')
 
                         d[resname] = {}
-                        d[resname]['CGAtoms']    = {}
-                        d[resname]['AAAtoms']    = []
-                        d[resname]['cis']        = []
-                        d[resname]['trans']      = []
-                        d[resname]['chiral']     = []
-                        d[resname]['dihedral']   = []
+                        d[resname]['CGAtoms']      = {}
+                        d[resname]['AAAtoms']      = []
+                        d[resname]['cis']          = []
+                        d[resname]['trans']        = []
+                        d[resname]['chiral']       = []
+                        d[resname]['dihedral']     = []
+                        d[resname]['antidihedral'] = []
                         continue
 
                     #if line.startswith(('[ cis', '[cis')):
@@ -79,7 +80,7 @@ class ReadMappings:
                     if line.startswith('['):
                         # isomeric information
                         read = line.split('[')[1].split(']')[0].strip().lower()
-                        if read in ['cis', 'trans', 'chiral', 'chirals', 'dihedral', 'dihedrals']:
+                        if read in ['cis', 'trans', 'chiral', 'chirals', 'dihedral', 'dihedrals', 'antidihedral', 'antidihedrals']:
                             continue
                         
                         # CG bead
@@ -115,7 +116,19 @@ class ReadMappings:
                             sl[i] = float(sl[i])
 
                         d[resname]['dihedral'].append(sl)
+                        continue
 
+                    if read == 'antidihedral' or read == 'antidihedrals':
+                        sl = line.split()
+                        if len(sl) % 5 != 0:
+                            assert 0 == 1, \
+                            'antidihedral should be atomNameA atomNameB atomNameC atomNameD dihedral(degree)'
+
+                        for i in range(4, len(sl), 5):
+                            sl[i] = float(sl[i])
+
+                        d[resname]['antidihedral'].append(sl)
+                        continue
 
         self.RESI = d
 
