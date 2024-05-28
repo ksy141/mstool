@@ -31,6 +31,7 @@ from .utils.performance import Performance
 from .utils.saveargs import saveargs
 from .utils.rockresidue import RockResidue
 from .core.orient import *
+from .utils.sdminimizer import SDMinimizer
 
 from .lib.align import rotation_matrix, _fit_to
 from .membrane.bilayerbuilder import BilayerBuilder
