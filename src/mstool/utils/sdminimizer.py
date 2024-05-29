@@ -1,3 +1,5 @@
+import numpy as np
+
 def SDMinimizer(simulation, h0=0.01, F_max_tol = 1e3, nsteps=1000):
     '''
     https://manual.gromacs.org/current/reference-manual/algorithms/energy-minimization.html
