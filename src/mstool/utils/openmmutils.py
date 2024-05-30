@@ -82,7 +82,7 @@ def runEM(structure, forcefield, out=None, nonbondedCutoff=1.1, nonbondedMethod=
         u.atoms[['x','y','z']] = pos
         u.write(out)
 
-def runEMNPT(structure, forcefield, out=None, nonbondedCutoff=1.1, nonbondedMethod='CutoffNonPeriodic',
+def runEMNPT(structure, forcefield, out=None, nonbondedCutoff=1.1, nonbondedMethod='CutoffPeriodic',
              nsteps=10000, dcdfreq=1000, csvfreq=1000, dt=0.002, P=1.0, T=310, semiisotropic=False,
              addForces=[], barfreq=100, frictionCoeff=1.0):
     '''
@@ -99,7 +99,13 @@ def runEMNPT(structure, forcefield, out=None, nonbondedCutoff=1.1, nonbondedMeth
         forcefield = ForceField(*forcefield)
     else:
         forcefield = ForceField(forcefield)
-    system = forcefield.createSystem(pdb.topology)
+
+    if nonbondedMethod == 'CutoffPeriodic':
+        nonbondedMethod = CutoffPeriodic
+    else:
+        nonbondedMethod = CutoffNonPeriodic
+
+    system = forcefield.createSystem(pdb.topology, nonbondedMethod=nonbondedMethod)
 
     ### ADD BAROSTAT
     if barfreq > 0:

@@ -99,7 +99,8 @@ class Backmap:
             pbc         = pbc,
             nsteps      = nsteps,
             rem_nsteps  = rem_nsteps,
-            T           = T)
+            T           = T,
+            version     = remversion)
         
 
         ### CheckStructure

@@ -229,12 +229,16 @@ class REM:
             print('using REM version 3')
             self.updateCustomBondForce()
             self.removeForces(['LennardJones', 'NonbondedForce']) #LennardJones14
-        else:
+        elif version == 'v4':
             print('using REM version 4')
             self.system.addForce(self.updateCustomNonbondedForce(excl=3))
             self.updateCustomBondForce()
             self.removeForces(['LennardJones', 'NonbondedForce']) #LennardJones14
- 
+        elif version == 'v5':
+            print('using REM version 5')
+            self.updateCustomNonbondedForce5()
+            self.updateCustomBondForce()
+
         print("Adding Isomer Torsions - started")
         self.system.addForce(addPeptideTorsions(  u, Kpeptide))
         self.system.addForce(addCisTransTorsions( u, Kcistrans, mapping, turn_off_torsion_warning=turn_off_torsion_warning))
@@ -320,6 +324,28 @@ class REM:
             for i, force in enumerate(self.system.getForces()):
                 if force.getName() == remove:
                     self.system.removeForce(i)
+
+
+    def updateCustomNonbondedForce5(self):
+        forces = { force.__class__.__name__ : force for force in self.system.getForces() }
+        cnf = forces['CustomNonbondedForce']
+        # acoef/r^12 - bcoef/r^6 = 4es^12/r^12 - 4es^6/r^6
+
+        cnf.setEnergyFunction(f"min(rep, LJ); \
+            rep  = A * (cos(pi/2 * r/sig))^2; \
+            LJ   = 4 * eps * ((sig/r)^12-(sig/r)^6); \
+            eps  = bcoef(type1, type2)^2 / acoef(type1, type2) / 4 ; \
+            sig  = (acoef(type1, type2) / bcoef(type1, type2))^(1/6);")
+
+        cnf.addGlobalParameter('pi', 3.141592)
+        cnf.addGlobalParameter('A',    self.A * kilojoule/mole)
+        cnf.addGlobalParameter('rcut', self.rcut * nanometer)
+        #cnf.addGlobalParameter('rcut', cnf.getCutoffDistance())
+
+        # Original Nonbonded Force (only carries charges for charmm36)
+        onf = forces['NonbondedForce']
+        for i in range(onf.getNumParticles()):
+            onf.setParticleParameters(i, 0.0, 1.0, 0.0)
 
 
     def updateCustomNonbondedForce(self, excl=3):
