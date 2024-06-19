@@ -23,7 +23,7 @@ class Backmap:
                  water_resname='W', water_chain=None, water_number=4, water_fibor=2.0, water_chain_dms=True, 
                  use_AA_structure=False, AA_structure=[], AA_structure_add=[], AA_shrink_factor=0.8,
                  use_existing_workdir=False, fileindex=1, pdbsave=True, cospower=2,
-                 nsteps=10000, rem_nsteps=0, T=310, sanitizeMartini=True,
+                 nsteps=10000, rem_nsteps=0, turn_off_EMNVT=False, T=310, sanitizeMartini=True,
                  changename={':CHOL':':CHL1',':ION@NA':':SOD@SOD',':NA@NA':':SOD@SOD',
                              ':ION@CL':':CLA@CLA',':CL@CL':':CLA@CLA',':ION@CA':':CAL@CAL'},
                  changename_add={}):
@@ -100,7 +100,12 @@ class Backmap:
             nsteps      = nsteps,
             rem_nsteps  = rem_nsteps,
             T           = T,
-            version     = remversion)
+            version     = remversion,
+            Kchiral     = Kchiral,
+            Kpeptide    = Kpeptide, 
+            Kcistrans   = Kcistrans, 
+            Kdihedral   = Kdihedral,
+            turn_off_EMNVT = turn_off_EMNVT)
         
 
         ### CheckStructure

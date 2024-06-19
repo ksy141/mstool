@@ -472,7 +472,7 @@ def addPeptideTorsions(u, Kpeptide):
         ctf.addTorsion(CAatom0Index, CatomIndex, NatomIndex, CAatom1Index, [Kpeptide, 3.141592])
         N += 1
 
-    print('Adding PeptideTorsion for {:d} isomers'.format(N))
+    print(f'Adding PeptideTorsion for {N:d} isomers with K={Kpeptide:.2f}')
     return ctf
 
 
@@ -526,7 +526,7 @@ def addCisTransTorsions(u, Kcistrans, mapping, exclude=[], turn_off_torsion_warn
                     elif isomer == 'trans':
                         ctf.addTorsion(a, b, c, d, [Kcistrans, 3.141592])
 
-    print('Adding CisTransTorsion for {:d} isomers'.format(N))
+    print(f'Adding CisTransTorsion for {N:d} isomers with K={Kcistrans:.2f}')
     return ctf
 
 
@@ -579,7 +579,7 @@ def addDihedralTorsions(u, Kdihedral, mapping, exclude=[], turn_off_torsion_warn
                     N += 1
                     ctf.addTorsion(a, b, c, d, [Kdihedral, float(dihe[4]) * 3.141592 / 180])
 
-    print('Adding DihedralTorsion for {:d} isomers'.format(N))
+    print(f'Adding DihedralTorsion for {N:d} isomers with K={Kdihedral:.2f}')
     return ctf
 
 
@@ -605,7 +605,7 @@ def addAntiDihedralTorsions(u, Kdihedral, mapping, exclude=[], turn_off_torsion_
                 print(f'Warning: {resname} not in the mapping scheme - skipping AntiDihedralTorsions for this residue')
                 continue
 
-        dihedrals = mapping.RESI[resname]['dihedral']
+        dihedrals = mapping.RESI[resname]['antidihedral']
         for dihedral in dihedrals:
             for ii in range(len(dihedral) // 5):
                 dihe = dihedral[ii * 5 : (ii+1) * 5]
@@ -632,7 +632,7 @@ def addAntiDihedralTorsions(u, Kdihedral, mapping, exclude=[], turn_off_torsion_
                     N += 1
                     ctf.addTorsion(a, b, c, d, [-Kdihedral, float(dihe[4]) * 3.141592 / 180])
 
-    print('Adding AntiDihedralTorsion for {:d} isomers'.format(N))
+    print(f'Adding AntiDihedralTorsion for {N:d} isomers with K={Kdihedral:.2f}')
     return ctf
 
 

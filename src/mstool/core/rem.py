@@ -255,7 +255,8 @@ class REM:
 
         ### Run REM without Additional Torsions
         print("Running REM without isomeric torsions")
-        self.removeForces(['PeptideTorsion', 'CisTransTorsion', 'ChiralTorsion'])
+        self.removeForces(['PeptideTorsion', 'CisTransTorsion', 'ChiralTorsion', 'DihedralTorsion', 'AntiDihedralTorsion'])
+        #self.removeForces(['PeptideTorsion', 'CisTransTorsion', 'ChiralTorsion'])
         self.runREM()
         u.atoms[['x','y','z']] = self.numpypositions
 
