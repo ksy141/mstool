@@ -21,7 +21,7 @@ class Backmap:
                  rcut=1.2, pbc=True, A=100, C=50,
                  add_bonds = True, remversion='v4',
                  water_resname='W', water_chain=None, water_number=4, water_fibor=2.0, water_chain_dms=True, 
-                 use_AA_structure=False, AA_structure=[], AA_structure_add=[], AA_shrink_factor=0.8,
+                 use_AA_structure=True, AA_structure=[], AA_structure_add=[], AA_shrink_factor=0.8,
                  use_existing_workdir=False, fileindex=1, pdbsave=True, cospower=2,
                  nsteps=10000, rem_nsteps=0, turn_off_EMNVT=False, T=310, sanitizeMartini=True,
                  changename={':CHOL':':CHL1',':ION@NA':':SOD@SOD',':NA@NA':':SOD@SOD',

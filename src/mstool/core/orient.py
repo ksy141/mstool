@@ -35,64 +35,12 @@ def align_a_to_b(a, b):
     R  = np.identity(3) + vx + np.matmul(vx, vx) * (1 - c) / s**2
     return R
 
-
-def align_principal_component(points, subset_points, target_vector):
-    """
-    Rotate a 3D object so that its principal component aligns with a specified vector,
-    calculated from a subset of the object's coordinates.
-
-    Parameters:
-        points (numpy.ndarray): Nx3 array of 3D coordinates representing the object.
-        subset_points (numpy.ndarray): Mx3 array of 3D coordinates of selected atoms.
-        target_vector (numpy.ndarray): 3D vector to which the principal component will be aligned.
-
-    Returns:
-        numpy.ndarray: Nx3 array of rotated 3D coordinates.
-    """
-    # Step 1: Calculate the principal component from the subset of points
-    centroid = np.mean(subset_points, axis=0)
-    centered_points = subset_points - centroid
-    _, _, vh = np.linalg.svd(centered_points)
-    principal_component = vh[0]
-
-    # Step 2: Determine the rotation needed to align the principal component with the target vector
-    rotation_axis = np.cross(principal_component, target_vector)
-    rotation_axis /= np.linalg.norm(rotation_axis)
-    dot_product = np.dot(principal_component, target_vector)
-    rotation_angle = np.arccos(dot_product)
-
-    # Step 3: Apply the rotation to the object's coordinates
-    rotation_matrix = rotation_matrix_from_axis_angle(rotation_axis, rotation_angle)
-    rotated_points = np.dot(points, rotation_matrix.T) + centroid
-
-    return rotated_points
-
-def rotation_matrix_from_axis_angle(axis, angle):
-    """
-    Generate a rotation matrix from an axis and an angle.
-
-    Parameters:
-        axis (numpy.ndarray): 3D vector representing the rotation axis.
-        angle (float): Angle of rotation in radians.
-
-    Returns:
-        numpy.ndarray: 3x3 rotation matrix.
-    """
-    axis = axis / np.linalg.norm(axis)
-    a = np.cos(angle / 2.0)
-    b, c, d = -axis * np.sin(angle / 2.0)
-    rotation_matrix = np.array([[a*a + b*b - c*c - d*d, 2*(b*c - a*d), 2*(b*d + a*c)],
-                                [2*(b*c + a*d), a*a + c*c - b*b - d*d, 2*(c*d - a*b)],
-                                [2*(b*d - a*c), 2*(c*d + a*b), a*a + d*d - b*b - c*c]])
-    return rotation_matrix
-
-
 def Orient(structure, out=None, select='@CA,BB', translate=[0,0,0], axis='z', rotation=True):
     if isinstance(structure, Universe):
         u  = structure
     else:
         u  = Universe(structure)
-
+    
     allpos = u.atoms[['x','y','z']].to_numpy()
     subpos = u.select(select)[['x','y','z']].to_numpy()
 
@@ -103,11 +51,15 @@ def Orient(structure, out=None, select='@CA,BB', translate=[0,0,0], axis='z', ro
     elif axis == 'z':
         axis = [0, 0, 1]
     else:
+        assert len(axis) == 3, 'provide a vector'
         axis = axis
     
     if rotation:
-        newpos = align_principal_component(allpos, subpos, axis/np.linalg.norm(axis))
+        w, v = calInertialTensor(subpos - subpos.mean(axis=0))
+        R = align_a_to_b(v[:,0], axis)
+        newpos = np.matmul(R, np.transpose(allpos - subpos.mean(axis=0))).T
         u.atoms[['x','y','z']] = newpos
+    
     u.atoms[['x','y','z']] -= u.select(select)[['x','y','z']].mean(axis=0)
     u.atoms[['x','y','z']] += translate
 

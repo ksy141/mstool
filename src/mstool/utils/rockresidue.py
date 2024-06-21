@@ -15,6 +15,7 @@ class RockResidue:
         
         self.dms = out + '.dms'
         u = Universe(structure)
+        u.bonds         = []
         u.atoms.mass    = 100.0
         u.atoms.bfactor = 1.0
         u.atoms.charge  = 0.0
