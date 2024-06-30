@@ -7,7 +7,7 @@ import glob
 pwd = os.path.dirname(os.path.realpath(__file__))
 
 class Sphere(Lipid):
-    def __init__(self, r, protein=None, upper={}, lower={}, trans={},
+    def __init__(self, r, protein=None, upper={}, lower={}, trans={}, between={}, sep=0.0,
                  water=40, rcut=3.0,
                  martini=None, out=None,
                  hydrophobic_thickness=30.0,
@@ -56,19 +56,20 @@ class Sphere(Lipid):
 
         Lipid.__init__(self, martini=martini, lipidpath=lipidpath, hydrophobic_thickness=hydrophobic_thickness)
 
-        upperN = int(np.sum(list(upper.values())))
-        lowerN = int(np.sum(list(lower.values())))
-        transN = int(np.sum(list(trans.values())))
-        Nmol   = len(list(upper.values()) + list(lower.values())) + len(trans.values())
+        upperN   = int(np.sum(list(upper.values())))
+        lowerN   = int(np.sum(list(lower.values())))
+        transN   = int(np.sum(list(trans.values())))
+        betweenN = int(np.sum(list(between.values())))
+        Nmol     = len(list(upper.values()) + list(lower.values())) + len(trans.values())
         assert Nmol > 0, 'Please provide upper and/or lower, e.g., upper = {"POPC": 100}'
 
         ### monolayer = {'POPC': 3, 'DOPE': 2, 'SAPI': 1}
         ### monolayer_keys = ['POPC', 'DOPE', 'SAPI']
         ### monolayer_list = [0, 0, 0, 1, 1, 2]
 
-        monolayers     = {'upper': upper, 'lower': lower, 'trans': trans}
-        monolayer_keys = {'upper': [], 'lower': [], 'trans': []}
-        monolayer_list = {'upper': [], 'lower': [], 'trans': []}
+        monolayers     = {'upper': upper, 'lower': lower, 'trans': trans, 'between': between}
+        monolayer_keys = {'upper': [], 'lower': [], 'trans': [], 'between': []}
+        monolayer_list = {'upper': [], 'lower': [], 'trans': [], 'between': []}
 
         for layerkey, monolayer in monolayers.items():
             for key in monolayer.keys():
@@ -87,12 +88,12 @@ class Sphere(Lipid):
         hht = hydrophobic_thickness * 0.5
 
         # upper
-        upperU = self.make_sphere(r+hht, upperN,
+        upperU = self.make_sphere(r+hht+sep/2, upperN,
                     monolayer_keys['upper'], monolayer_list['upper'], chain='0',
                     inverse=1, alpha=alpha, beta=beta, gamma=gamma)
                         
         # lower
-        lowerU = self.make_sphere(r-hht, lowerN,
+        lowerU = self.make_sphere(r-hht-sep/2, lowerN,
                     monolayer_keys['lower'], monolayer_list['lower'], chain='1',
                     inverse=-1, alpha=alpha, beta=beta, gamma=gamma)
 
@@ -101,8 +102,26 @@ class Sphere(Lipid):
                     monolayer_keys['trans'], monolayer_list['trans'], chain='2',
                     inverse=1, alpha=alpha, beta=beta, gamma=gamma)
 
+        # between
+        betweenP = []
+        while len(betweenP) < betweenN:
+            radius1 = r - sep/2 + 5
+            radius2 = r + sep/2 - 5
+            # Generate random points within the annular region
+            betweenr = np.cbrt(np.random.uniform(radius1**3, radius2**3))
+            theta = np.random.uniform(0, 2*np.pi)
+            phi = np.arccos(np.random.uniform(-1, 1))
+            
+            betweenx = betweenr * np.sin(phi) * np.cos(theta)
+            betweeny = betweenr * np.sin(phi) * np.sin(theta)
+            betweenz = betweenr * np.cos(phi)
+            betweenP.append([betweenx, betweeny, betweenz])
+            
+        betweenU = self.makeUfromPoints(betweenP, 
+            monolayer_keys['between'], monolayer_list['between'], chain='3')
+
         # pbc
-        pbc = (r + hht + water) * 2
+        pbc = (r + hht + water + sep/2) * 2
 
         # protein
         if protein:
@@ -119,7 +138,7 @@ class Sphere(Lipid):
         ### New Universe
         #proteinU = Merge(protein.atoms, transU.atoms) if len(transU.atoms) > 0 else protein
         proteinU = Merge(protein.atoms, transU.atoms)
-        lipidU   = Merge(upperU.atoms,  lowerU.atoms)
+        lipidU   = Merge(upperU.atoms,  lowerU.atoms, betweenU.atoms)
         u        = RemoveOverlappedResidues(lipidU.atoms, proteinU.atoms, rcut=rcut)
 
         ### Setting pbc
@@ -129,6 +148,64 @@ class Sphere(Lipid):
         if out: u.write(out)
         self.universe = u
 
+
+    def makeUfromPoints(self, points, monolayer_key, monolayer_list, chain):
+        data = {'name': [], 'resname': [], 'resid': [], 'chain': [], 'x': [], 'y': [], 'z': []}
+        for i in range(len(points)):
+            
+            key = monolayer_key[monolayer_list[i]]
+            if isinstance(key, str):
+                if key in self.structures.keys():
+                    # structure information exists.
+                    lipid_u      = self.structures[key]
+                    positions    = lipid_u.atoms[['x','y','z']].to_numpy()
+                    save_name    = lipid_u.atoms['name'].tolist()
+                    save_resname = lipid_u.atoms['resname'].tolist()
+                    save_resid   = [i+1]   * len(positions)
+                    save_chain   = [chain] * len(positions)
+
+
+                else:
+                    # structure information does not exist. Construct.
+                    positions, names = self.construct_molecule(key)
+                    save_resname     = [key]   * len(positions)
+                    save_resid       = [i+1]   * len(positions)
+                    save_chain       = [chain] * len(positions)
+                    save_name        = names
+
+
+            elif isinstance(key, Universe):
+                # a structure e.g., protein or lipid with a structure
+                positions     = key.atoms[['x','y','z']].to_numpy()
+                save_resname  = key.atoms['resname'].tolist()
+                save_name     = key.atoms['name']
+                save_resid    = key.atoms['resid'].tolist()
+
+                if len(set(save_resid)) == 1:
+                    save_resid = [i+1]   * len(positions)
+                    save_chain = [chain] * len(positions)
+
+                else:
+                    save_chain = [chain] * len(positions)
+
+            else:
+                assert 0 == 1, 'resname does not exist or input structure cannot be found'
+            
+            finalr = np.linalg.norm(points[i])
+            finalpositions = self.place(positions, r=finalr, r_vector=points[i], inverse=np.random.choice([1, -1]))
+            data['chain'].extend(save_chain)
+            data['resname'].extend(save_resname)
+            data['resid'].extend(save_resid)
+            data['name'].extend(save_name)
+            data['x'].extend(finalpositions[:,0])
+            data['y'].extend(finalpositions[:,1])
+            data['z'].extend(finalpositions[:,2])
+        
+        universe = Universe(data=data)
+        # when merging, if there is empty universe, resid changes to float.
+        universe.atoms = universe.atoms.astype({'resid': int})
+        universe.sort(by=['chain', 'resname','resid'])
+        return universe
 
     def make_sphere(self, finalr, finalN, monolayer_key, monolayer_list, chain, inverse, alpha, beta, gamma):
         if finalN == 0:

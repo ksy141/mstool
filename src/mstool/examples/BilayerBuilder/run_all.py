@@ -62,6 +62,15 @@ mstool.BilayerBuilder(workdir='Example3B_LD',
                       mapping_add=mstool.TRIOMAPPING)
 
 
+### Example 3B LD2
+mstool.SphereBuilder(workdir='Example3B_LD2',
+                     radius=50, sep=100,
+                     upper={'POPC': 1600, 'DOPS': 990, 'CHL1': 10},
+                     between={'TRIO': 3491},
+                     martini_add=mstool.TRIOMARTINI,
+                     mapping_add=mstool.TRIOMAPPING)
+
+
 ### Example 3C
 mstool.BilayerBuilder(workdir='Example3C_Seipin',
                       protein=mstool.SEIPIN,

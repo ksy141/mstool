@@ -5,7 +5,7 @@ from  .sphereprotein         import SphereProtein
 from  ..core.map             import Map
 from  ..core.backmap         import Backmap
 from  ..core.readmartini     import ReadMartini
-from  ..core.solvate_martini import SolvateMartini
+from  ..core.solvate_martini import SolvateMartini, ionize
 from  ..core.martinizedms    import MartinizeDMS
 from  ..core.dmsfile         import DMSFile
 from  ..core.universe        import Universe
@@ -16,7 +16,7 @@ from  ..utils.protein_sel    import one2three, three2one
 pwd = os.path.dirname(os.path.realpath(__file__))
 
 class SphereBuilder:
-    def __init__(self, radius, workdir='workdir', protein=None, upper={}, lower={}, 
+    def __init__(self, radius, workdir='workdir', protein=None, upper={}, lower={}, between={}, sep=0.0,
                  water=50.0, rcut=4.0, rockCtype='CTL3', rockHtype='HAL3',
                  martini=[], martini_add=[], lipidpath=pwd+'/../../../FF/martini2.2/structures/',
                  mapping=[], mapping_add=[],
@@ -146,7 +146,7 @@ class SphereBuilder:
 
         ### Construct a bilayer
         instance = Sphere( protein=workdir + '/protein_CG.dms' if protein else None, 
-                           upper=upper, lower=lower, 
+                           upper=upper, lower=lower, between=between, sep=sep,
                            water=water, rcut=rcut,
                            out=workdir + '/step1.bilayer.dms', 
                            martini=martiniff, 
@@ -156,8 +156,20 @@ class SphereBuilder:
 
         ### Solvate
         if solvate:
-            usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc, 
-                                  posionchain='4', negionchain='5', waterchain='6')
+            #usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc, 
+            #                      posionchain='4', negionchain='5', waterchain='6')
+
+            usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=0.0, waterchain='6')
+            cell = usol.cell
+            dim  = usol.dimensions
+            bA1  = usol.atoms.name == 'W'
+            bA2  = usol.atoms.x ** 2 + usol.atoms.y ** 2 + usol.atoms.z ** 2 < (radius + hydrophobic_thickness/2 + sep/2) ** 2
+            bA3  = usol.atoms.x ** 2 + usol.atoms.y ** 2 + usol.atoms.z ** 2 > (radius - sep/2) ** 2
+            usol = Universe(data=usol.atoms[~(bA1 & bA2 & bA3)])
+            usol = ionize(usol, conc=ionconc, posionchain='4', negionchain='5')
+            usol.dimensions = dim
+            usol.cell       = cell
+        
         else:
             usol = instance.universe
             # make it NVT
