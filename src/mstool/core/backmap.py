@@ -121,7 +121,8 @@ class Backmap:
             if os.path.exists('ROCK.xml'): os.rename('ROCK.xml', workdir + '/ROCK.xml')
 
             u1 = Universe(AA)
-            if len(u1.bonds) == 0: u1.addBondFromDistance()
+            #memory-intensive job
+            #if len(u1.bonds) == 0: u1.addBondFromDistance()
 
             shutil.copyfile(workdir + f'/step{fileindex+2}_nonrock.dms', 
                             workdir + f'/step{fileindex+3}_nonprotein.dms')
