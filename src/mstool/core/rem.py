@@ -180,15 +180,15 @@ class REM:
         u.atoms = pd.concat(universe_combined, ignore_index=True)
 
 
-        ### Bonds (which whill not include ROCK)
-        self.bonds = []
+        #### Bonds (which whill not include ROCK)
+        unique_bonds = set()
         for bond in self.final.topology.bonds():
-            i0 = bond[0].index
-            i1 = bond[1].index
-            if i0 > i1: i0, i1 = i1, i0
-            if [i0, i1] not in self.bonds:
-                self.bonds.append([i0, i1])
-        u.bonds = self.bonds
+            i0, i1 = bond[0].index, bond[1].index
+            if i0 > i1:
+                i0, i1 = i1, i0
+            unique_bonds.add((i0, i1))
+
+        self.bonds = [list(bond) for bond in unique_bonds]
 
 
         ### Create a system

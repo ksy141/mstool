@@ -407,6 +407,44 @@ class Ungroup(Universe):
                                pos     = pos)
 
 
+    #def construct_water(self):
+    #    bA = self.u.atoms.resname == self.water_resname
+    #    CG = self.u.atoms[bA]
+
+    #    fibopos   = fibo(r=self.water_fibor, N=self.water_number, verbose=False, plot=None)
+    #    fibopos  -= np.average(fibopos, axis=0)
+    #    waterbead = np.repeat(fibopos, 3, axis=0) + (np.random.rand(self.water_number * 3, 3) - 0.5) * 0.5
+    #    allwater  = np.tile(waterbead, (len(CG), 1)) + \
+    #                np.repeat(CG[['x','y','z']].to_numpy(), self.water_number * 3, axis=0)
+    #    
+    #    if self.water_chain:
+    #        water_chain = self.water_chain
+    #    else:
+    #        water_chain = 'ZYXWVUTSRQPONMLKJIHGFEDCBA'
+    #    
+    #    if self.water_chain_dms:
+    #        chains = np.repeat([c for c in water_chain[0:self.water_number]] * len(CG), 3)
+
+    #    else:    
+    #        water_chain = water_chain[0 : (len(water_chain) // self.water_number) * self.water_number ]
+    #        if len(water_chain) % self.water_number != 0:
+    #            assert 0 == 1, 'len(water_chain) % water_number should be 0'
+    #                
+    #        chains = []
+    #        for i in range(len(water_chain) // self.water_number):
+    #            chains += [c for c in water_chain[i*self.water_number:(i+1)*self.water_number]] * 9999
+    #        chains  = np.repeat(chains[:len(CG) * self.water_number], 3)
+
+    #    name    = ['OH2', 'H1', 'H2'] * len(CG) * self.water_number
+    #    resname = ['TIP3'] * 3 * len(CG) * self.water_number
+    #    resid   = np.repeat(CG['resid'].to_list(), self.water_number * 3)
+
+    #    self.list2data(name    = name,
+    #                   chain   = chains,
+    #                   resname = resname,
+    #                   resid   = resid,
+    #                   pos     = allwater)
+
     def construct_water(self):
         bA = self.u.atoms.resname == self.water_resname
         CG = self.u.atoms[bA]
@@ -422,23 +460,11 @@ class Ungroup(Universe):
         else:
             water_chain = 'ZYXWVUTSRQPONMLKJIHGFEDCBA'
         
-        if self.water_chain_dms:
-            chains = np.repeat([c for c in water_chain[0:self.water_number]] * len(CG), 3)
-
-        else:    
-            water_chain = water_chain[0 : (len(water_chain) // self.water_number) * self.water_number ]
-            if len(water_chain) % self.water_number != 0:
-                assert 0 == 1, 'len(water_chain) % water_number should be 0'
-                    
-            chains = []
-            for i in range(len(water_chain) // self.water_number):
-                chains += [c for c in water_chain[i*self.water_number:(i+1)*self.water_number]] * 9999
-            chains  = np.repeat(chains[:len(CG) * self.water_number], 3)
-
+        chains  = np.repeat([c for c in water_chain[0:self.water_number]] * len(CG), 3)
         name    = ['OH2', 'H1', 'H2'] * len(CG) * self.water_number
         resname = ['TIP3'] * 3 * len(CG) * self.water_number
-        resid   = np.repeat(CG['resid'].to_list(), self.water_number * 3)
-
+        #resid   = np.repeat(CG['resn'].to_list(), self.water_number * 3)
+        resid   = np.repeat(np.arange(1, len(CG) + 1), self.water_number * 3)
         self.list2data(name    = name,
                        chain   = chains,
                        resname = resname,

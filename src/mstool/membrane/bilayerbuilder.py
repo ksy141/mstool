@@ -188,7 +188,8 @@ class BilayerBuilder:
             Hatoms   = proteinU.atoms.name.str.startswith('H')
             proteinU.atoms.bfactor = 0.0
             proteinU.atoms.loc[~Hatoms, 'bfactor'] = 1.0
-            if len(proteinU.bonds) == 0: proteinU.addBondFromDistance()
+            #this is a memory-intensive job
+            #if len(proteinU.bonds) == 0: proteinU.addBondFromDistance()
             proteinU.write(workdir + '/protein.dms', wrap=False)
             proteinU.write(workdir + '/protein.pdb', wrap=False)
   
@@ -201,7 +202,7 @@ class BilayerBuilder:
         #if protein: Map(workdir + '/protein.dms', workdir + '/protein_CG.dms', add_notavailableAAAtoms=True)
         if protein: Map(workdir + '/protein.dms', workdir + '/protein_CG.dms', add_notavailableAAAtoms=False,
                         mapping=mapping, mapping_add=mapping_add)
-
+        
         ### Construct a bilayer
         instance = Bilayer(protein=workdir + '/protein_CG.dms' if protein else None, 
                            upper=upper, lower=lower, between=between, sep=sep,
