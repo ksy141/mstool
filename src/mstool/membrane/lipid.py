@@ -98,7 +98,7 @@ class Lipid:
                 added = True
 
             if name == 'GL3':
-                positions.append([5.0, 0, 0])
+                positions.append([2.6, 0, 0])
                 added = True
 
             if name in self.chain1:
@@ -113,7 +113,7 @@ class Lipid:
 
             if name in self.chain3:
                 posz = zz[int(name[1])]
-                positions.append([5.0, 0, posz])
+                positions.append([2.6, 0, posz])
                 added = True
 
             if not added:

@@ -242,7 +242,8 @@ class Bilayer(Lipid):
                     returnoverlapped=True)
             
             move_atoms = lipidU.atoms[bA]
-            move_resns = set(move_atoms['resn'])
+            move_resns = list(set(move_atoms['resn']))
+            np.random.shuffle(move_resns)
 
             for move_resn in move_resns:
                 sel = lipidU.atoms.resn == move_resn
