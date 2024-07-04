@@ -63,13 +63,15 @@ mstool.BilayerBuilder(workdir='Example3B_LD',
 
 
 ### Example 3B LD2
+# To build a lipid droplet whose radius is 50A,
+# radius = 50/2 = 25 and sep = 50
 mstool.SphereBuilder(workdir='Example3B_LD2',
-                     radius=50, sep=100,
-                     upper={'POPC': 1600, 'DOPS': 990, 'CHL1': 10},
-                     between={'TRIO': 3491},
+                     radius=25, sep=50,
+                     upper={'POPC': 700, 'TRIO': 40},
+                     between={'TRIO': 300},
                      martini_add=mstool.TRIOMARTINI,
-                     mapping_add=mstool.TRIOMAPPING)
-
+                     mapping_add=mstool.TRIOMAPPING,
+                     ff_add=mstool.TRIOFF)
 
 ### Example 3C
 mstool.BilayerBuilder(workdir='Example3C_Seipin',

@@ -21,7 +21,7 @@ class BilayerBuilder:
                  martini=[], martini_add=[], lipidpath=pwd+'/../../../FF/martini2.2/structures/',
                  mapping=[], mapping_add=[],
                  ff=[], ff_add=[],
-                 removedr=6.0, aa_nsteps=0, fc=10.0, 
+                 removedr=6.0, aa_nsteps=0, fc=10.0, fc2=10.0,
                  dt_rem=0.025, cg_nsteps_rem=100000,
                  dt=0.020, cg_nsteps=500000,
                  frictionCoeff=10.0, barfreq=10, nonbondedCutoff=1.1, 
@@ -31,7 +31,8 @@ class BilayerBuilder:
                  remove_solvent=False,
                  solvate=True,
                  tapering='shift',
-                 protein_dict_pbc_shrink_factor=0.9):
+                 protein_dict_pbc_shrink_factor=0.9,
+                 changename={}):
 
         '''Bilayer builder.
         Parameters
@@ -276,7 +277,8 @@ class BilayerBuilder:
         #dms.runEMNPT(workdir + '/step2.rem.dms', emout=None, dt=dt, nsteps=0, frictionCoeff=frictionCoeff, barfreq=0, T=T)
         
         martiniU = Universe(workdir + '/step1.martini.dms')
-        martiniU.atoms.loc[((martiniU.atoms.name == 'GL1')), 'bfactor'] = 2.0
+        #martiniU.atoms.loc[((martiniU.atoms.name == 'GL1')), 'bfactor'] = 2.0
+        martiniU.atoms.loc[((martiniU.atoms.name == 'PO4')), 'bfactor'] = 2.0
 
         dms = DMSFile(workdir + '/step1.martini.dms')
         dms.createSystem(REM=True,  tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
@@ -288,7 +290,7 @@ class BilayerBuilder:
 
         #dms = DMSFile(workdir + '/step2.rem.dms')
         dms.createSystem(REM=False, tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
-        if protein: dms.system.addForce(addPosre(martiniU, bfactor_posre=1.5, fcx=0.0, fcy=0.0, fcz=fc))
+        if protein: dms.system.addForce(addPosre(martiniU, bfactor_posre=1.5, fcx=0.0, fcy=0.0, fcz=fc2))
         dms.runEMNPT(dt=dt, nsteps=int(cg_nsteps), frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=True, out=workdir + '/step2.dms')
         
         ### Translate Back
@@ -344,9 +346,11 @@ class BilayerBuilder:
             noprotein.write(workdir + '/step3.noprotein.dms')
             Backmap(workdir + '/step3.noprotein.dms', workdir=workdir, use_existing_workdir=True, nsteps=int(aa_nsteps),
                     AA=workdir + '/protein.dms', fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
-                    use_AA_structure=use_AA_structure, AA_shrink_factor=AA_shrink_factor, rockCtype=rockCtype, rockHtype=rockHtype, T=T, water_chain='6789')
+                    use_AA_structure=use_AA_structure, AA_shrink_factor=AA_shrink_factor, rockCtype=rockCtype, rockHtype=rockHtype, T=T, water_chain='6789',
+                    changename=changename)
         else:
             Backmap(workdir + '/step3.dms', workdir=workdir, use_existing_workdir=True, nsteps=int(aa_nsteps),
                     AA=None, fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
-                    use_AA_structure=use_AA_structure, AA_shrink_factor=AA_shrink_factor, rockCtype=rockCtype, rockHtype=rockHtype, T=T, water_chain='6789')
+                    use_AA_structure=use_AA_structure, AA_shrink_factor=AA_shrink_factor, rockCtype=rockCtype, rockHtype=rockHtype, T=T, water_chain='6789',
+                    changename=changename)
 

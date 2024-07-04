@@ -73,7 +73,8 @@ class Lipid:
 
             if name in self.head:
                 if name == 'PO4':
-                    positions.append([0, 0, 5])
+                    #positions.append([0, 0, 5])
+                    positions.append([0, 0, 2.5])
                 
                 # cholesterol
                 elif 'R1' in names:
@@ -86,7 +87,8 @@ class Lipid:
                 
                 # NC3
                 else:
-                    positions.append([0, 0, 10])
+                    #positions.append([0, 0, 10])
+                    positions.append([0, 0, 5])
                 added = True
 
             if name == 'GL1':

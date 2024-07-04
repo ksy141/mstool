@@ -264,7 +264,8 @@ class Bilayer(Lipid):
                 lipidU.atoms.loc[sel, ['x','y','z']] = move_xyz + np.array([move_dx, move_dy, 0.0])
 
             u = Merge(proteinU.atoms, lipidU.atoms)
-
+            if unused_upperP_index != 0: print(f"# of upper lipids moved: {unused_upperP_index}")
+            if unused_lowerP_index != 0: print(f"# of lower lipids moved: {unused_lowerP_index}")
 
 
         ### Setting pbc

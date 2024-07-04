@@ -1,0 +1,123 @@
+[moleculetype]
+; molname      nrexcl
+  TRIO         1
+
+[atoms]
+; id 	type 	resnr 	residu 	atom 	cgnr 	charge
+   1 	SN4a 	 1 	TRIO 	GL1 	 1 	0 	
+   2 	C1 	     1 	TRIO 	C1A 	 2 	0 	
+   3 	C4h 	 1 	TRIO 	D2A 	 3 	0 	
+   4 	C1 	     1 	TRIO 	C3A 	 4 	0 	
+   5 	C1 	     1 	TRIO 	C4A 	 5 	0 	
+   6 	N4a 	 1 	TRIO 	GL2 	 6 	0 	
+   7 	C1 	     1 	TRIO 	C1B 	 7 	0 	
+   8 	C4h 	 1 	TRIO 	D2B 	 8 	0 	
+   9 	C1 	     1 	TRIO 	C3B 	 9 	0 	
+  10 	C1 	     1 	TRIO 	C4B 	10 	0 	
+  11 	SN4a 	 1 	TRIO 	GL3 	11 	0 	
+  12 	C1 	     1 	TRIO 	C1C 	12 	0 	
+  13 	C4h 	 1 	TRIO 	D2C 	13 	0 	
+  14 	C1 	     1 	TRIO 	C3C 	14 	0 	
+  15 	C1 	     1 	TRIO 	C4C 	15 	0 	
+
+
+[bonds]
+;  i  j 	funct 	length 	force.c.
+   1  6 	1 	0.312 	2500 	
+   6 11 	1 	0.312 	2500 	
+
+   1  2 	1 	0.47 	5000 	
+   2  3 	1 	0.47 	3800 	
+   3  4 	1 	0.47 	3800 	
+   4  5 	1 	0.47 	3800 	
+
+   6  7 	1 	0.47 	3600 	
+   7  8 	1 	0.47 	3800 	
+   8  9 	1 	0.47 	3800 	
+   9 10 	1 	0.47 	3800 	
+
+  11 12 	1 	0.47 	5000 	
+  12 13 	1 	0.47 	3800 	
+  13 14 	1 	0.47 	3800 	
+  14 15 	1 	0.47 	3800 	
+
+[angles]
+;  i  j  k 	funct 	angle 	force.c.
+   1  2  3  2     180.0   35.0
+   2  3  4  2     120.0   35.0
+   3  4  5  2     180.0   35.0
+
+   6  7   8  2    180.0   35.0
+   7  8   9  2    120.0   35.0
+   8  9  10  2    180.0   35.0
+
+  11  12  13  2   180.0   35.0
+  12  13  14  2   120.0   35.0
+  13  14  15  2   180.0   35.0
+
+
+[moleculetype]
+; molname      nrexcl
+  TRIV         1
+
+[atoms]
+; id 	type 	resnr 	residu 	atom 	cgnr 	charge
+   1 	SN4a 	 1 	TRIV 	GL1 	 1 	0 	
+   2 	C1 	     1 	TRIV 	C1A 	 2 	0 	
+   3 	C1 	     1 	TRIV 	C2A 	 3 	0 	
+   4 	C4h 	 1 	TRIV 	D3A 	 4 	0 	
+   5 	C1 	     1 	TRIV 	C4A 	 5 	0 	
+   6 	C1 	     1 	TRIV 	C5A 	 6 	0 	
+   7 	N4a 	 1 	TRIV 	GL2 	 7 	0 	
+   8 	C1 	     1 	TRIV 	C1B 	 8 	0 	
+   9 	C1 	     1 	TRIV 	C2B 	 9 	0 	
+  10 	C4h 	 1 	TRIV 	D3B 	10 	0 	
+  11 	C1 	     1 	TRIV 	C4B 	11 	0 	
+  12 	C1 	     1 	TRIV 	C5B 	12 	0 	
+  13 	SN4a 	 1 	TRIV 	GL3 	13 	0 	
+  14 	C1 	     1 	TRIV 	C1C 	14 	0 	
+  15 	C1 	     1 	TRIV 	C2C 	15 	0 	
+  16 	C4h 	 1 	TRIV 	D3C 	16 	0 	
+  17 	C1 	     1 	TRIV 	C4C 	17 	0 	
+  18 	C1 	     1 	TRIV 	C5C 	18 	0 	
+
+[bonds]
+;  i  j 	funct 	length 	force.c.
+   1  7 	1 	0.312 	2500 	
+   7 13 	1 	0.312 	2500 	
+
+   1  2 	1 	0.47 	5000	
+   2  3 	1 	0.47 	3800 	
+   3  4 	1 	0.47 	3800 	
+   4  5 	1 	0.47 	3800 	
+   5  6 	1 	0.47 	3800 	
+
+   7  8 	1 	0.47 	3600 	
+   8  9 	1 	0.47 	3800 	
+   9 10 	1 	0.47 	3800 	
+  10 11 	1 	0.47 	3800 	
+  11 12 	1 	0.47 	3800 	
+
+  13 14 	1 	0.47 	5000 	
+  14 15 	1 	0.47 	3800 	
+  15 16 	1 	0.47 	3800 	
+  16 17 	1 	0.47 	3800 	
+  17 18 	1 	0.47 	3800 	
+
+[angles]
+;  i  j  k 	funct 	angle 	force.c.
+   1  2  3    2   180.0   35.0
+   2  3  4    2   180.0   35.0
+   3  4  5    2   120.0   35.0
+   4  5  6    2   180.0   35.0
+
+   7  8    9  2   180.0   35.0
+   8  9   10  2   180.0   35.0
+   9  10  11  2   120.0   35.0
+  10  11  12  2   180.0   35.0
+
+  13  14  15  2   180.0   35.0
+  14  15  16  2   180.0   35.0
+  15  16  17  2   120.0   35.0
+  16  17  18  2   180.0   35.0
+
