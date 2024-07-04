@@ -153,7 +153,7 @@ rock.py:38:        u.write(self.dms, guess_atomic_number=True)
 rockchain.py:47:        u.write(self.dms, guess_atomic_number=True)
 rockresidue.py:45:        u.write(self.dms, guess_atomic_number=True)
 
-Jul 4 2024
+Jul 4 2024 (version 0.3.6)
 - SphereBuilder -> the radius of the positional restraints was not correct when sep is used (for LDMaker).
 - Now changing the atoms from GL1 to PO4 for positional restraints because TRIO has GL1.
 - When POPC tails are aggregated at a sphere surface, that suggests too low APL. (APL of 64A^2 seems quite low for spherical LD). 
