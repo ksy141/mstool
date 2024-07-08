@@ -145,7 +145,8 @@ setup(
     package_data={
         "mstool.lib": ["*.pyx"],
         "mstool.examples.Backmapping": ["*/cg*pdb", "*/protein_AA.pdb", "*/*.xml", "*/*.dat"],
-        "mstool.FF": ["*/*.xml", "*/*.itp", "*/*.pdb"],
+        "mstool.examples.BackmappingMartini3": ["*.gro", "mapping.dat", "README.md", "ff.xml"],
+        "mstool.FF": ["*/*.xml", "*/*.itp", "*/*.pdb", "*/*/*.pdb"],
         "mstool.mapping": ["*.dat"],
         "mstool.mapping.structures": ["*.pdb"],
     },
