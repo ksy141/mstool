@@ -6,7 +6,7 @@ from openmm.unit       import *
 from openmm.app        import *
 from openmm            import *
 from .protein_sel      import three2one
-from ..core.universe   import Universe
+from ..core.universe   import Universe, Merge
 from ..core.dms2openmm import DMS2openmm
 from ..core.readxml    import ReadXML
 
@@ -82,35 +82,137 @@ def runEM(structure, forcefield, out=None, nonbondedCutoff=1.1, nonbondedMethod=
         u.atoms[['x','y','z']] = pos
         u.write(out)
 
-def runEMNPT(structure, forcefield, out=None, nonbondedCutoff=1.1, nonbondedMethod='CutoffPeriodic',
-             nsteps=10000, dcdfreq=1000, csvfreq=1000, dt=0.002, P=1.0, T=310, semiisotropic=False,
-             addForces=[], barfreq=100, frictionCoeff=1.0):
-    '''
-    forcefield:
-    charmm36.xml
-    amber99sbildn.xml
-    '''
-    if structure.split('.')[-1] == 'dms':
-        pdb = DesmondDMSFile(structure)
-    if structure.split('.')[-1] == 'pdb':
-        pdb = PDBFile(structure)
+#def runEMNPT(structure, forcefield, out=None, nonbondedCutoff=1.1, nonbondedMethod='CutoffPeriodic',
+#             nsteps=10000, dcdfreq=1000, csvfreq=1000, dt=0.002, P=1.0, T=310, semiisotropic=False,
+#             addForces=[], barfreq=100, frictionCoeff=1.0):
+#    '''
+#    forcefield:
+#    charmm36.xml
+#    amber99sbildn.xml
+#    '''
+#    if structure.split('.')[-1] == 'dms':
+#        pdb = DesmondDMSFile(structure)
+#    if structure.split('.')[-1] == 'pdb':
+#        pdb = PDBFile(structure)
+#    
+#    if isinstance(forcefield, list):
+#        forcefield = ForceField(*forcefield)
+#    else:
+#        forcefield = ForceField(forcefield)
+#
+#    if nonbondedMethod == 'CutoffPeriodic':
+#        nonbondedMethod = CutoffPeriodic
+#    else:
+#        nonbondedMethod = CutoffNonPeriodic
+#
+#    system = forcefield.createSystem(pdb.topology, nonbondedMethod=nonbondedMethod)
+#
+#    ### ADD BAROSTAT
+#    if barfreq > 0:
+#        if semiisotropic:
+#            addForces.append(MembranePressure(P=P, T=T, barfreq=barfreq))
+#        else:
+#            addForces.append(Pressure(P=P, T=T, barfreq=barfreq))
+#
+#    ### ADD additional forces
+#    for addf in addForces:
+#        system.addForce(copy.deepcopy(addf))
+#    
+#    ### PREPARE SIMS
+#    integrator = LangevinMiddleIntegrator(T*kelvin, frictionCoeff/picosecond, dt*picoseconds)
+#    simulation = Simulation(pdb.topology, system, integrator)
+#    simulation.context.setPositions(pdb.positions)
+#    platform = simulation.context.getPlatform().getName()
+#    print('-------------------------------')
+#    print("Platform: ", platform)
+#    print('E0: %.3e kJ/mol' %getEnergy(simulation))
+#    simulation.minimizeEnergy()
+#    print('E1: %.3e kJ/mol' %getEnergy(simulation))
+#    print('-------------------------------')
+#
+#    ### RUN NPT
+#    prefix = '.'.join(out.split('.')[:-1])
+#    simulation.reporters.append(DCDReporter(      prefix + '.dcd', dcdfreq))
+#    simulation.reporters.append(StateDataReporter(prefix + '.csv', csvfreq, step=True, potentialEnergy=True, temperature=True))
+#    simulation.step(nsteps)
+#
+#    cell = getCell(simulation)
+#    dimensions = [cell[0][0], cell[1][1], cell[2][2], 90, 90, 90]
+#
+#    ### SAVE THE LAST FRAME
+#    pos = getPositions(simulation)
+#    
+#    if out:
+#        u = Universe(structure)
+#        u.atoms[['x','y','z']] = pos
+#        u.cell = cell
+#        u.dimensions = dimensions
+#        u.write(out)
+
+def runEMNPT(structure, ff=[], ff_add=[], out=None, nonbondedCutoff=1.2, nonbondedMethod='CutoffPeriodic',
+             nsteps=10000, dcdfreq=1000, csvfreq=1000, dt=0.002, P=1.0, T=310, tension=0.0, semiisotropic=False,
+             addForces=[], barfreq=100, frictionCoeff=1.0, EM=True, shift=False):
     
-    if isinstance(forcefield, list):
-        forcefield = ForceField(*forcefield)
+    ### Structure -> Modeller
+    if not isinstance(structure, list):
+        structure = [structure]
+    
+    modeller_combined = []
+    universe_combined = []
+    for struct in structure:
+        if struct.split('.')[-1] == 'dms':
+            pdb = DesmondDMSFile(struct)
+        if struct.split('.')[-1] == 'pdb':
+            pdb = PDBFile(struct)
+        modeller_combined.append([pdb.topology, pdb.positions.in_units_of(nanometer)])
+        realpbc = pdb.topology.getPeriodicBoxVectors().in_units_of(nanometer)
+        universe_combined.append(Universe(struct).atoms)
+    u = Merge(*universe_combined)
+    
+    # pdb.positions: Quantity([Vec3(0,0,0), Vec3(1,1,1)], unit=nanometer)
+    # shiftpbc:      Quantity(Vec3(10, 10, 10), unit=nanometer)
+
+    if shift:
+        shiftpbc = realpbc[0]/2 + realpbc[1]/2 + realpbc[2]/2
     else:
-        forcefield = ForceField(forcefield)
+        shiftpbc = Quantity(value=Vec3(x=0, y=0, z=0), unit=nanometer)
+
+    modeller = Modeller(modeller_combined[0][0], 
+                        Quantity([pos.value_in_unit(nanometer) + shiftpbc.value_in_unit(nanometer) \
+                                  for pos in modeller_combined[0][1]], unit=nanometer))
+
+    for i in range(1, len(modeller_combined)):
+        modeller.add(modeller_combined[i][0],
+                     Quantity([pos.value_in_unit(nanometer) + shiftpbc.value_in_unit(nanometer) \
+                               for pos in modeller_combined[i][1]], unit=nanometer))
+
+    modeller.topology.setPeriodicBoxVectors(realpbc)
+
+    unique_bonds = set()
+    for bond in modeller.topology.bonds():
+        i0, i1 = bond[0].index, bond[1].index
+        if i0 > i1:
+            i0, i1 = i1, i0
+        unique_bonds.add((i0, i1))
+    u.bonds = [list(bond) for bond in unique_bonds]
+
+    ### FF -> CreateSystem
+    if not isinstance(ff_add, list):
+        ff_add = [ff_add]
+    
+    xml = ReadXML(ff=ff, ff_add=ff_add)
+    forcefield = ForceField(*xml.ff)
 
     if nonbondedMethod == 'CutoffPeriodic':
         nonbondedMethod = CutoffPeriodic
     else:
         nonbondedMethod = CutoffNonPeriodic
-
-    system = forcefield.createSystem(pdb.topology, nonbondedMethod=nonbondedMethod)
+    system = forcefield.createSystem(modeller.topology, nonbondedMethod=nonbondedMethod)
 
     ### ADD BAROSTAT
     if barfreq > 0:
         if semiisotropic:
-            addForces.append(MembranePressure(P=P, T=T, barfreq=barfreq))
+            addForces.append(MembranePressure(P=P, T=T, r=tension, barfreq=barfreq))
         else:
             addForces.append(Pressure(P=P, T=T, barfreq=barfreq))
 
@@ -120,13 +222,13 @@ def runEMNPT(structure, forcefield, out=None, nonbondedCutoff=1.1, nonbondedMeth
     
     ### PREPARE SIMS
     integrator = LangevinMiddleIntegrator(T*kelvin, frictionCoeff/picosecond, dt*picoseconds)
-    simulation = Simulation(pdb.topology, system, integrator)
-    simulation.context.setPositions(pdb.positions)
+    simulation = Simulation(modeller.topology, system, integrator)
+    simulation.context.setPositions(modeller.positions)
     platform = simulation.context.getPlatform().getName()
     print('-------------------------------')
     print("Platform: ", platform)
     print('E0: %.3e kJ/mol' %getEnergy(simulation))
-    simulation.minimizeEnergy()
+    if EM: simulation.minimizeEnergy()
     print('E1: %.3e kJ/mol' %getEnergy(simulation))
     print('-------------------------------')
 
@@ -143,7 +245,6 @@ def runEMNPT(structure, forcefield, out=None, nonbondedCutoff=1.1, nonbondedMeth
     pos = getPositions(simulation)
     
     if out:
-        u = Universe(structure)
         u.atoms[['x','y','z']] = pos
         u.cell = cell
         u.dimensions = dimensions

@@ -300,6 +300,9 @@ class REM:
             ff_add.remove(rockprefix + '.xml')
 
         else:
+            # added on Jul 16, 2024
+            u.bonds = self.bonds
+
             #if sort: u.sort()
             #if out.split('.')[-1] == 'dms':
                 #u.update_anum_mass()

@@ -32,7 +32,8 @@ class LoopModeler:
         A=100, C=50, soft=True, mutate=True, t=15.0, extend_termini={},
         mapping=[], mapping_add=[], ff=[], ff_add=[],
         fc1 = 50, fc2 = 2000, Kchiral=300.0, Kpeptide=300.0, 
-        nsteps=0, dt=0.002, dcdfreq=1000, csvfreq=1000, helix=False):
+        nsteps=0, dt=0.002, dcdfreq=1000, csvfreq=1000, helix=False,
+        addnbtype=['ZCARBON', 0.34, 1.51]):
 
         self.protein     = protein
         self.fasta       = fasta
@@ -46,7 +47,7 @@ class LoopModeler:
         self.mapping_add = mapping_add
         self.fc1         = fc1
         self.helix       = helix
-
+        self.addnbtype   = addnbtype
 
         ### step1: workdir
         self.create_workdir(protein, 
@@ -72,7 +73,8 @@ class LoopModeler:
             out         = workdir + '/step3_cg.pdb',
             mapping     = mapping,
             mapping_add = mapping_add,
-            BB2CA       = True)
+            BB2CA       = True,
+            add_notavailableAAAtoms = True)
 
 
         ### step4: Fill martini loops
@@ -243,7 +245,7 @@ class LoopModeler:
 
 
     def makemartini(self, structure, out):
-        martini = ReadMartini()
+        martini = ReadMartini(addnbtype=self.addnbtype)
         # dms default unit: kcal/mol/A^2
         # 50 kcal/mol/A^2 -> 0.5 * 50 * 4.184 * 100 kJ/mol/nm^2
         MartinizeDMS(dms_in  = structure,
@@ -252,7 +254,8 @@ class LoopModeler:
                      fcx     = self.fc1,
                      fcy     = self.fc1,
                      fcz     = self.fc1,
-                     helix   = self.helix)
+                     helix   = self.helix,
+                     addnbtype = self.addnbtype[0])
         dumpsql(out)
 
 

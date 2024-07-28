@@ -25,14 +25,15 @@ class SphereBuilder:
                  dt_rem=0.025, cg_nsteps_rem=100000,
                  dt=0.020, cg_nsteps=100000,
                  frictionCoeff=10.0, barfreq=10, nonbondedCutoff=1.1, 
+                 dcdfreq=1000, csvfreq=1000, P=1.0, T=310,
                  improper_prefactor=0.99, use_existing_folder=False,
-                 hydrophobic_thickness=30, ionconc=0.15, T=310,
+                hydrophobic_thickness=30, ionconc=0.15,
                  use_AA_structure=True,
                  alpha=0.0, beta=0.0, gamma=0.0,
                  remove_solvent=False,
                  solvate=True,
                  tapering='shift',
-                 changename={}):
+                 changename={}, addnbtype=['ZCARBON', 0.34, 1.51]):
 
         '''Sphere builder.
         Parameters
@@ -138,12 +139,10 @@ class SphereBuilder:
        
         ### Read Martini
         #martiniff = ReadMartini(ff=martini, ff_add=martini_add, define={'FLEXIBLE': 'True'})
-        martiniff = ReadMartini(ff=martini, ff_add=martini_add, constraint_to_bond=True, Kc2b=10000.0)
+        martiniff = ReadMartini(ff=martini, ff_add=martini_add, constraint_to_bond=True, Kc2b=10000.0, addnbtype=addnbtype)
 
         ### Mapping & Translate
-        #if protein: Map(workdir + '/protein.dms', workdir + '/protein_CG.dms', add_notavailableAAAtoms=True)
-        if protein: Map(workdir + '/protein.dms', workdir + '/protein_CG.dms', add_notavailableAAAtoms=False,
-                        mapping=mapping, mapping_add=mapping_add)
+        if protein: Map(workdir + '/protein.dms', workdir + '/protein_CG.dms', add_notavailableAAAtoms=True, mapping=mapping, mapping_add=mapping_add)
 
         ### Construct a bilayer
         instance = Sphere( protein=workdir + '/protein_CG.dms' if protein else None, 
@@ -167,7 +166,21 @@ class SphereBuilder:
             bA2  = usol.atoms.x ** 2 + usol.atoms.y ** 2 + usol.atoms.z ** 2 < (radius + hydrophobic_thickness/2 + sep/2) ** 2
             bA3  = usol.atoms.x ** 2 + usol.atoms.y ** 2 + usol.atoms.z ** 2 > (radius - sep/2) ** 2
             usol = Universe(data=usol.atoms[~(bA1 & bA2 & bA3)])
-            usol = ionize(usol, conc=ionconc, posionchain='4', negionchain='5')
+
+            import time
+            t1 = time.time()
+            qtot = 0
+            for resn, value in usol.atoms.groupby('resn'):
+                resname = value.resname.values[0]
+                if resname == 'W': continue
+                if resname in martiniff.martini['molecules']:
+                    qtot += np.sum(martiniff.martini['molecules'][value.resname.values[0]]['atoms']['q'])
+                else:
+                    qtot += 0
+            t2 = time.time()
+            print("calculating qtot: ", t2 - t1)
+
+            usol = ionize(usol, conc=ionconc, posionchain='4', negionchain='5', qtot=qtot)
             usol.dimensions = dim
             usol.cell       = cell
         
@@ -185,7 +198,7 @@ class SphereBuilder:
         usol.write(workdir + '/step1.sol.pdb')
 
         ### Martinize
-        MartinizeDMS(workdir + '/step1.sol.dms', out = workdir + '/step1.martini.dms', martini=martiniff)
+        MartinizeDMS(workdir + '/step1.sol.dms', out = workdir + '/step1.martini.dms', martini=martiniff, addnbtype=addnbtype[0])
         dumpsql(workdir + '/step1.martini.dms')
 
         ### Create system & add posz to GL1 and GL2
@@ -237,12 +250,12 @@ class SphereBuilder:
         dms.createSystem(REM=True,  tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
         dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=1.5, radius=radius + hydrophobic_thickness/2 + sep/2, rfb=0.1, R0=shift, fc=fc, chain='0'))
         dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=1.5, radius=radius - hydrophobic_thickness/2 - sep/2, rfb=0.1, R0=shift, fc=fc, chain='1'))
-        dms.runEMNPT(dt=dt_rem, nsteps=int(cg_nsteps_rem), frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=False, out=workdir + '/step2.rem.dms')
+        dms.runEMNPT(dt=dt_rem, nsteps=int(cg_nsteps_rem), frictionCoeff=frictionCoeff, barfreq=barfreq, dcdfreq=dcdfreq, csvfreq=csvfreq, P=P, T=T, semiisotropic=False, out=workdir + '/step2.rem.dms')
 
         dms.createSystem(REM=False, tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
         dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=1.5, radius=radius + hydrophobic_thickness/2 + sep/2, rfb=0.1, R0=shift, fc=fc, chain='0'))
         dms.system.addForce(addSpherePosre(martiniU, bfactor_posre=1.5, radius=radius - hydrophobic_thickness/2 - sep/2, rfb=0.1, R0=shift, fc=fc,chain='1'))
-        dms.runEMNPT(dt=dt, nsteps=int(cg_nsteps), frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=False, out=workdir + '/step2.dms')
+        dms.runEMNPT(dt=dt, nsteps=int(cg_nsteps), frictionCoeff=frictionCoeff, barfreq=barfreq, dcdfreq=dcdfreq, csvfreq=csvfreq, P=P, T=T, semiisotropic=False, out=workdir + '/step2.dms')
 
 
         #dms.runEMNPT(dt=0.002, nsteps=cg_nsteps_2fs, frictionCoeff=frictionCoeff, barfreq=barfreq, T=T, semiisotropic=False)

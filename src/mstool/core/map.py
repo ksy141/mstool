@@ -90,6 +90,9 @@ class Map(Universe):
         saved = []
 
         for resname in self.resnames:
+            if resname not in self.mapping.RESI.keys():
+                continue
+
             residues = self.atoms[ self.atoms.resname == resname ]
             
             for index, atom in residues.iterrows():

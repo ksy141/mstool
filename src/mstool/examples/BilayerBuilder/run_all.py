@@ -33,12 +33,6 @@ mstool.BilayerBuilder(workdir='Example2E_3SN6',
                       lower={'DOPC':100, 'DOPS': 10, 'DOPE': 10, 'CHL1': 10})
 
 ### Example 2F
-# note that the input protein already contains cis/trans bonds
-# therefore, if you see the below two in the final structure, note theses are NOT flipped in mstool
-# peptide bond cis/trans: (chain A and name C O and resid 81 and resname LYS) or 
-# (chain A and name CD N and resid 82 and resname PRO)
-# peptide bond cis/trans: (chain A and name C O and resid 333 and resname ARG) or 
-# (chain A and name H N and resid 334 and resname ARG)
 mstool.BilayerBuilder(workdir='Example2F_4XNV',
                       protein=mstool.GPCR2,
                       upper={'DOPC':100, 'DOPS': 10, 'DOPE': 10, 'CHL1': 10},

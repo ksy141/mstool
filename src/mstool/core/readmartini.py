@@ -91,7 +91,8 @@ class ReadMartini:
     def __init__(self,
         ff = [], ff_add = [], 
         define = {}, Kc2b = 10000.0,
-        constraint_to_bond=False):
+        constraint_to_bond=False,
+        addnbtype=[]):
 
         self.Kc2b = Kc2b
         self.ctb  = constraint_to_bond
@@ -115,6 +116,7 @@ class ReadMartini:
                 self.ifiles.append(ifile)
 
         self.define = define
+        self.addnbtype = addnbtype
         self.collect()
 
 
@@ -233,11 +235,14 @@ class ReadMartini:
 
                     if read == 'nonbond_params':
                         if 'nb' not in d.keys(): d['nb'] = {}
+                        if 'nbtypes' not in d.keys(): d['nbtypes'] = set()
                         sl = line.split()
                         t1 = sl[0]; t2 = sl[1]
                         V  = float(sl[3])
                         W  = float(sl[4])
                         d['nb'][(t1,t2)] = [V, W]
+                        d['nbtypes'].add(t1)
+                        d['nbtypes'].add(t2)
 
                     if read == 'moleculetype':
                         if 'molecules' not in d.keys(): d['molecules'] = {}
@@ -409,8 +414,25 @@ class ReadMartini:
                             d['molecules'][resname]['position_restraints'].append([name1, f, g, r, k])
                             d['molecules'][resname]['idx_position_restraints'].append([id1, f, g, r, k])
 
+        
+        if self.addnbtype:
+            assert len(self.addnbtype) == 3, 'each nbtype should be [nbtype, V, W]'
+            t1 = self.addnbtype[0]; sig = self.addnbtype[1]; eps = self.addnbtype[2]
+            
+            if d['energy'] == 'C12/r^12 - C6/r^6':
+                V = 4 * eps * sig**6
+                W = 4 * eps * sig**12
+
+            elif d['energy'] == '4*eps*((sigma/r)^12 - (sigma/r)^6)':
+                V = sig
+                W = eps
+            
+            else:
+                raise ValueError('energy term should be either C12/r^12 - C6/r^6 or 4*eps*((sigma/r)^12 - (sigma/r)^6)')
+
+            d['nbtypes'].add(t1)
+            for t2 in d['nbtypes']:
+                d['nb'][(t1,t2)] = [V, W]
 
         self.martini = d
-
-
 

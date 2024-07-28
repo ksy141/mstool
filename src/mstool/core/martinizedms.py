@@ -20,7 +20,8 @@ class MartinizeDMS:
     '''
 
     def __init__(self, dms_in, out, martini, epsilon_r=15.0, 
-        fcx=10.0, fcy=10.0, fcz=10.0, bfactor_posre=0.5, helix=False):
+        fcx=10.0, fcy=10.0, fcz=10.0, bfactor_posre=0.5, helix=False,
+        addnbtype='ZCARBON'):
 
         self.martini       = martini
         self.epsilon_r     = epsilon_r
@@ -29,6 +30,7 @@ class MartinizeDMS:
         self.fcz           = fcz
         self.bfactor_posre = bfactor_posre
         self.helix         = helix
+        self.addnbtype     = addnbtype
 
         if not out:
             sp  = dms_in.split('.')
@@ -85,14 +87,20 @@ class MartinizeDMS:
         for index, atom in universe.atoms.iterrows():
             name    = atom['name']
             resname = atom.resname
+            
+            if resname in self.martini.martini['molecules'].keys():
+                i = self.martini.martini['molecules'][resname]['atoms']['name'].index(name)
+                t = self.martini.martini['molecules'][resname]['atoms']['type'][i]
+                q = self.martini.martini['molecules'][resname]['atoms']['q'][i]
+                #m = self.martini.martini['atomtypes'][t]['m']
+                m = self.martini.martini['molecules'][resname]['atoms']['m'][i]
 
-            i = self.martini.martini['molecules'][resname]['atoms']['name'].index(name)
-            t = self.martini.martini['molecules'][resname]['atoms']['type'][i]
-            q = self.martini.martini['molecules'][resname]['atoms']['q'][i]
-            #m = self.martini.martini['atomtypes'][t]['m']
-            m = self.martini.martini['molecules'][resname]['atoms']['m'][i]
+            else:
+                t = self.addnbtype
+                q = 0.0
+                m = 72.0
+
             nbtypes.append(t)
-
             universe.atoms.loc[index, 'charge'] = q / (self.epsilon_r ** 0.5)
             universe.atoms.loc[index, 'mass']   = m
             universe.atoms.loc[index, 'type']   = t
@@ -118,6 +126,7 @@ class MartinizeDMS:
 
     def updateBonds(self):
         for resname in self.resnames:
+            if resname not in self.martini.martini['molecules'].keys(): continue
             bonds = self.martini.martini['molecules'][resname]['bonds']
             for bond in bonds:
                 atom1 = bond[0]
@@ -166,7 +175,16 @@ class MartinizeDMS:
 
 
     def updateExclusions(self):
+        bA  = self.u.atoms.type == self.addnbtype
+        df1 = self.u.atoms[bA]
+        df2 = self.u.atoms[bA]
+        for i1 in df1.index:
+            for i2 in df2.index:
+                if i1 >= i2: continue
+                self.cursor.execute(sql_insert_exclusion.format(i1, i2))
+
         for resname in self.resnames:
+            if resname not in self.martini.martini['molecules'].keys(): continue
             excls = self.martini.martini['molecules'][resname]['exclusions']
             for excl in excls:
                 atom1 = excl[0]
@@ -190,6 +208,7 @@ class MartinizeDMS:
 
     def updateAngles(self):
         for resname in self.resnames:
+            if resname not in self.martini.martini['molecules'].keys(): continue
             angles = self.martini.martini['molecules'][resname]['angles']
             for angle in angles:
                 atom1 = angle[0]
@@ -237,6 +256,7 @@ class MartinizeDMS:
         lc3_index  = 0
         out3_index = 0
         for resname in self.resnames:
+            if resname not in self.martini.martini['molecules'].keys(): continue
             vsites = self.martini.martini['molecules'][resname]['virtual_sites3']
             for vsite in vsites:
                 atom1 = vsite[0]
@@ -291,6 +311,7 @@ class MartinizeDMS:
         self.proper_param   = -1
         self.improper_param = -1
         for resname in self.resnames:
+            if resname not in self.martini.martini['molecules'].keys(): continue
             dihedrals = self.martini.martini['molecules'][resname]['dihedrals']
             for dihedral in dihedrals:
                 atom1 = dihedral[0]

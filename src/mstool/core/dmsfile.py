@@ -230,7 +230,10 @@ class DMSFile(object):
             natoms = self._natoms[fcounter]
             for iat_in_file in range(0,natoms):
                 vec = positions[iat]
-                (x, y , z) = vec.value_in_unit(angstrom)
+                try:
+                    (x, y , z) = vec.value_in_unit(angstrom)
+                except:
+                    (x, y , z) = vec
                 conn.execute(q, (x,y,z,iat_in_file))
                 iat += 1
             conn.commit()
@@ -1608,7 +1611,7 @@ class DMSFile(object):
 
     def runEMNPT(self, out=None, emout=None,
         nonbondedCutoff=1.1, 
-        nsteps=10000, dcdfreq=1000, csvfreq=1000, dt=0.02, P=1.0, T=310, 
+        nsteps=10000, dcdfreq=1000, csvfreq=1000, dt=0.02, P=1.0, T=310, tension=0.0,
         semiisotropic=False, barfreq=100, addForces=[], frictionCoeff=5.0, EM=True):
         '''Perform EM, followed by NPT. I used this mostly to run Martini simulations.
         Therefore, the default parameters (dt=0.02) are tuned for martini simulations.
@@ -1637,7 +1640,7 @@ class DMSFile(object):
         ### ADD BAROSTAT
         if barfreq > 0:
             if semiisotropic:
-                self.system.addForce(MembranePressure(P=P, T=T, barfreq=barfreq))
+                self.system.addForce(MembranePressure(P=P, T=T, r=tension, barfreq=barfreq))
             else:
                 self.system.addForce(Pressure(P=P, T=T, barfreq=barfreq))
     

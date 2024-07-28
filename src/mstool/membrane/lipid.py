@@ -61,6 +61,7 @@ class Lipid:
     def construct_molecule(self, resname):
         names = list(self.MOLS[resname]['atoms']['name'])
         positions = []
+        charges = self.MOLS[resname]['atoms']['q']
 
         chain1 = list(set(names) & set(self.chain1))
         chain2 = list(set(names) & set(self.chain2))
