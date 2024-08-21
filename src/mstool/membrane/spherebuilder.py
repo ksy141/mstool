@@ -116,7 +116,7 @@ class SphereBuilder:
 
         ### save args
         args = locals()
-        with open(workdir + '/args.txt', 'w') as W:
+        with open(workdir + '/args_builder.txt', 'w') as W:
             for key, value in args.items():
                 if key == 'self': continue
                 W.write(f'{key:30} = {value}\n')
@@ -167,8 +167,6 @@ class SphereBuilder:
             bA3  = usol.atoms.x ** 2 + usol.atoms.y ** 2 + usol.atoms.z ** 2 > (radius - sep/2) ** 2
             usol = Universe(data=usol.atoms[~(bA1 & bA2 & bA3)])
 
-            import time
-            t1 = time.time()
             qtot = 0
             for resn, value in usol.atoms.groupby('resn'):
                 resname = value.resname.values[0]
@@ -177,8 +175,6 @@ class SphereBuilder:
                     qtot += np.sum(martiniff.martini['molecules'][value.resname.values[0]]['atoms']['q'])
                 else:
                     qtot += 0
-            t2 = time.time()
-            print("calculating qtot: ", t2 - t1)
 
             usol = ionize(usol, conc=ionconc, posionchain='4', negionchain='5', qtot=qtot)
             usol.dimensions = dim

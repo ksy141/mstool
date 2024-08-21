@@ -34,7 +34,7 @@ class Backmap:
 
         ### save args
         args = locals()
-        with open(workdir + '/args.txt', 'w') as W:
+        with open(workdir + '/args_backmap.txt', 'w') as W:
             for key, value in args.items():
                 if key == 'self': continue
                 W.write(f'{key:30} = {value}\n')

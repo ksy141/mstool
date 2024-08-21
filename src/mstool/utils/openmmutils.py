@@ -17,7 +17,7 @@ def getCell(simulation):
     return simulation.context.getState().getPeriodicBoxVectors(asNumpy=True)._value * 10
 
 def getPositions(simulation):
-    return simulation.context.getState(getPositions=True).getPositions(asNumpy=True)._value * 10
+    return simulation.context.getState(getPositions=True, enforcePeriodicBox=True).getPositions(asNumpy=True)._value * 10
 
 def Pressure(P=1.0, T=310.0, barfreq=100):
     return MonteCarloBarostat(P*bar, T*kelvin)

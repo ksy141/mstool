@@ -126,7 +126,7 @@ class BilayerBuilder:
 
         ### save args
         args = locals()
-        with open(workdir + '/args.txt', 'w') as W:
+        with open(workdir + '/args_builder.txt', 'w') as W:
             for key, value in args.items():
                 if key == 'self': continue
                 W.write(f'{key:30} = {value}\n')
@@ -140,6 +140,11 @@ class BilayerBuilder:
                 upper[key] = int(ntotal * value / nupper0)
             for key, value in lower.items():
                 lower[key] = int(ntotal * value / nlower0)
+            print(upper)
+            print(lower)
+
+            assert sum(upper.values()) > 0, 'the number of upper lipids = 0; increase area'
+            assert sum(lower.values()) > 0, 'the number of upper lipids = 0; increase area'
 
         ### protein
         if protein:
@@ -236,8 +241,6 @@ class BilayerBuilder:
             bA3  = usol.atoms.z    > -hydrophobic_thickness / 2 - sep/2 - 10
             usol = Universe(data=usol.atoms[~(bA1 & bA2 & bA3)])
         
-            import time
-            t1 = time.time()
             qtot = 0
             for resn, value in usol.atoms.groupby('resn'):
                 resname = value.resname.values[0]
@@ -246,14 +249,11 @@ class BilayerBuilder:
                     qtot += np.sum(martiniff.martini['molecules'][value.resname.values[0]]['atoms']['q'])
                 else:
                     qtot += 0
-            t2 = time.time()
-            print("calculating qtot: ", t2 - t1)
 
             usol = ionize(usol, conc=ionconc, posionchain='4', negionchain='5', qtot=qtot)
             usol.dimensions = dim
             usol.cell       = cell
  
-
             #usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc)
             #if protein:
             #    usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc)
