@@ -1,4 +1,6 @@
 ### HOW TO RELEASE
+# pip install build
+# pip install twine
 # update src/mstool/version.py
 python -m build
 twine upload dist/*
