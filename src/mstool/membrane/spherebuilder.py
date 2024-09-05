@@ -1,5 +1,6 @@
 import os
 import shutil
+import numpy as np
 from  .sphere                import Sphere
 from  .sphereprotein         import SphereProtein
 from  ..core.map             import Map

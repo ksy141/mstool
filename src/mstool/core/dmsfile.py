@@ -375,7 +375,10 @@ class DMSFile(object):
         # Build the box dimensions
         boxSize = self.topology.getUnitCellDimensions()
         if boxSize is not None:
-            sys.setDefaultPeriodicBoxVectors((boxSize[0], 0, 0), (0, boxSize[1], 0), (0, 0, boxSize[2]))
+            if boxSize[0] * boxSize[1] * boxSize[2] == 0:
+                sys.setDefaultPeriodicBoxVectors((1.0, 0, 0), (0, 1.0, 0), (0, 0, 1.0))
+            else:
+                sys.setDefaultPeriodicBoxVectors((boxSize[0], 0, 0), (0, boxSize[1], 0), (0, 0, boxSize[2]))
         elif nonbondedMethod in ('CutoffPeriodic', 'Ewald', 'PME', 'LJPME'):
             raise ValueError('Illegal nonbonded method for a non-periodic system')
 
