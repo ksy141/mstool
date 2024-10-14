@@ -35,7 +35,27 @@ def align_a_to_b(a, b):
     R  = np.identity(3) + vx + np.matmul(vx, vx) * (1 - c) / s**2
     return R
 
-def Orient(structure, out=None, select='@CA,BB', translate=[0,0,0], axis='z', rotation=True):
+def rotate_around_axis(points, axis, angle_degrees):
+    """Rodrigues' rotation
+    Rotate points by angle_degrees around an arbitrary axis defined by 'axis'"""
+    angle_radians = np.radians(angle_degrees)
+    
+    # Normalize the axis vector
+    axis = axis / np.linalg.norm(axis)
+    
+    # Rodrigues' rotation formula components
+    K = np.array([
+        [0, -axis[2], axis[1]],
+        [axis[2], 0, -axis[0]],
+        [-axis[1], axis[0], 0]
+    ])
+    I = np.eye(3)  # Identity matrix
+    R = I + np.sin(angle_radians) * K + (1 - np.cos(angle_radians)) * np.dot(K, K)
+    
+    # Apply the rotation matrix to each point
+    return points.dot(R.T)
+
+def Orient(structure, out=None, select='@CA,BB', angle=0.0, translate=[0,0,0], axis='z', rotation=True):
     if isinstance(structure, Universe):
         u  = structure
     else:
@@ -53,7 +73,8 @@ def Orient(structure, out=None, select='@CA,BB', translate=[0,0,0], axis='z', ro
     else:
         assert len(axis) == 3, 'provide a vector'
         axis = axis
-    
+    axis /= np.linalg.norm(axis)
+   
     if rotation:
         w, v = calInertialTensor(subpos - subpos.mean(axis=0))
         R = align_a_to_b(v[:,0], axis)
@@ -61,6 +82,8 @@ def Orient(structure, out=None, select='@CA,BB', translate=[0,0,0], axis='z', ro
         u.atoms[['x','y','z']] = newpos
     
     u.atoms[['x','y','z']] -= u.select(select)[['x','y','z']].mean(axis=0)
+    
+    u.atoms[['x','y','z']] = rotate_around_axis(u.atoms[['x','y','z']].to_numpy(), axis, angle)
     u.atoms[['x','y','z']] += translate
 
     if out: u.write(out)

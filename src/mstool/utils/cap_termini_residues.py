@@ -220,7 +220,8 @@ def capTerminiResidues(structure, out=None, cap_termini={}):
         return u
 
     proteinu.atoms.drop(removeProHT1, inplace=True)
-    protein = pd.concat([proteinu.atoms, pd.DataFrame(data)], ignore_index=True)
+    #protein = pd.concat([proteinu.atoms, pd.DataFrame(data)], ignore_index=True)
+    protein = pd.concat([proteinu.atoms, Universe(data).atoms], ignore_index=True)
     protein.sort_values(by=['chain', 'resid', 'name'], inplace=True)
     u.atoms = pd.concat([protein, otheru.atoms], ignore_index=True)
 
