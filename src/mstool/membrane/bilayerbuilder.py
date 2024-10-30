@@ -36,7 +36,8 @@ class BilayerBuilder:
                  solvate=True,
                  tapering='shift',
                  protein_dict_pbc_shrink_factor=0.9,
-                 changename={}, addnbtype=['ZCARBON', 0.34, 1.51]):
+                 changename={}, addnbtype=['ZCARBON', 0.34, 1.51],
+                 CG_only=False):
 
         '''Bilayer builder.
         Parameters
@@ -360,6 +361,9 @@ class BilayerBuilder:
         #u.atoms[['x','y','z']] -= u.dimensions[0:3] / 2
         #u.write(workdir + '/step3.dms')
         #u.write(workdir + '/step3.pdb')
+
+        if CG_only:
+            return
 
         if protein:
             #proteinshifted = Universe(workdir + '/protein.pdb')

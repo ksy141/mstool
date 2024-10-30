@@ -197,9 +197,9 @@ class TruncateProtein:
                 assert start['chain'] == end['chain'],\
                     'chain is different %s %s' %(start['chain'], end['chain'])
 
-                if chain not in self.truncate_data.keys():
-                    self.truncate_data[chain] = []
-                self.truncate_data[chain].append([start['resid'], two, end['resid']])
+                if chain[0] not in self.truncate_data.keys():
+                    self.truncate_data[chain[0]] = []
+                self.truncate_data[chain[0]].append([start['resid'][0], two, end['resid'][0]])
 
         for key in self.truncate_data.keys():
             self.truncate_data[key].sort()
