@@ -397,9 +397,9 @@ class Universe:
             # cell
             b = np.array(self.cell).flatten() * 0.1
             if b[1] == 0 and b[2] == 0 and b[5] == 0:
-                W.write(f"{b[0]:10.5f} {b[4]:9.5f} {b[8]:9.5f}")
+                W.write(f"{b[0]:10.5f} {b[4]:9.5f} {b[8]:9.5f}\n")
             else:
-                W.write(f"{b[0]:10.5f} {b[4]:9.5f} {b[8]:9.5f} {b[1]:9.5f} {b[2]:9.5f} {b[3]:9.5f} {b[5]:9.5f} {b[6]:9.5f} {b[7]:9.5f}")
+                W.write(f"{b[0]:10.5f} {b[4]:9.5f} {b[8]:9.5f} {b[1]:9.5f} {b[2]:9.5f} {b[3]:9.5f} {b[5]:9.5f} {b[6]:9.5f} {b[7]:9.5f}\n")
  
 
     def readDMS(self, ifile):
