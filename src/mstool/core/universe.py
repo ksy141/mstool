@@ -485,12 +485,55 @@ class Universe:
 
                 atomA = self.atoms[bA & bA0].index
                 atomB = self.atoms[bA & bA1].index
-
-                assert len(atomA) == len(atomB), f":{resname}@{bond[0]},{bond[1]}={len(atomA)},{len(atomB)}"
+                
+                #For protein (e.g., # of HN + 1 = # of N because of NH3+)
+                #assert len(atomA) == len(atomB), f":{resname}@{bond[0]},{bond[1]}={len(atomA)},{len(atomB)}"
 
                 for a, b in zip(atomA, atomB):
                     self.bonds.append([a, b])
-    
+        
+        Natoms = self.select('protein & @N')
+        for idx in range(len(Natoms)):
+            atom = Natoms.iloc[idx]
+            a    = atom.name
+
+            bA0  = atom.resname == self.atoms.resname
+            bA1  = atom.resid-1 == self.atoms.resid
+            bA2  = atom.chain   == self.atoms.chain
+            bA3  = 'C'          == self.atoms['name']
+
+            batoms = self.atoms[bA0 & bA1 & bA2 & bA3]
+            for idx2 in range(len(batoms)):
+                self.bonds.append([a, batoms.iloc[idx2].name])
+
+        HTatoms = self.select('protein & @HT1,HT2,HT3')
+        for idx in range(len(HTatoms)):
+            atom = HTatoms.iloc[idx]
+            a    = atom.name
+
+            bA0  = atom.resname == self.atoms.resname
+            bA1  = atom.resid   == self.atoms.resid
+            bA2  = atom.chain   == self.atoms.chain
+            bA3  = 'N'          == self.atoms['name']
+
+            batoms = self.atoms[bA0 & bA1 & bA2 & bA3]
+            for idx2 in range(len(batoms)):
+                self.bonds.append([a, batoms.iloc[idx2].name])
+
+        Oatoms = self.select('protein & @OT1,OT2')
+        for idx in range(len(HTatoms)):
+            atom = HTatoms.iloc[idx]
+            a    = atom.name
+
+            bA0  = atom.resname == self.atoms.resname
+            bA1  = atom.resid   == self.atoms.resid
+            bA2  = atom.chain   == self.atoms.chain
+            bA3  = 'C'          == self.atoms['name']
+
+            batoms = self.atoms[bA0 & bA1 & bA2 & bA3]
+            for idx2 in range(len(batoms)):
+                self.bonds.append([a, batoms.iloc[idx2].name])
+
     def addBondFromDistance(self):
         # two atoms are bonded if 0.1 < d < 0.55 * (R1 + R2)
         if self.dimensions[0] * self.dimensions[1] * self.dimensions[2] < 1.5:

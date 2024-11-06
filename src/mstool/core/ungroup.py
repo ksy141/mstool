@@ -15,7 +15,7 @@ class Ungroup(Universe):
     def __init__(self, structure, out=None, refstructure=None, 
         ff=[], ff_add=[],
         mapping=[], mapping_add=[],
-        backbone=True,
+        backbone=True, onlyCA=False,
         sort=True,
         fibor=0.5, version='v1',
         water_resname='W', water_chain=None, water_number=4, water_fibor=2.0, water_chain_dms=False,
@@ -32,6 +32,7 @@ class Ungroup(Universe):
         self.prot_resnames = list(three2one.keys())
         self.bond          = []
         self.backbone      = backbone
+        self.onlyCA        = onlyCA
         self.fibor         = fibor
         self.version       = version
         self.water_resname = water_resname
@@ -358,6 +359,9 @@ class Ungroup(Universe):
 
 
     def construct(self):
+        onlyCAexclude    = ['N','HN','CA','HA','C','O','HA1','HA2']
+        onlyCAexcludeALA = ['N','HN','CA','HA','C','O','HA1','HA2','CB','HB1','HB2','HB3']
+
         for resname in self.resnames:
             # if resname not in self.xml.RESI.keys():
             #     if resname != 'HIS':
@@ -370,11 +374,17 @@ class Ungroup(Universe):
 
             #if resname in self.exclude_residues:
             #    continue
-
+            
             for CGAtom, AAAtoms in self.mapping.RESI[resname]['CGAtoms'].items():
                 # if you already construct backbones accroding to cg2aa, skip backbone
-                if self.backbone and CGAtom == 'BB': continue
-                if CGAtom == 'BB': CGAtom = 'CA'
+                if (self.backbone) and (not self.onlyCA) and (CGAtom == 'BB'):
+                    continue
+                if (self.backbone) and (self.onlyCA) and (CGAtom == 'BB') and (resname != 'ALA'):
+                    AAAtoms = [AAAtom for AAAtom in AAAtoms if AAAtom not in onlyCAexclude]
+                if (self.backbone) and (self.onlyCA) and (CGAtom == 'BB') and (resname == 'ALA'):
+                    AAAtoms = [AAAtom for AAAtom in AAAtoms if AAAtom not in onlyCAexcludeALA]
+                if CGAtom == 'BB':
+                    CGAtom = 'CA'
 
                 bA1 = self.u.atoms.resname == resname
                 bA2 = self.u.atoms.name    == CGAtom
