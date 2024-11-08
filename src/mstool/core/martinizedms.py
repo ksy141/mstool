@@ -3,7 +3,7 @@ import numpy as np
 from   .universe           import Universe
 from   ..utils.sqlcmd      import *
 from   ..utils.protein_sel import *
-
+import time
 class MartinizeDMS:
     '''
     Take a structural information (DMS),
@@ -40,8 +40,11 @@ class MartinizeDMS:
         ### Read a structrual information
         ### Update atomic information
         ### Write a new DMS file
+        t1 = time.time()
         universe = Universe(dms_in)
         self.updateAtoms(universe, out)
+        t2 = time.time()
+        print(f"MartinizeDMS Updating Atoms: {t2-t1:.3f} s")
 
         ### Now work with a new DMS file
         self.conn     = sqlite3.connect(out)
@@ -50,31 +53,50 @@ class MartinizeDMS:
         self.resnames = self.u.atoms.resname.unique()
 
         ### Bonds + Constraints
+        t1 = time.time()
         self.bond_param = -1
         self.exclusions = []
         self.updateBonds()
+        t2 = time.time()
+        print(f"MartinizeDMS Updating Bonds: {t2-t1:.3f} s")
 
         ### Exclusions -> add manually defined exclusions
+        t1 = time.time()
         self.updateExclusions()
+        t2 = time.time()
+        print(f"MartinizeDMS Updating Exclusions: {t2-t1:.3f} s")
+
 
         ### Angles
+        t1 = time.time()
         self.angle_param = -1
         self.updateAngles()
+        t2 = time.time()
+        print(f"MartinizeDMS Updating Angles: {t2-t1:.3f} s")
 
         ### Dihedrals
+        t1 = time.time()
         self.updateDihedrals()
+        t2 = time.time()
+        print(f"MartinizeDMS Updating Dihedrals: {t2-t1:.3f} s")
 
         ### virtual_sites3
         self.updateVirtualSites3()
 
         ### LJ
+        t1 = time.time()
         self.updateLJ()
+        t2 = time.time()
+        print(f"MartinizeDMS Updating LJ: {t2-t1:.3f} s")
 
         ### Position restraints
         self.updatePosre()
 
         ### Protein
-        self.updateProtein()
+        t1 = time.time()
+        self.updateProtein2()
+        t2 = time.time()
+        print(f"MartinizeDMS Updating Protein: {t2-t1:.3f} s")
 
         ### Save DMS
         self.conn.commit()
@@ -553,7 +575,6 @@ class MartinizeDMS:
                 #     self.cursor.execute(sql_insert_angle_harmcos_term.format(i1, i2, i3, self.angle_param))
                 #     self.cursor.execute(sql_insert_angle_harmcos_param.format(atype, np.cos(t0 * np.pi / 180), k, self.angle_param))
 
-
                 # BBS
                 resid = SC.resid
                 bA5   = BB.resid == resid - 1
@@ -572,3 +593,75 @@ class MartinizeDMS:
                     self.cursor.execute(sql_insert_angle_harmcos_term.format(i1, i2, i3, self.angle_param))
                     self.cursor.execute(sql_insert_angle_harmcos_param.format(atype, np.cos(t0 * np.pi / 180), k, self.angle_param))
 
+
+    def updateProtein2(self):
+        prot_resnames = list(three2one.keys())
+
+        ### Add bonds/angles between the residues
+        chains = set(self.u.atoms.chain)
+
+        bA2 = self.u.atoms.resname.isin(prot_resnames)
+        bA3 = self.u.atoms.name == 'BB'
+        BB  = self.u.atoms[bA2 & bA3].copy()
+        bA4 = self.u.atoms.name == 'SC1'
+        SC1 = self.u.atoms[bA2 & bA4].copy()
+
+        ### Precompute necessary values
+        BB_ids    = BB.index.to_numpy()
+        BB_resids = BB.resid.to_numpy()
+        BB_chains = BB.chain.to_numpy()
+
+        SC_ids    = SC1.index.to_numpy()
+        SC_resids = SC1.resid.to_numpy()
+        SC_chains = SC1.chain.to_numpy()
+
+
+        ### BB bond parameters
+        r0 = 0.35 * 10
+        k  = 1250 * 0.5 * 2.39e-3
+
+        t0 = 100
+        kt = 25 * 0.5 * 0.239
+
+        for i in range(len(BB) - 1):
+            if BB_chains[i+1] != BB_chains[i]: continue
+            if BB_resids[i+1] - BB_resids[i] != 1: continue
+
+            i1 = BB_ids[i]
+            i2 = BB_ids[i+1]
+            self.bond_param += 1
+
+            self.cursor.execute(sql_insert_exclusion.format(i1, i2))
+            btype = f'BB_{i1}_{i2}'
+
+            self.cursor.execute(sql_insert_bond.format(i1, i2, 1))
+            self.cursor.execute(sql_insert_stretch_harm_term.format(i1, i2, 0, self.bond_param))
+            self.cursor.execute(sql_insert_stretch_harm_param.format(btype, r0, k, self.bond_param))
+
+            SC_id = SC_ids[(BB_chains[i+1] == SC_chains) & (BB_resids[i+1] == SC_resids)]
+            if len(SC_id) != 1: continue
+            i3 = SC_id[0]
+
+            self.angle_param += 1
+            atype = f'BBS_{i1}_{i2}_{i3}'
+            self.cursor.execute(sql_insert_angle_harmcos_term.format(i1, i2, i3, self.angle_param))
+            self.cursor.execute(sql_insert_angle_harmcos_param.format(atype, np.cos(t0 * np.pi / 180), kt, self.angle_param))
+
+
+        ### BBB angle parameters
+        t0, k = (96, 700 * 0.5 * 0.239) if self.helix else (127, 20 * 0.5 * 0.239)
+        for i in range(len(BB) - 2):
+            if BB_chains[i+2] != BB_chains[i+1]: continue
+            if BB_chains[i+1] != BB_chains[i+0]: continue
+            if (BB_resids[i+2] - BB_resids[i+1] != 1): continue
+            if (BB_resids[i+1] - BB_resids[i+0] != 1): continue
+
+            i1 = BB_ids[i+0]
+            i2 = BB_ids[i+1]
+            i3 = BB_ids[i+2]
+            self.angle_param += 1
+
+            atype = f'BBB_{i1}_{i2}_{i3}'
+            self.cursor.execute(sql_insert_angle_harmcos_term.format(i1, i2, i3, self.angle_param))
+            self.cursor.execute(sql_insert_angle_harmcos_param.format(atype, np.cos(t0 * np.pi / 180), k, self.angle_param))
+        
