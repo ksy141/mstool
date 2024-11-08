@@ -105,12 +105,13 @@ class MartinizeDMS:
 
     def updateAtoms(self, universe, out):
         nbtypes = []
+        martinikeys = self.martini.martini['molecules'].keys()
 
         for index, atom in universe.atoms.iterrows():
             name    = atom['name']
             resname = atom.resname
             
-            if resname in self.martini.martini['molecules'].keys():
+            if resname in martinikeys:
                 i = self.martini.martini['molecules'][resname]['atoms']['name'].index(name)
                 t = self.martini.martini['molecules'][resname]['atoms']['type'][i]
                 q = self.martini.martini['molecules'][resname]['atoms']['q'][i]
