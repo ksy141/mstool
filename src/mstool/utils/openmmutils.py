@@ -2,6 +2,7 @@ import sqlite3
 import shutil
 import copy
 import numpy as np
+import time
 from openmm.unit       import *
 from openmm.app        import *
 from openmm            import *
@@ -522,6 +523,7 @@ def runMartiniEMNPT(dms_in, out, pos_in=None, soft=False, A=200, C=50,
 
 
 def addPeptideTorsions(u, Kpeptide):
+    t1 = time.time()
     ctf = CustomTorsionForce("k * (acos(0.999 * cos(theta-theta0)))^2")
     ctf.setName('PeptideTorsion')
     ctf.addPerTorsionParameter("k")
@@ -572,12 +574,14 @@ def addPeptideTorsions(u, Kpeptide):
 
         ctf.addTorsion(CAatom0Index, CatomIndex, NatomIndex, CAatom1Index, [Kpeptide, 3.141592])
         N += 1
-
-    print(f'Adding PeptideTorsion for {N:d} isomers with K={Kpeptide:.2f}')
+    
+    t2 = time.time()
+    print(f'Adding PeptideTorsion for {N:d} isomers with K={Kpeptide:.2f} ({t2-t1:.2f} s)')
     return ctf
 
 
 def addCisTransTorsions(u, Kcistrans, mapping, exclude=[], turn_off_torsion_warning=False):
+    t1 = time.time()
     if not isinstance(exclude, list):
         exclude = [exclude]
 
@@ -626,8 +630,9 @@ def addCisTransTorsions(u, Kcistrans, mapping, exclude=[], turn_off_torsion_warn
 
                     elif isomer == 'trans':
                         ctf.addTorsion(a, b, c, d, [Kcistrans, 3.141592])
-
-    print(f'Adding CisTransTorsion for {N:d} isomers with K={Kcistrans:.2f}')
+    
+    t2 = time.time()
+    print(f'Adding CisTransTorsion for {N:d} isomers with K={Kcistrans:.2f} ({t2-t1:.2f} s)')
     return ctf
 
 
@@ -738,6 +743,7 @@ def addAntiDihedralTorsions(u, Kdihedral, mapping, exclude=[], turn_off_torsion_
 
 
 def addChiralTorsions(u, Kchiral, mapping, exclude=[], turn_off_torsion_warning=False):
+    t1 = time.time()
     if not isinstance(exclude, list):
         exclude = [exclude]
 
@@ -788,8 +794,9 @@ def addChiralTorsions(u, Kchiral, mapping, exclude=[], turn_off_torsion_warning=
                 ctf.addTorsion(a, d, e, c, [Kchiral, -70.53 * 3.141592/180])
                 ctf.addTorsion(a, e, c, d, [Kchiral, -70.53 * 3.141592/180])
                 N += 1
-
-    print('Adding ChiralTorsion for {:d} chirals'.format(N))
+    
+    t2 = time.time()
+    print(f'Adding ChiralTorsion for {N:d} chiral isomers with K={Kchiral:.2f} ({t2-t1:.2f} s)')
     return ctf
 
 
@@ -946,6 +953,7 @@ def addRefPosrePeriodic(u, refstructure, k):
     return cef
 
 def addBonds(u, xml, pdb=None):
+    t1 = time.time()
     print("Adding bonds for non-protein residues - started")
     bond_records = []
 
@@ -976,7 +984,7 @@ def addBonds(u, xml, pdb=None):
                 bond_records.append([a, b])
 
 
-    print("Adding bonds for non-protein residues - finished")
+    print(f"Adding bonds for non-protein residues - finished ({time.time()-t1:.2f} s)")
     if pdb:
         pdbatoms = [atom for atom in pdb.topology.atoms()]
         for bond in bond_records:
@@ -1030,6 +1038,7 @@ def getTopPDB(structure, ff=[], ff_add=[]):
 
 
 def getBonds(structure, ff=[], ff_add=[]):
+    t1   = time.time()
     xml  = ReadXML(ff=ff, ff_add=ff_add)
     data = []
     
@@ -1104,7 +1113,7 @@ def getBonds(structure, ff=[], ff_add=[]):
         for i in residue_atoms[bAO].index:
             data.append([residue_atoms[bAC].index[0], i])
 
-    print("Adding bonds - finished")
+    print(f"Adding bonds - finished ({time.time() - t1:.2f} s)")
     return data
 
 def addFlatBottomZ(u, bfactor_posre, radius, rfb, R0z=0.0, fc=1000.0, chain=False):

@@ -173,7 +173,7 @@ class REM:
 
         self.final = modeller
         print(self.final.topology)
-        #print(self.final.topology.getPeriodicBoxVectors())
+        print(self.final.topology.getPeriodicBoxVectors())
 
 
         ### Make a universe
@@ -192,8 +192,9 @@ class REM:
 
 
         ### Create a system
+        t1 = time.time()
         self.system = forcefield.createSystem(self.final.topology, nonbondedMethod=self.nonbondedMethod, nonbondedCutoff=self.rcut*nanometers)
-
+        print(f"System created ({time.time()-t1:.2f} s)")
 
         ### Add rock bonds (need to be defined after the system is defined)
         if rock:
