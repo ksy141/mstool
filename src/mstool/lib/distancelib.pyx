@@ -1,6 +1,7 @@
 # cython: language_level=3
 import   numpy as np
 cimport  numpy
+numpy.import_array()
 cimport  cython
 from libc.math cimport round as cround
 
