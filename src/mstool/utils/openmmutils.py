@@ -524,6 +524,59 @@ def runMartiniEMNPT(dms_in, out, pos_in=None, soft=False, A=200, C=50,
 
 def addPeptideTorsions(u, Kpeptide):
     t1 = time.time()
+    N  = 0
+    ctf = CustomTorsionForce("k * (acos(0.99 * cos(theta-theta0)))^2")
+    ctf.setName('PeptideTorsion')
+    ctf.addPerTorsionParameter("k")
+    ctf.addPerTorsionParameter("theta0")
+
+    protein_resnames = three2one.keys()
+    u.atoms['bborder'] = 4
+    bA  = u.atoms.resname.isin(protein_resnames)
+    bA0 = u.atoms.name == 'O'
+    bA1 = u.atoms.name == 'C'
+    bA2 = u.atoms.name == 'N'
+    bA3 = u.atoms.name.isin(['H', 'HN'])
+    bA4 = (u.atoms.resname == 'PRO') & (u.atoms.name == 'CD')
+    bA5 = u.atoms.name == 'CA'
+    u.atoms.loc[bA & bA0,         'bborder'] = 0
+    u.atoms.loc[bA & bA1,         'bborder'] = 1
+    u.atoms.loc[bA & bA2,         'bborder'] = 2
+    u.atoms.loc[bA & (bA3 | bA4), 'bborder'] = 3
+
+    u.atoms['bbresid'] = u.atoms['resid']
+    u.atoms.loc[bA & bA0, 'bbresid'] += 1
+    u.atoms.loc[bA & bA1, 'bbresid'] += 1
+    u.atoms.loc[bA & bA5, 'bbresid'] += 1
+    
+    ### O->C->N->HN
+    grouped = list(u.atoms[bA & (bA0 | bA1 | bA2 | bA3 | bA4)].sort_values(by=['chain', 'bbresid', 'bborder']).groupby(['chain', 'bbresid']))
+    for group in grouped:
+        if len(group[1]) != 4: continue
+        if len(group[1]['chain'].unique()) != 1: continue
+        OatomIndex, CatomIndex, NatomIndex, HatomIndex = group[1].id.to_list()
+        #print(group[1][['name','resid','bbresid']])
+        ctf.addTorsion(OatomIndex, CatomIndex, NatomIndex, HatomIndex, [Kpeptide, 3.141592])
+        N += 1
+    
+    ### CA->C->N->CA
+    grouped = list(u.atoms[bA & (bA1 | bA2 | bA5)].sort_values(by=['chain', 'bbresid', 'bborder']).groupby(['chain', 'bbresid']))
+    for i in range(len(grouped) - 1):
+        if len(grouped[i][1]) != 3: continue
+        if len(grouped[i][1]['chain'].unique()) != 1: continue
+        if grouped[i][1]['chain'].values[0] != grouped[i+1][1]['chain'].values[-1]: continue
+        if grouped[i][1]['resid'].values[0] != grouped[i+1][1]['resid'].values[-1] - 1: continue
+        CatomIndex, NatomIndex, CAatomIndex = grouped[i][1].id.to_list()
+        CAatomIndex2 = grouped[i+1][1].id.to_list()[-1]
+        ctf.addTorsion(CAatomIndex, CatomIndex, NatomIndex, CAatomIndex2, [Kpeptide, 3.141592])
+        N += 1
+
+    t2 = time.time()
+    print(f'Adding PeptideTorsion for {N:d} isomers with K={Kpeptide:.2f} ({t2-t1:.2f} s)')
+    return ctf
+
+def addPeptideTorsions2(u, Kpeptide):
+    t1 = time.time()
     ctf = CustomTorsionForce("k * (acos(0.999 * cos(theta-theta0)))^2")
     ctf.setName('PeptideTorsion')
     ctf.addPerTorsionParameter("k")

@@ -10,6 +10,7 @@ class CheckStructure:
                  check_chiral=True, 
                  check_cistrans=True, 
                  check_dihedral=True,
+                 check_peptide_version='v1',
                  dihedral_sin_diff=0.3):
 
         self.structure = structure
@@ -23,7 +24,11 @@ class CheckStructure:
 
         self.u.sort()
 
-        if check_peptide:  self.CheckPeptide()
+        if check_peptide:
+            if check_peptide_version == 'v1':
+                self.CheckPeptide()
+            else:
+                self.CheckPeptide2()
         if check_chiral:   self.CheckChiral()
         if check_cistrans: self.CheckCisTrans()
         if check_dihedral: self.CheckDihedral()
@@ -208,9 +213,54 @@ class CheckStructure:
                 if len(resid) != 0:
                     self.reports.append(['dihedral', resname, resid, chain])
 
-
-
     def CheckPeptide(self):
+        u = self.u
+        protein_resnames = three2one.keys()
+        protein_chains   = sorted(list(set(u.atoms[ u.atoms.resname.isin(protein_resnames) ].chain)))
+        for protein_chain in protein_chains:
+            self.counts.append(['peptide bond cis/trans: chain ', protein_chain])
+
+        u.atoms['bborder'] = 4
+        bA  = u.atoms.resname.isin(protein_resnames)
+        bA0 = u.atoms.name == 'O'
+        bA1 = u.atoms.name == 'C'
+        bA2 = u.atoms.name == 'N'
+        bA3 = u.atoms.name.isin(['H', 'HN'])
+        bA4 = (u.atoms.resname == 'PRO') & (u.atoms.name == 'CD')
+        u.atoms.loc[bA & bA0,         'bborder'] = 0
+        u.atoms.loc[bA & bA1,         'bborder'] = 1
+        u.atoms.loc[bA & bA2,         'bborder'] = 2
+        u.atoms.loc[bA & (bA3 | bA4), 'bborder'] = 3
+    
+        u.atoms['bbresid'] = u.atoms['resid']
+        u.atoms.loc[bA & bA0, 'bbresid'] += 1
+        u.atoms.loc[bA & bA1, 'bbresid'] += 1
+    
+        ### O->C->N->HN
+        grouped = list(u.atoms[bA & (bA0 | bA1 | bA2 | bA3 | bA4)].sort_values(by=['chain', 'bbresid', 'bborder']).groupby(['chain', 'bbresid']))
+        for group in grouped:
+            if len(group[1]) != 4: continue
+            if len(group[1]['chain'].unique()) != 1: continue
+
+            # O->C->N->HN
+            pos = group[1][['x','y','z']].to_numpy()
+            dr1 = pos[1] - pos[0]
+            dr2 = pos[2] - pos[1]
+            dr3 = pos[3] - pos[2]
+            plane1 = np.cross(dr1, dr2)
+            plane2 = np.cross(dr2, dr3)
+
+            if np.sum(plane1 * plane2) > 0:
+                chain = group[1]['chain'].values[0]
+                resid = group[1]['resid'].values[0]
+                Cresname = group[1]['resname'].values[0]
+                Nresname = group[1]['resname'].values[-1]
+                name = 'HN' if Nresname != 'PRO' else 'CD'
+
+                self.reports.append(['peptide bond cis/trans:', f'(chain {chain} and name C O and resid {resid} and resname {Cresname})', 
+                    f'(chain {chain} and name {name} N and resid {resid+1} and resname {Nresname})'])
+
+    def CheckPeptide2(self):
         protein_resnames = three2one.keys()
         protein_chains   = sorted(list(set(self.u.atoms[ self.u.atoms.resname.isin(protein_resnames) ].chain)))
         for protein_chain in protein_chains:
