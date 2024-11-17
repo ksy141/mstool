@@ -855,6 +855,7 @@ def addChiralTorsions(u, Kchiral, mapping, exclude=[], turn_off_torsion_warning=
 
 def addPosre(u, bfactor_posre, fcx, fcy, fcz):
     '''Apply positional restraints on atoms whose bfactors are larger than bfactor_posre'''
+    t1 = time.time()
     cef = CustomExternalForce("hkx*(x-x0)^2+hky*(y-y0)^2+hkz*(z-z0)^2")
     cef.addPerParticleParameter("x0")
     cef.addPerParticleParameter("y0")
@@ -878,12 +879,14 @@ def addPosre(u, bfactor_posre, fcx, fcy, fcz):
         hfcyd = fcy*kilojoule_per_mole/nanometer**2
         hfczd = fcz*kilojoule_per_mole/nanometer**2
         cef.addParticle(index,[ x0d, y0d, z0d, hfcxd,  hfcyd,  hfczd])
-
-    print(f'Adding Posre of ({fcx:.1f}, {fcy:.1f}, {fcz:.1f}) kJ/mol/nm^2 for {len(df):d} atoms whose bfactor > {bfactor_posre:.2f})')
+    
+    t2 = time.time()
+    print(f'Adding Posre of ({fcx:.1f}, {fcy:.1f}, {fcz:.1f}) kJ/mol/nm^2 for {len(df):d} atoms whose bfactor > {bfactor_posre:.2f} ({t2-t1:.2f} s)')
     return cef
 
 def addPosrePeriodic(u, bfactor_posre, k):
     '''Apply positional restraints on atoms whose bfactors are larger than bfactor_posre'''
+    t1 = time.time()
     cef = CustomExternalForce("k * periodicdistance(x, y, z, x0, y0, z0)^2")
     cef.addPerParticleParameter("x0")
     cef.addPerParticleParameter("y0")
@@ -903,8 +906,9 @@ def addPosrePeriodic(u, bfactor_posre, k):
         z0d = (row.z * angstrom).value_in_unit(nanometer)
         fc  = k * kilojoule_per_mole/nanometer**2
         cef.addParticle(index,[ x0d, y0d, z0d, fc])
-
-    print('Adding Periodic Posre for {:d} atoms whose bfactor > {:.2f})'.format(len(df), bfactor_posre))
+    
+    t2 = time.time()
+    print(f'Adding Periodic Posre for {len(df)} atoms whose bfactor > {bfactor_posre:.2f} ({t2-t1:.2f} s)'.format(len(df), bfactor_posre))
     return cef
 
 
@@ -931,6 +935,7 @@ def addPosrePeriodicZ(u, bfactor_posre, k):
 
 
 def addRefPosre(u, refstructure, fcx, fcy, fcz):
+    t1  = time.time()
     ref = Universe(refstructure)
 
     cef = CustomExternalForce("hkx*(x-x0)^2+hky*(y-y0)^2+hkz*(z-z0)^2")
@@ -965,12 +970,14 @@ def addRefPosre(u, refstructure, fcx, fcy, fcz):
         else:
             assert 0 == 1, '/{:s}:{:d}@{:s} '.format(atom['chain'], atom['resid'], atom['name']) + \
             'more than one atom with the same name, resid, chain?'
-
-    print('Adding RefPosre for {:d} atoms that exist in {:s}'.format(N, refstructure))
+    
+    t2 = time.time()
+    print(f'Adding RefPosre for {N} atoms that exist in {refstructure} ({t2-t1:.1f} s)')
     return cef
 
 
 def addRefPosrePeriodic(u, refstructure, k):
+    t1  = time.time()
     ref = Universe(refstructure)
 
     cef = CustomExternalForce("k * periodicdistance(x, y, z, x0, y0, z0)^2")
@@ -1001,8 +1008,9 @@ def addRefPosrePeriodic(u, refstructure, k):
         else:
             assert 0 == 1, '/{:s}:{:d}@{:s} '.format(atom['chain'], atom['resid'], atom['name']) + \
             'more than one atom with the same name, resid, chain?'
-
-    print('Adding RefPosre for {:d} atoms that exist in {:s}'.format(N, refstructure))
+    
+    t2 = time.time()
+    print(f'Adding RefPosre for {N} atoms that exist in {refstructure} ({t2-t1:.1f} s)')
     return cef
 
 def addBonds(u, xml, pdb=None):

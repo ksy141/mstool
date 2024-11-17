@@ -204,16 +204,18 @@ class REM:
                         force.addBond(*bond)
     
 
-
         ### Add posre
         if refposre:
-            # self.system.addForce(addRefPosre(u, refposre, fcx, fcy, fcz))
-            self.system.addForce(addRefPosrePeriodic(u, refposre, fcz))
+            if pbc:
+                self.system.addForce(addRefPosrePeriodic(u, refposre, fcz))
+            else:
+                self.system.addForce(addRefPosre(u, refposre, fcx, fcy, fcz))
         else:
             # rock molecules have bfactor of 0.0 -> will have no restraints
-            # self.system.addForce(addPosre(u, bfactor_posre, fcx, fcy, fcz))
-            self.system.addForce(addPosrePeriodic(u, bfactor_posre, fcz))
-
+            if pbc:
+                self.system.addForce(addPosrePeriodic(u, bfactor_posre, fcz))
+            else:
+                self.system.addForce(addPosre(u, bfactor_posre, fcx, fcy, fcz))
 
 
         ### Update Nonbonded + Add IsomerTorsions
