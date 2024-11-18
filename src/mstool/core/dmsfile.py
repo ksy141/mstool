@@ -374,9 +374,12 @@ class DMSFile(object):
 
         # Build the box dimensions
         boxSize = self.topology.getUnitCellDimensions()
+        print('DMS boxSize:', boxSize)
         if boxSize is not None:
-            if boxSize[0] * boxSize[1] * boxSize[2] == 0:
+            if boxSize[0]._value * boxSize[1]._value * boxSize[2]._value == 0:
+                print('DMS boxSize is set for a unit cell')
                 sys.setDefaultPeriodicBoxVectors((1.0, 0, 0), (0, 1.0, 0), (0, 0, 1.0))
+                self.cell = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
             else:
                 sys.setDefaultPeriodicBoxVectors((boxSize[0], 0, 0), (0, boxSize[1], 0), (0, 0, boxSize[2]))
         elif nonbondedMethod in ('CutoffPeriodic', 'Ewald', 'PME', 'LJPME'):

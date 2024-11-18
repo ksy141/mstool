@@ -554,7 +554,7 @@ def addPeptideTorsions(u, Kpeptide):
     for group in grouped:
         if len(group[1]) != 4: continue
         if len(group[1]['chain'].unique()) != 1: continue
-        OatomIndex, CatomIndex, NatomIndex, HatomIndex = group[1].id.to_list()
+        OatomIndex, CatomIndex, NatomIndex, HatomIndex = group[1].index.to_list()
         #print(group[1][['name','resid','bbresid']])
         ctf.addTorsion(OatomIndex, CatomIndex, NatomIndex, HatomIndex, [Kpeptide, 3.141592])
         N += 1
@@ -566,8 +566,8 @@ def addPeptideTorsions(u, Kpeptide):
         if len(grouped[i][1]['chain'].unique()) != 1: continue
         if grouped[i][1]['chain'].values[0] != grouped[i+1][1]['chain'].values[-1]: continue
         if grouped[i][1]['resid'].values[0] != grouped[i+1][1]['resid'].values[-1] - 1: continue
-        CatomIndex, NatomIndex, CAatomIndex = grouped[i][1].id.to_list()
-        CAatomIndex2 = grouped[i+1][1].id.to_list()[-1]
+        CatomIndex, NatomIndex, CAatomIndex = grouped[i][1].index.to_list()
+        CAatomIndex2 = grouped[i+1][1].index.to_list()[-1]
         ctf.addTorsion(CAatomIndex, CatomIndex, NatomIndex, CAatomIndex2, [Kpeptide, 3.141592])
         N += 1
 

@@ -16,12 +16,14 @@ from   .rem                   import REM
 from   .checkstructure        import CheckStructure
 from   .ungroup               import Ungroup
 from   .solvate_martini       import SolvateMartini
+from   .dmsfile               import DMSFile
 
 from   ..utils.protein_sel    import three2one
 from   ..utils.dump           import dumpsql
 from   ..utils.openmmutils    import getEnergy, runMartiniEM, runMartiniNPT, runMartiniEMNPT
 from   ..utils.amberselection import amberSelection
 from   ..utils.add_termini_atoms import addTerminiAtoms
+from   ..utils.cap_termini_residues import capTerminiResidues
 
 from   ..utils.openmmutils import runEM, addPosre
 
@@ -98,14 +100,22 @@ class TruncateProtein:
 
 
         ### step6: run Martini simulation
-        runMartiniEM(dms_in = workdir + '/step5_ff.dms',
-                     out    = workdir + '/step6_minimized.pdb',
-                     soft   = soft,
-                     nonbondedMethod = 'CutoffNonPeriodic',
-                     nonbondedCutoff = 1.1)
+        #runMartiniEM(dms_in = workdir + '/step5_ff.dms',
+        #             out    = workdir + '/step6_minimized.pdb',
+        #             soft   = soft,
+        #             nonbondedMethod = 'CutoffNonPeriodic',
+        #             nonbondedCutoff = 1.1)
+
+        dms = DMSFile(workdir + '/step5_ff.dms')
+        dms.createSystem(REM=True, tapering='shift', martini=True,
+                         nonbondedMethod = 'CutoffNonPeriodic',
+                         nonbondedCutoff=1.1,
+                         improper_prefactor=0.99, removeCMMotion=True)
+        dms.runEMNPT(nsteps=0, barfreq=0, dcdfreq=0, csvfreq=0, 
+                     nonbondedCutoff=1.1, emout=workdir + '/step6_minimized.dms', out=None)
 
         ### step7: ungroup (output must be a pdb so that openMM recognizes protein residues)
-        Ungroup(structure   = workdir + '/step6_minimized.pdb',
+        Ungroup(structure   = workdir + '/step6_minimized.dms',
                 out         = workdir + '/step7_backmapped.pdb',
                 mapping     = mapping,
                 mapping_add = mapping_add, 
@@ -145,6 +155,13 @@ class TruncateProtein:
         u = self.combine_two(xtal    = workdir + '/step1_input_termini.pdb', 
                              backmap = workdir + '/step8_minimized.pdb',
                              out     = workdir + '/step9_final.pdb')
+        
+        ### cap
+        capTerminiResidues(workdir + '/step9_final.pdb', 
+                           workdir + '/step9_final.pdb')
+
+
+
 
         ### vis
         self.vis()
@@ -172,8 +189,8 @@ class TruncateProtein:
         dz  = max(u.atoms['z']) - min(u.atoms['z'])
         pbc = max(dx, dy, dz) + 15.0 * 2
  
-        u.dimensions = [pbc, pbc, pbc, 90, 90, 90]
-        u.cell = [[pbc, 0, 0], [0, pbc, 0], [0, 0, pbc]]
+        #u.dimensions = [pbc, pbc, pbc, 90, 90, 90]
+        #u.cell = [[pbc, 0, 0], [0, pbc, 0], [0, 0, pbc]]
         self.pbc = pbc
 
         ### HSE to HIE
@@ -359,7 +376,7 @@ class TruncateProtein:
         newu.dimensions = xtal.dimensions
         newu.cell       = xtal.cell
         newu.atoms.sort_values(by=['chain', 'resid', 'name'], inplace=True)
-        newu.write(out)
+        newu.write(out, box=False)
 
 
     def vis(self):
