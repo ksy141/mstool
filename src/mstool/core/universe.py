@@ -424,14 +424,17 @@ class Universe:
         except:
             pass
 
-        try:        
+        try:
+            self.cell = np.zeros((3, 3))
             for i, (x, y, z) in enumerate(conn.execute('SELECT x, y, z FROM global_cell')):
                 self.cell[i][0] = x
                 self.cell[i][1] = y
                 self.cell[i][2] = z
-
             self.dimensions = triclinic_box(self.cell[0], self.cell[1], self.cell[2])
+
         except:
+            self.cell = None
+            self.dimensions = None
             pass
 
         conn.close()

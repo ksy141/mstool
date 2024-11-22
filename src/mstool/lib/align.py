@@ -188,3 +188,34 @@ def _fit_to(mobile_coordinates, ref_coordinates, weights=None):
 
     return new_mobile_coordinates, min_rmsd
 
+def Align(mob, ref, select=None, weights=None):
+    if select is None:
+        mobpos = mob.atoms[['x','y','z']].to_numpy()
+        refpos = ref.atoms[['x','y','z']].to_numpy()
+        newmobpos, R = _fit_to(mobpos, refpose)
+        print(R)
+        mob.atoms[['x','y','z']] = newmobpos
+        return mob
+
+    if isinstance(select, str):
+        select = {'mob': select, 'ref': select}
+
+    if isinstance(select, dict):
+        if ('mob' not in select.keys()) or ('ref' not in select.keys()):
+            raise ValueError("select dictionary should have mob and ref keys")
+
+        mobpos = mob.select(select['mob'])[['x','y','z']].to_numpy()
+        refpos = ref.select(select['ref'])[['x','y','z']].to_numpy()
+        dr_mob_coordinates = np.average(mobpos, axis=0)
+        dr_ref_coordinates = np.average(refpos, axis=0)
+        R, min_rmsd = rotation_matrix(mobpos - dr_mob_coordinates,
+                                      refpos - dr_ref_coordinates,
+                                      weights=weights)
+        print(R)
+        newmobpos = \
+                dr_ref_coordinates + \
+                (R @ (mob.atoms[['x','y','z']].to_numpy() - dr_mob_coordinates).T).T
+
+        mob.atoms[['x','y','z']] = newmobpos
+        return mob
+

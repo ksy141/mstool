@@ -34,7 +34,7 @@ from .utils.rockresidue import RockResidue
 from .core.orient import *
 from .utils.sdminimizer import SDMinimizer
 
-from .lib.align import rotation_matrix, _fit_to
+from .lib.align import rotation_matrix, _fit_to, Align
 from .membrane.bilayerbuilder import BilayerBuilder
 from .membrane.spherebuilder  import SphereBuilder
 from .membrane.sphereprotein  import SphereProtein
