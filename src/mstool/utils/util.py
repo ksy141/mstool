@@ -135,3 +135,24 @@ def completeTetra(v1,v2):
     w2 = w2 / np.linalg.norm(w2)
     return	w1, w2
 
+def completeTetra3(v1):
+    # Normalize the input vector
+    v1 = v1 / np.linalg.norm(v1)
+    
+    # Generate a random vector and orthogonalize it to v1
+    random_vec = np.random.rand(3)
+    v2 = random_vec - np.dot(random_vec, v1) * v1
+    v2 = v2 / np.linalg.norm(v2)  # Normalize v2
+    
+    # Create v3 as the cross product of v1 and v2
+    v3 = np.cross(v1, v2)
+    v3 = v3 / np.linalg.norm(v3)  # Normalize v3
+    
+    # Compute v4 as the centroid symmetry vector
+    nv = 0.8164965809277259 * v3  # Scaled by sqrt(2/3)
+    v = (-v1 - v2) / 2
+    v4 = v - nv
+    v4 = v4 / np.linalg.norm(v4)
+    
+    return v2, v3, v4
+

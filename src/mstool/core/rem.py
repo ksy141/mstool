@@ -1,6 +1,7 @@
 from   openmm        import *
 from   openmm.app    import *
 from   openmm.unit   import *
+from   copy          import deepcopy
 
 from   .universe     import Universe
 from   .readmappings import ReadMappings
@@ -65,8 +66,6 @@ class REM:
         self.C     = C
         self.rcut  = rcut
         self.cospower = cospower
-        self.nsteps   = nsteps
-        self.rem_nsteps = rem_nsteps
         u = Universe(structure)
         self.protein = protein
 
@@ -207,15 +206,16 @@ class REM:
         ### Add posre
         if refposre:
             if pbc:
-                self.system.addForce(addRefPosrePeriodic(u, refposre, fcz))
+                self.posre = addRefPosrePeriodic(u, refposre, fcz)
             else:
-                self.system.addForce(addRefPosre(u, refposre, fcx, fcy, fcz))
+                self.posre = addRefPosre(u, refposre, fcx, fcy, fcz)
         else:
             # rock molecules have bfactor of 0.0 -> will have no restraints
             if pbc:
-                self.system.addForce(addPosrePeriodic(u, bfactor_posre, fcz))
+                self.posre = addPosrePeriodic(u, bfactor_posre, fcz)
             else:
-                self.system.addForce(addPosre(u, bfactor_posre, fcx, fcy, fcz))
+                self.posre = addPosre(u, bfactor_posre, fcx, fcy, fcz)
+        self.system.addForce(deepcopy(self.posre))
 
 
         ### Update Nonbonded + Add IsomerTorsions
@@ -243,37 +243,49 @@ class REM:
             self.updateCustomBondForce()
 
         print("Adding Isomer Torsions - started")
-        self.system.addForce(addPeptideTorsions(  u, Kpeptide))
-        self.system.addForce(addCisTransTorsions( u, Kcistrans, mapping, turn_off_torsion_warning=turn_off_torsion_warning))
-        self.system.addForce(addChiralTorsions(   u, Kchiral,   mapping, turn_off_torsion_warning=turn_off_torsion_warning))
-        self.system.addForce(addDihedralTorsions( u, Kdihedral, mapping, turn_off_torsion_warning=turn_off_torsion_warning))
-        self.system.addForce(addAntiDihedralTorsions( u, Kdihedral, mapping, turn_off_torsion_warning=turn_off_torsion_warning))
+        self.torsion1 = addPeptideTorsions(      u, Kpeptide)
+        self.torsion2 = addCisTransTorsions(     u, Kcistrans, mapping, turn_off_torsion_warning=turn_off_torsion_warning)
+        self.torsion3 = addChiralTorsions(       u, Kchiral,   mapping, turn_off_torsion_warning=turn_off_torsion_warning) 
+        self.torsion4 = addDihedralTorsions(     u, Kdihedral, mapping, turn_off_torsion_warning=turn_off_torsion_warning)
+        self.torsion5 = addAntiDihedralTorsions( u, Kdihedral, mapping, turn_off_torsion_warning=turn_off_torsion_warning)
+        self.system.addForce(deepcopy(self.torsion1))
+        self.system.addForce(deepcopy(self.torsion2))
+        self.system.addForce(deepcopy(self.torsion3))
+        self.system.addForce(deepcopy(self.torsion4))
+        self.system.addForce(deepcopy(self.torsion5))
         print("Adding Isomer Torsions - finished")
 
-
         ### Run REM with Additional Torsions
+        self.u         = u
         self.positions = self.final.positions
         print("Running REM with isomeric torsions")
-        self.runREM()
+        self.runEMNVT(rem_nsteps)
 
         ### Run REM without Additional Torsions
         print("Running REM without isomeric torsions")
         self.removeForces(['PeptideTorsion', 'CisTransTorsion', 'ChiralTorsion', 'DihedralTorsion', 'AntiDihedralTorsion'])
-        #self.removeForces(['PeptideTorsion', 'CisTransTorsion', 'ChiralTorsion'])
-        self.runREM()
-        u.atoms[['x','y','z']] = self.numpypositions
+        self.runEMNVT(rem_nsteps)
 
         ### Save outREM
-        if outrem: u.write(outrem)
+        if outrem: self.u.write(outrem)
         #CheckTetrahedron(outrem, ff=ff, ff_add=ff_add)
-        self.u = u
 
         ### Run EM + NVT
         if turn_off_EMNVT:
             print("EM+NVT is turned off because turn_off_EMNVT=True")
         elif not rock:
-            print(f"Running EM+NVT with unmodified force field\nand without isomeric torsions for {self.nsteps} steps")
-            self.runEMNVT()
+            self.system = self.forcefield.createSystem(self.final.topology, nonbondedMethod=self.nonbondedMethod, nonbondedCutoff=self.rcut*nanometers)
+            self.system.addForce(deepcopy(self.posre))
+            self.system.addForce(deepcopy(self.torsion1))
+            self.system.addForce(deepcopy(self.torsion2))
+            self.system.addForce(deepcopy(self.torsion3))
+            self.system.addForce(deepcopy(self.torsion4))
+            self.system.addForce(deepcopy(self.torsion5))
+            print(f"Running EM with unmodified force field")
+            self.runEMNVT(0)
+            print(f"Running EM+NVT with unmodified force field\nand without isomeric torsions for {nsteps} steps")
+            self.removeForces(['PeptideTorsion', 'CisTransTorsion', 'ChiralTorsion', 'DihedralTorsion', 'AntiDihedralTorsion'])
+            self.runEMNVT(nsteps)
         elif rock:
             print("EM+NVT is turned off with ROCK (AA)")
         
@@ -483,9 +495,8 @@ class REM:
 
         return customforce
 
-
-    def runREM(self):
-        integrator = LangevinIntegrator(self.T*kelvin, 1/picosecond, 0.002*picoseconds)
+    def runEMNVT(self, nsteps):
+        integrator  = LangevinIntegrator(self.T*kelvin, 1/picosecond, 0.002*picoseconds)
         simulation = Simulation(self.final.topology, self.system, integrator)
         simulation.context.setPositions(self.positions)
         platform = simulation.context.getPlatform().getName()
@@ -494,42 +505,13 @@ class REM:
         print("E0: %.3e kJ/mol" %simulation.context.getState(getEnergy=True).getPotentialEnergy()._value)
         simulation.minimizeEnergy()
         print("E1: %.3e kJ/mol" %simulation.context.getState(getEnergy=True).getPotentialEnergy()._value)
-        if self.rem_nsteps > 0:
-            simulation.step(self.rem_nsteps)
+        if nsteps > 0:
+            simulation.step(nsteps)
             print("E2: %.3e kJ/mol" %simulation.context.getState(getEnergy=True).getPotentialEnergy()._value)
         print("-------------------------------")
 
-        self.positions      = simulation.context.getState(getPositions=True).getPositions()
-        self.numpypositions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)._value * 10
-
-
-    def runEMNVT(self):
-        integrator = LangevinIntegrator(self.T*kelvin, 1/picosecond, 0.002*picoseconds)
-        system     = self.forcefield.createSystem(self.final.topology, 
-                                                  nonbondedMethod=self.nonbondedMethod, 
-                                                  nonbondedCutoff=self.rcut*nanometers)
-
-        # added on 20240302
-        # let protein does not change during EMNVT
-        if self.protein:
-            system.addForce(addPosrePeriodic(self.u, self.bfactor_posre, self.fcz))
-            # system.addForce(addRefPosre(self.u, self.protein, self.fcx, self.fcy, self.fcz))
-
-        simulation = Simulation(self.final.topology, system, integrator)
-        simulation.context.setPositions(self.positions)
-        #print(simulation.context.getState().getPeriodicBoxVectors(asNumpy=True)._value * 10)
-        platform = simulation.context.getPlatform().getName()
-        print("-------------------------------")
-        print("Platform: ", platform)
-        print("E0: %.3e kJ/mol" %simulation.context.getState(getEnergy=True).getPotentialEnergy()._value)
-        simulation.minimizeEnergy()
-        print("E1: %.3e kJ/mol" %simulation.context.getState(getEnergy=True).getPotentialEnergy()._value)
-        if self.nsteps > 0:
-            simulation.step(self.nsteps)
-            print("E2: %.3e kJ/mol" %simulation.context.getState(getEnergy=True).getPotentialEnergy()._value)
-        print("-------------------------------")
-
-        self.positions      = simulation.context.getState(getPositions=True).getPositions()
-        self.numpypositions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)._value * 10
+        self.positions              = simulation.context.getState(getPositions=True).getPositions()
+        self.numpypositions         = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)._value * 10
+        self.u.atoms[['x','y','z']] = self.numpypositions
 
 

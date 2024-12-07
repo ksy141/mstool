@@ -457,6 +457,9 @@ class Universe:
                 cursor.execute(sql_insert_cell.format(2,*self.cell[1]))
                 cursor.execute(sql_insert_cell.format(3,*self.cell[2]))
             except:
+                cursor.execute(sql_insert_cell.format(1,1.0,0.0,0.0))
+                cursor.execute(sql_insert_cell.format(2,0.0,1.0,0.0))
+                cursor.execute(sql_insert_cell.format(3,0.0,0.0,1.0))
                 pass
         
         ### PARTICLES        
