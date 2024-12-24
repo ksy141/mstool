@@ -171,6 +171,45 @@ def ionize(u, out=None, qtot=None,
     return u
 
 
+def octanolize(u, out=None, molfrac=0.7, waterresname='W', octanolchain='X'):
+    bA = u.atoms.resname == waterresname
+    nonwateratoms = u.atoms[~bA]
+    wateratoms    = u.atoms[bA].sample(frac=1, ignore_index=True) # a new object
+    Noct          = int(len(wateratoms) * molfrac)
+    newwateratoms = wateratoms.loc[Noct:].copy(deep=True)
+    C1atoms       = wateratoms.loc[:Noct].copy(deep=True)
+    C2atoms       = wateratoms.loc[:Noct].copy(deep=True)
+    PCatoms       = wateratoms.loc[:Noct].copy(deep=True)
+
+    C1atoms['resname'] = 'OCO'
+    C1atoms['name']    = 'C1'
+    C1atoms['chain']   = octanolchain
+    C1atoms[['x','y','z']] += (np.random.rand(3) - 0.5) * 0.1
+
+    C2atoms['resname'] = 'OCO'
+    C2atoms['name']    = 'C2'
+    C2atoms['chain']   = octanolchain
+    C2atoms[['x','y','z']] += (np.random.rand(3) - 0.5) * 0.1
+
+    PCatoms['resname'] = 'OCO'
+    PCatoms['name']    = 'PC'
+    PCatoms['chain']   = octanolchain
+    PCatoms[['x','y','z']] += (np.random.rand(3) - 0.5) * 0.1
+
+    # combine
+    u.atoms = pd.concat([nonwateratoms, newwateratoms, C1atoms, C2atoms, PCatoms], ignore_index=True)
+    u.sort(by=['chain','resid'])
+    
+    n_Watoms = len(u.select(':W'))
+    n_Oatoms = len(u.select(':OCO@PC'))
+    n_total  = n_Watoms + n_Oatoms
+    print(f"W:     {n_Watoms}")
+    print(f"OCO:   {n_Oatoms}")
+    print(f"W.OCO: {n_Watoms/n_total:.2f}:{n_Oatoms/n_total:.2f}\n")
+    
+    if out: u.write(out)
+    return u
+
 
 def SolvateMartini(structure=None, out=None, t=None,
                    dimensions=None,
@@ -214,8 +253,55 @@ def SolvateMartini(structure=None, out=None, t=None,
         if out: solvatedu.write(out)
         return solvatedu
 
-
     ionizedu  = ionize(solvatedu, out=out, qtot=qtot, conc=conc, pos=pos, neg=neg, 
                        waterresname=waterresname, ionchain=ionchain, posionchain=posionchain, negionchain=negionchain)
     return ionizedu
+
+
+def OctanolMartini(structure=None, out=None, t=None, 
+                   dimensions=None,
+                   solventdr=4.93, removedr=6.0, waterslab=0.8, waterchain='W', waterresname='W',
+                   center=True, molfrac=0.7, pbc=True, octanolchain='X'):
+
+    # make a water box
+    if dimensions:
+        if isinstance(dimensions, int) or isinstance(dimensions, float):
+            dimensions = [dimensions] * 3
+
+        u = Universe()
+        u.cell = np.array([[dimensions[0], 0, 0],
+                           [0, dimensions[1], 0], 
+                           [0, 0, dimensions[2]]])
+    
+        u.dimensions = np.array([*dimensions[0:3],90,90,90])
+    
+    # provide a structure
+    else:
+        if isinstance(structure, Universe):
+            u = structure
+        else:
+            u = Universe(structure)
+
+        if t:
+            # make new dimensions / cell based on solute particles
+            # exisitng dimensions / cell do not matter
+            maxx = u.atoms['x'].max() - u.atoms['x'].min()
+            maxy = u.atoms['y'].max() - u.atoms['y'].min()
+            maxz = u.atoms['z'].max() - u.atoms['z'].min()
+            maxd = max(maxx, maxy, maxz)
+            dim  = maxd + 2 * t
+            u.dimensions = np.array([dim] * 3 + [90] * 3)
+            u.cell = np.array([[dim, 0, 0], [0, dim, 0], [0, 0, dim]])
+
+    solvatedu = solvate(u, solventdr=solventdr, removedr=removedr, waterslab=waterslab,
+                        waterchain=waterchain, center=center, pbc=pbc)
+    if molfrac == 0.0:
+        if out: solvatedu.write(out)
+        return solvatedu
+
+    newu = octanolize(solvatedu, out=out, molfrac=molfrac, waterresname=waterresname, octanolchain=octanolchain)
+    if out: newu.write(out)
+    return newu
+
+
 
