@@ -751,7 +751,12 @@ class Universe:
         # remove ['PREVIOUS', 0]
         counts.pop(0)
 
-        stdout  = '; \n'
+        stdout = ''
+        if martini:
+            for ifile in martini.ifiles:
+                stdout += f'#include "{ifile}"\n'
+
+        stdout += '; \n'
         stdout += '; topol.top made by mstool\n'
         stdout += '; You should modify this file based on the below '
         stdout += 'because it counts only correctly for '
@@ -760,10 +765,6 @@ class Universe:
         stdout += '; You need to run martinize.py anyway to parameterize your protein. \n'
         stdout += '; \n\n'
         
-        if martini:
-            for ifile in martini.ifiles:
-                stdout += f'#include "{ifile}"\n'
-
         stdout += '\n[ system ]\nMartini\n\n[ molecules ]\n'
         for count in counts:
             stdout += '{:10s} {:10d}\n'.format(count[0], count[1])

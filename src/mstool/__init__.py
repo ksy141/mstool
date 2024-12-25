@@ -33,6 +33,7 @@ from .utils.saveargs import saveargs
 from .utils.rockresidue import RockResidue
 from .core.orient import *
 from .utils.sdminimizer import SDMinimizer
+from .core.calSolv import calSolv
 
 from .lib.align import rotation_matrix, _fit_to, Align
 from .membrane.bilayerbuilder import BilayerBuilder
