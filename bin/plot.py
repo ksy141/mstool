@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 plt.rcParams['font.size'] = 10.0
 plt.rcParams['font.family'] = 'Arial'
 plt.rcParams['mathtext.fontset'] = 'stix'
+plt.rcParams['pdf.fonttype'] = 42 # TrueType editable in Illustrator
+plt.rcParams['ps.fonttype'] = 42
 
 fig, ax = plt.subplots(figsize=(4,3))
 ax.plot()
