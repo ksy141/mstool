@@ -119,8 +119,11 @@ class Backmap:
         if rock:
             if os.path.exists('ROCK.dms'): os.rename('ROCK.dms', workdir + '/ROCK.dms')
             if os.path.exists('ROCK.xml'): os.rename('ROCK.xml', workdir + '/ROCK.xml')
-
-            u1 = Universe(AA)
+            
+            if AA:
+                u1 = Universe(AA)
+            else:
+                u1 = Universe(rock)
             #memory-intensive job
             #if len(u1.bonds) == 0: u1.addBondFromDistance()
 
