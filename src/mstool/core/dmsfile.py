@@ -976,13 +976,17 @@ class DMSFile(object):
                 epsilon2D[i, j] = np.sqrt( epsilon2D[i, i] * epsilon2D[j, j] )
 
         ### NBFIX
-        q = """SELECT param1, param2, sigma, epsilon FROM nonbonded_combined_param"""
-        for (fcounter,conn,tables,offset) in self._localVars():
-            for param1, param2, sigma, epsilon in conn.execute(q):
-                sigma2D[param1, param2]   = sigma
-                sigma2D[param2, param1]   = sigma
-                epsilon2D[param1, param2] = epsilon
-                epsilon2D[param2, param1] = epsilon
+        try:
+            q = """SELECT param1, param2, sigma, epsilon FROM nonbonded_combined_param"""
+            for (fcounter,conn,tables,offset) in self._localVars():
+                for param1, param2, sigma, epsilon in conn.execute(q):
+                    sigma2D[param1, param2]   = sigma
+                    sigma2D[param2, param1]   = sigma
+                    epsilon2D[param1, param2] = epsilon
+                    epsilon2D[param2, param1] = epsilon
+
+        except:
+            pass
 
         sigma2D   *= 0.1
         epsilon2D *= 4.184
