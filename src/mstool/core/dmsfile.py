@@ -329,7 +329,7 @@ class DMSFile(object):
     def createSystem(self, nonbondedMethod='CutoffPeriodic', nonbondedCutoff=1.2,
                      ewaldErrorTolerance=0.0005, removeCMMotion=True, hydrogenMass=None,
                      OPLS=False, implicitSolvent=None, AGBNPVersion=1, REM=False, A=100, C=50, martini=False,
-                     improper_prefactor=0.99, tapering='shift'):
+                     improper_prefactor=0.99, tapering='shift', addForces=[]):
         """Construct an OpenMM System representing the topology described by this
         DMS file. tapering='shift' is must for Martini simulations because
         openMM uses MCBarostat, and for LJ-dominant systems like Martini 
@@ -402,6 +402,8 @@ class DMSFile(object):
         self._addCMAPToSystem(sys)
         self._addVirtualSitesToSystem(sys)
         self._addPositionalHarmonicRestraints(sys)
+        for addForce in addForces:
+            sys.addForce(addForce)
 
         if REM and martini:
             # REM martini simulation
