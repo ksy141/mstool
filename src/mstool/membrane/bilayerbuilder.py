@@ -274,7 +274,10 @@ class BilayerBuilder:
 
         ### Martinize
         MartinizeDMS(workdir + '/step1.sol.dms', out = workdir + '/step1.martini.dms', martini=martiniff, addnbtype=addnbtype[0])
-        dumpsql(workdir + '/step1.martini.dms')
+        try:
+            dumpsql(workdir + '/step1.martini.dms')
+        except:
+            pass
 
         ### Create system & add posz to GL1 and GL2
         # dms = DMSFile(workdir + '/step1.martini.dms')
