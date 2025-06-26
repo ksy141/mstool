@@ -19,6 +19,7 @@ from .core.checktetrahedron import CheckTetrahedron
 from .core.seq              import Seq
 from .core.dmsfile          import DMSFile
 from .core.backmap          import Backmap
+from .core.divideconquer    import DivideConquer
 from .core.reorderatoms     import ReorderAtoms
 from .utils.protein_sel     import three2one, one2three
 from .utils.dump            import dumpsql, dumpdf

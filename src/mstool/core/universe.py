@@ -74,7 +74,7 @@ class Universe:
         self.cols  = {'anum': -1, 'name': 'tbd', 'charge': 0.0, 'mass': 0.0,
                       'type': 'tbd', 'nbtype': 0, 'resname': 'tbd', 'resid': 0, 
                       'segname': '', 'chain': 'S', 
-                      'x': 0.0, 'y': 0.0, 'z': 0.0, 'bfactor': 0.0, 'vdw': 0.0}
+                      'x': 0.0, 'y': 0.0, 'z': 0.0, 'bfactor': 0.0, 'vdw': 0.0, 'resn': 0}
 
 
         ### READ DATA

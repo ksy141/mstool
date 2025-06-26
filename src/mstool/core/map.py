@@ -5,8 +5,11 @@ from   .readmappings import ReadMappings
 
 class Map(Universe):
     def __init__(self, structure, out=None, mapping=[], mapping_add=[], BB2CA=True, translate=[0.0, 0.0, 0.0], add_notavailableAAAtoms=False):
-
-        self.u        = Universe(structure)
+        if isinstance(structure, Universe):
+            self.u = structure
+            print(structure)
+        else:
+            self.u        = Universe(structure)
         self.mapping  = ReadMappings(mapping, mapping_add)
         self.resnames = set(self.u.atoms.resname)
         self.BB2CA    = BB2CA

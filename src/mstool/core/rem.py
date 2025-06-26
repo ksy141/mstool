@@ -41,7 +41,7 @@ class REM:
         cospower=2, turn_off_torsion_warning=False,
         nsteps=10000, rem_nsteps=0,
         turn_off_EMNVT=False,
-        T=310):
+        T=310, wall=None):
         
         # v3 should not be used
         # protein: version = 'v4' seems the best
@@ -254,7 +254,23 @@ class REM:
         self.system.addForce(deepcopy(self.torsion4))
         self.system.addForce(deepcopy(self.torsion5))
         print("Adding Isomer Torsions - finished")
-
+        
+        if wall:
+            print("Adding Wall Potentials - started")
+            wallx0 = addPotential(u, "step(x0 - (x-delta)) * Kwall * (x0 - (x-delta))^2", ["x0", "Kwall", "delta"], wall, i=1)
+            wally0 = addPotential(u, "step(y0 - (y-delta)) * Kwall * (y0 - (y-delta))^2", ["y0", "Kwall", "delta"], wall, i=2)
+            wallz0 = addPotential(u, "step(z0 - (z-delta)) * Kwall * (z0 - (z-delta))^2", ["z0", "Kwall", "delta"], wall, i=3)
+            wallx1 = addPotential(u, "step((x+delta) - x1) * Kwall * ((x+delta) - x1)^2", ["x1", "Kwall", "delta"], wall, i=4)
+            wally1 = addPotential(u, "step((y+delta) - y1) * Kwall * ((y+delta) - y1)^2", ["y1", "Kwall", "delta"], wall, i=5)
+            wallz1 = addPotential(u, "step((z+delta) - z1) * Kwall * ((z+delta) - z1)^2", ["z1", "Kwall", "delta"], wall, i=6)
+            self.system.addForce(deepcopy(wallx0))
+            self.system.addForce(deepcopy(wally0))
+            self.system.addForce(deepcopy(wallz0))
+            self.system.addForce(deepcopy(wallx1))
+            self.system.addForce(deepcopy(wally1))
+            self.system.addForce(deepcopy(wallz1))
+            print("Adding Wall Potentials - finished")
+        
         ### Run REM with Additional Torsions
         self.u         = u
         self.positions = self.final.positions

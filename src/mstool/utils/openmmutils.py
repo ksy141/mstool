@@ -521,6 +521,17 @@ def runMartiniEMNPT(dms_in, out, pos_in=None, soft=False, A=200, C=50,
 # Instead, using the below
 # ctf = k*min(dtheta, 2*pi-dtheta)^2; dtheta = abs(theta-theta0); pi = 3.1415926535
 
+def addPotential(u, expression, parameters, param_values, i=0):
+    pot = CustomExternalForce(expression)
+    pot.setName(f'ExternalPotential{i}')
+    for name in parameters:
+        pot.addGlobalParameter(name, param_values[name])
+    
+    for i, row in u.atoms.iterrows():
+        if row['resname'].startswith('ROCK'):
+            continue
+        pot.addParticle(i, [])
+    return pot
 
 def addPeptideTorsions(u, Kpeptide):
     t1 = time.time()

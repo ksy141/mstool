@@ -69,21 +69,22 @@ class CheckStructure:
                 atomC  = self.u.atoms[bA & bA3]
                 atomD  = self.u.atoms[bA & bA4]
                 atomE  = self.u.atoms[bA & bA5]
+                
+                if len(target) == len(center) == len(atomC) == len(atomD) == len(atomE):
+                    BA = target[['x','y','z']].to_numpy() - center[['x','y','z']].to_numpy()
+                    CD = atomD[['x','y','z']].to_numpy()  - atomC[['x','y','z']].to_numpy()
+                    DE = atomE[['x','y','z']].to_numpy()  - atomD[['x','y','z']].to_numpy()
 
-                assert len(target) == len(center) == \
-                    len(atomC) == len(atomD) == len(atomE), \
-                    "the length of atoms is different"
+                    v   = np.cross(CD, DE)
+                    cos = np.sum(BA * v, axis=-1) / np.linalg.norm(BA, axis=-1) / np.linalg.norm(v, axis=-1)
+                    TF  = cos < 0.0
 
-                BA = target[['x','y','z']].to_numpy() - center[['x','y','z']].to_numpy()
-                CD = atomD[['x','y','z']].to_numpy()  - atomC[['x','y','z']].to_numpy()
-                DE = atomE[['x','y','z']].to_numpy()  - atomD[['x','y','z']].to_numpy()
-
-                v   = np.cross(CD, DE)
-                cos = np.sum(BA * v, axis=-1) / np.linalg.norm(BA, axis=-1) / np.linalg.norm(v, axis=-1)
-                TF  = cos < 0.0
-
-                if np.sum(TF) != 0:
-                    self.reports.append(['chiral', resname, target[TF].resid.to_numpy(), target[TF].chain.to_numpy()])
+                    if np.sum(TF) != 0:
+                        self.reports.append(['chiral', resname, target[TF].resid.to_numpy(), target[TF].chain.to_numpy()])
+                
+                else:
+                    print("Chiral: the length of atoms is different")
+                    print(resname, chiral)
 
 
     def CheckCisTrans(self):
@@ -113,36 +114,36 @@ class CheckStructure:
                     a2  = self.u.atoms[bA & bA2]                
                     a3  = self.u.atoms[bA & bA3]
                     a4  = self.u.atoms[bA & bA4]
+                    
+                    if len(a1) == len(a2) == len(a3) == len(a4):
+                        dr1 = a2[['x','y','z']].to_numpy() - a1[['x','y','z']].to_numpy()
+                        dr2 = a3[['x','y','z']].to_numpy() - a2[['x','y','z']].to_numpy()
+                        dr3 = a4[['x','y','z']].to_numpy() - a3[['x','y','z']].to_numpy()
 
-                    assert len(a1) == len(a2) == \
-                        len(a3) == len(a4), \
-                        "the length of atoms is different"
+                        plane1 = np.cross(dr1, dr2)
+                        plane2 = np.cross(dr2, dr3)
 
-                    dr1 = a2[['x','y','z']].to_numpy() - a1[['x','y','z']].to_numpy()
-                    dr2 = a3[['x','y','z']].to_numpy() - a2[['x','y','z']].to_numpy()
-                    dr3 = a4[['x','y','z']].to_numpy() - a3[['x','y','z']].to_numpy()
+                        plane1 /= np.linalg.norm(plane1, axis=-1)[:, np.newaxis]
+                        plane2 /= np.linalg.norm(plane2, axis=-1)[:, np.newaxis]
 
-                    plane1 = np.cross(dr1, dr2)
-                    plane2 = np.cross(dr2, dr3)
+                        # cis:   cos > 0.0
+                        # trans: cos < 0.0
+                        cos = np.sum(plane1 * plane2, axis=-1)
 
-                    plane1 /= np.linalg.norm(plane1, axis=-1)[:, np.newaxis]
-                    plane2 /= np.linalg.norm(plane2, axis=-1)[:, np.newaxis]
+                        # trans... but if cis, something went wrong
+                        if isomer == 'trans':
+                            TF = cos > 0.0
+                            if np.sum(TF) != 0:
+                                self.reports.append(['trans', resname, a1[TF].resid.to_numpy(), a1[TF].chain.to_numpy()])
 
-                    # cis:   cos > 0.0
-                    # trans: cos < 0.0
-                    cos = np.sum(plane1 * plane2, axis=-1)
+                        if isomer == 'cis':
+                            TF = cos < 0.0
+                            if np.sum(TF) != 0:
+                                self.reports.append(['cis', resname, a1[TF].resid.to_numpy(), a1[TF].chain.to_numpy()])
 
-                    # trans... but if cis, something went wrong
-                    if isomer == 'trans':
-                        TF = cos > 0.0
-                        if np.sum(TF) != 0:
-                            self.reports.append(['trans', resname, a1[TF].resid.to_numpy(), a1[TF].chain.to_numpy()])
-
-                    if isomer == 'cis':
-                        TF = cos < 0.0
-                        if np.sum(TF) != 0:
-                            self.reports.append(['cis', resname, a1[TF].resid.to_numpy(), a1[TF].chain.to_numpy()])
-
+                    else:
+                        print("CisTrans: the length of atoms is different")
+                        print(resname, conf)
 
 
     def CheckDihedral(self):

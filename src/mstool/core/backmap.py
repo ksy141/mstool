@@ -1,6 +1,7 @@
 import os
 import shutil
 import numpy as np
+import time
 from  openmm.app import *
 from .readmappings     import ReadMappings
 from .readxml          import ReadXML
@@ -26,7 +27,9 @@ class Backmap:
                  nsteps=10000, rem_nsteps=0, turn_off_EMNVT=False, T=310, sanitizeMartini=True,
                  changename={':CHOL':':CHL1',':ION@NA':':SOD@SOD',':NA@NA':':SOD@SOD',
                              ':ION@CL':':CLA@CLA',':CL@CL':':CLA@CLA',':ION@CA':':CAL@CAL'},
-                 changename_add={}):
+                 changename_add={}, wall=None, skip_ungroup=False):
+        
+        time1 = time.time()
 
         ### workdir
         if not use_existing_workdir: os.mkdir(workdir)
@@ -64,19 +67,20 @@ class Backmap:
                 print(f'Using rock="{AA}"')
 
         ### Ungroup
-        if sanitizeMartini:
-            structure = Universe(structure)
-            for key, value in changename_add.items():
-                changename[key] = value
-            structure.changeName(changename)
+        if not skip_ungroup:
+            if sanitizeMartini:
+                structure = Universe(structure)
+                for key, value in changename_add.items():
+                    changename[key] = value
+                structure.changeName(changename)
 
-        Ungroup(structure, out=workdir + f'/step{fileindex}_ungroup.dms', 
-                mapping=mapping, mapping_add=mapping_add, backbone=backbone,
-                water_resname=water_resname,
-                water_chain=water_chain, water_number=water_number,
-                water_fibor=water_fibor, water_chain_dms=water_chain_dms,
-                sort=True, use_AA_structure=use_AA_structure,
-                AA_structure=AA_structure, AA_structure_add=AA_structure_add, AA_shrink_factor=0.8)
+            Ungroup(structure, out=workdir + f'/step{fileindex}_ungroup.dms', 
+                    mapping=mapping, mapping_add=mapping_add, backbone=backbone,
+                    water_resname=water_resname,
+                    water_chain=water_chain, water_number=water_number,
+                    water_fibor=water_fibor, water_chain_dms=water_chain_dms,
+                    sort=True, use_AA_structure=use_AA_structure,
+                    AA_structure=AA_structure, AA_structure_add=AA_structure_add, AA_shrink_factor=0.8)
         
         REM(structure   = workdir + f'/step{fileindex}_ungroup.dms', 
             outrem      = workdir + f'/step{fileindex+1}_rem.dms',
@@ -105,14 +109,15 @@ class Backmap:
             Kpeptide    = Kpeptide, 
             Kcistrans   = Kcistrans, 
             Kdihedral   = Kdihedral,
+            wall        = wall,
             turn_off_EMNVT = turn_off_EMNVT)
         
 
         ### CheckStructure
-        CheckStructure(structure   = workdir + f'/step{fileindex+2}_em.dms', 
-                       log         = workdir + '/log.txt',
-                       mapping     = mapping,
-                       mapping_add = mapping_add)
+        self.check = CheckStructure(structure   = workdir + f'/step{fileindex+2}_em.dms', 
+                                    log         = workdir + '/log.txt',
+                                    mapping     = mapping,
+                                    mapping_add = mapping_add)
 
 
         ### Combine
@@ -162,6 +167,10 @@ class Backmap:
             #step3file = workdir + f'/step{fileindex+3}_final'
             #Universe(step3file + '.dms').write(step3file + '.pdb')
             #CheckTetrahedron(step3file + '.dms', ff=ff, ff_add=ff_add)
+        
+        time2 = time.time()
+        with open(f'{workdir}/time.txt', 'w') as W:
+            W.write(f'{(time2 - time1)/60:.3f} min\n')
 
 
     def checkMappingXML(self, map, xml):
