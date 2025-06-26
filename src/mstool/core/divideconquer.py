@@ -1,10 +1,13 @@
 from .universe import Universe, Merge, Wrap
 from .backmap import Backmap
 from .rem import REM
+from ..lib.distance import distance_matrix
 import os
 import numpy as np
 import time
 import pickle
+from scipy.cluster.hierarchy import linkage, fcluster
+from scipy.spatial.distance import squareform
 
 class DivideConquer:
     def __init__(self, structure, Nx, Ny, Nz, workdir='workdir', AA=None, pbc=True, wrap=False, std_threshold=80):
@@ -44,7 +47,7 @@ class DivideConquer:
         self.dz = u.dimensions[2] / self.Nz
 
 
-    def create(self, shift=False, **kwargs):
+    def create(self, shift=False, protein_distance_cutoff=25, **kwargs):
         '''use shift=True if center is origin [0, 0, 0]'''
 
         time1 = time.time()
@@ -66,25 +69,55 @@ class DivideConquer:
             u.write(f'{self.workdir}/input.dms')
 
         protein = Universe(u.select('protein'))
+        protein.dimensions = u.dimensions
         if len(protein.atoms) > 0:
-            protein.dimensions = u.dimensions
-            protein.write(self.workdir + '/protein.pdb')
- 
-            flipped = 100
-            for i in range(3):
-                try:
-                    # sometimes NaN
-                    bm = Backmap(structure = self.workdir + '/protein.pdb', 
-                                 workdir   = self.workdir + '/protein', 
-                                 turn_off_EMNVT=False, use_existing_workdir=True, nsteps=0, **kwargs)
-                    flipped = bm.check.output['peptide'] + bm.check.output['chiral'] 
-                    if flipped == 0:
-                        break
+            os.makedirs(self.workdir + '/protein', exist_ok=True)
+            protein.write(self.workdir + '/protein/protein.pdb')
+            protein.write(self.workdir + '/protein/protein.dms')
 
-                except:
-                    pass
+            protein_pos = {}
+            for chain, group in protein.select('protein & @BB').groupby('chain'):
+                protein_pos[chain] = group[['x','y','z']].to_numpy()
+            
+            protein_dm = np.zeros((len(protein_pos.keys()), len(protein_pos.keys())))
+            for i, (chaini, posi) in enumerate(protein_pos.items()):
+                for j, (chainj, posj) in enumerate(protein_pos.items()):
+                    if i >= j: continue
+                    protein_dm[i, j] = np.min(distance_matrix(posi, posj, u.dimensions))
+                    protein_dm[j, i] = protein_dm[i, j]
+            
+            Z = linkage(squareform(protein_dm))
+            labels = fcluster(Z, t=protein_distance_cutoff, criterion='distance')
+            unique_labels = np.unique(labels)
 
-            proteinAA = Universe(self.workdir + '/protein/step4_final.pdb')
+            for label in unique_labels:
+                os.makedirs(f'{self.workdir}/protein/{label}', exist_ok=True)
+                label_chains  = np.array(list(protein_pos.keys()))[label == labels]
+                label_protein = Universe(protein.atoms[protein.atoms['chain'].isin(label_chains)])
+                label_protein.dimensions = u.dimensions
+                label_protein.cell = u.cell
+                label_protein.write(f'{self.workdir}/protein/{label}/protein.pdb')
+
+                flipped = 100
+                for i in range(3):
+                    try:
+                        # sometimes NaN
+                        bm = Backmap(structure = f'{self.workdir}/protein/{label}/protein.dms', 
+                                     workdir   = f'{self.workdir}/protein/{label}/workdir',
+                                     turn_off_EMNVT=False, use_existing_workdir=True, nsteps=0, **kwargs)
+                        flipped = bm.check.output['peptide'] + bm.check.output['chiral'] 
+                        if flipped == 0:
+                            break
+
+                    except:
+                        pass
+            
+            proteinAA = Universe()
+            for label in unique_labels:
+                proteinAA = Merge(proteinAA.atoms, Universe(f'{self.workdir}/protein/{label}/workdir/step4_final.dms').atoms)
+            proteinAA.dimensions = u.dimensions
+            proteinAA.cell = u.cell
+
 
         else:
             proteinAA = Universe()
