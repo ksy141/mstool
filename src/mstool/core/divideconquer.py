@@ -96,7 +96,7 @@ class DivideConquer:
                 label_protein = Universe(protein.atoms[protein.atoms['chain'].isin(label_chains)])
                 label_protein.dimensions = u.dimensions
                 label_protein.cell = u.cell
-                label_protein.write(f'{self.workdir}/protein/{label}/protein.pdb')
+                label_protein.write(f'{self.workdir}/protein/{label}/protein.dms')
 
                 flipped = 100
                 for i in range(3):
