@@ -221,7 +221,7 @@ class Ungroup(Universe):
                            chain   = [chain] * len(BB),
                            resname = BB.resname.tolist(),
                            resid   = BB.resid.tolist(),
-                           pos     = BB[['x','y','z']])
+                           pos     = BB[['x','y','z']] + (np.random.rand(len(BB), 3) - 0.5) * 0.3)
 
             ### BACKBONE
             ca1 = r[1:-1] - r[:-2]

@@ -1,4 +1,4 @@
-from .universe import Universe, Merge
+from .universe import Universe, Merge, Wrap
 from .backmap import Backmap
 from .rem import REM
 import os
@@ -7,10 +7,11 @@ import time
 import pickle
 
 class DivideConquer:
-    def __init__(self, structure, Nx, Ny, Nz, workdir='workdir', AA=None, pbc=True):
+    def __init__(self, structure, Nx, Ny, Nz, workdir='workdir', AA=None, pbc=True, wrap=False, std_threshold=80):
         '''As it relies on cog, lipids should be whole/unwrapped. However, proteins should be unwrapped. systems should be [0, L]'''
         self.structure = structure
         self.workdir   = workdir
+        self.wrap      = wrap
         self.AA = AA
         self.Nx = Nx
         self.Ny = Ny
@@ -18,6 +19,9 @@ class DivideConquer:
         
         self.translate = np.zeros(3)
         u = Universe(structure)
+        if wrap:
+            u = Wrap(u, std_threshold=std_threshold)
+
         if u.dimensions is None or u.dimensions[0] * u.dimensions[1] * u.dimensions[2] == 0 or not pbc:
             dimensions     = u.atoms[['x','y','z']].max(axis=0).to_numpy() \
                            - u.atoms[['x','y','z']].min(axis=0).to_numpy() \
@@ -54,7 +58,7 @@ class DivideConquer:
             u.atoms[['x','y','z']] += u.dimensions[0:3] / 2
             self.translate += u.dimensions[0:3] / 2
         
-        if np.all(self.translate == np.zeros(3)):
+        if np.all(self.translate == np.zeros(3)) and not self.wrap:
             # writing takes some time. Do not write unless necessary
             pass
         else:
@@ -65,12 +69,20 @@ class DivideConquer:
         if len(protein.atoms) > 0:
             protein.dimensions = u.dimensions
             protein.write(self.workdir + '/protein.pdb')
-            
+ 
             flipped = 100
-            for i in range(5):
-                bm = Backmap(structure = self.workdir + '/protein.pdb', 
-                             workdir   = self.workdir + '/protein', 
-                             turn_off_EMNVT=True, **kwargs)
+            for i in range(3):
+                try:
+                    # sometimes NaN
+                    bm = Backmap(structure = self.workdir + '/protein.pdb', 
+                                 workdir   = self.workdir + '/protein', 
+                                 turn_off_EMNVT=False, use_existing_workdir=True, nsteps=0, **kwargs)
+                    flipped = bm.check.output['peptide'] + bm.check.output['chiral'] 
+                    if flipped == 0:
+                        break
+
+                except:
+                    pass
 
             proteinAA = Universe(self.workdir + '/protein/step4_final.pdb')
 
@@ -137,7 +149,7 @@ class DivideConquer:
                     bAx = partition(i, self.dx, self.Nx, newAA.atoms['x'])
                     bAy = partition(j, self.dy, self.Ny, newAA.atoms['y'])
                     bAz = partition(k, self.dz, self.Nz, newAA.atoms['z'])
-                    subAA = Universe(newAA.atoms[bAx & bAy & bAz])
+                    subAA = Universe(newAA.atoms[newAA.atoms['resn'].isin(newAA.atoms[bAx & bAy & bAz]['resn'])])
                     if len(subAA.atoms) > 0:
                         subAA.write(subworkdir + '/AA.dms')
 

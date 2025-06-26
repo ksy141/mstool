@@ -1,7 +1,7 @@
 from .version import __version__
 from .authors import __authors__
 
-from .core.universe         import Universe, Merge, RemoveOverlappedResidues
+from .core.universe         import Universe, Merge, RemoveOverlappedResidues, Wrap
 from .core.rem              import REM
 from .core.readmappings     import ReadMappings
 from .core.readmartini      import ReadMartini

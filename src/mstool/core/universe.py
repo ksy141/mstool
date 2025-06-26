@@ -881,4 +881,30 @@ def RemoveOverlappedResidues(atoms1, atoms2, rcut, dimensions=None, returnoverla
 
     return u
 
+def Wrap(u, std_threshold=80):
+    if u.dimensions is None or u.dimensions[0] * u.dimensions[1] * u.dimensions[2] == 0:
+        print("dimensions should be defined to use Wrap")
+        return u
+
+    agg   = u.atoms.groupby('resn').agg(avgx=('x', 'mean'), avgy=('y', 'mean'), avgz=('z', 'mean'), stdx=('x', 'std'), stdy=('y', 'std'), stdz=('z', 'std'))
+    resnx = agg[agg['stdx'] > std_threshold].index
+    resny = agg[agg['stdy'] > std_threshold].index
+    resnz = agg[agg['stdz'] > std_threshold].index
+    
+    for res in resnx:
+        bA1 = u.atoms.resn == res
+        bA2 = u.atoms['x'] < agg.loc[res]['avgx']
+        u.atoms.loc[bA1 & bA2, 'x'] += u.dimensions[0]
+
+    for res in resny:
+        bA1 = u.atoms.resn == res
+        bA2 = u.atoms['y'] < agg.loc[res]['avgy']
+        u.atoms.loc[bA1 & bA2, 'y'] += u.dimensions[1]
+
+    for res in resnz:
+        bA1 = u.atoms.resn == res
+        bA2 = u.atoms['z'] < agg.loc[res]['avgz']
+        u.atoms.loc[bA1 & bA2, 'z'] += u.dimensions[2]
+
+    return u
 
