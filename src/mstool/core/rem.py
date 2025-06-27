@@ -126,7 +126,6 @@ class REM:
                     pdb.topology.addBond(pdbatoms[bond[0]], pdbatoms[bond[1]])
 
             realpbc = pdb.topology.getPeriodicBoxVectors()
-            #print(realpbc)
 
         else:
             raise IOError('Please provide a pdb or dms file')
@@ -341,10 +340,11 @@ class REM:
                 #u.bonds = self.bonds
 
             if out:
-                if pbc:
-                    u.write(out, wrap=True)
-                else:
-                    u.write(out)
+                u.write(out)
+                #if pbc:
+                #    u.write(out, wrap=True)
+                #else:
+                #    u.write(out)
         
         #CheckTetrahedron(out, ff=ff, ff_add=ff_add)
         self.universe = u
