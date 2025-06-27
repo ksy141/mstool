@@ -104,7 +104,7 @@ class DivideConquer:
                         # sometimes NaN
                         bm = Backmap(structure = f'{self.workdir}/protein/{label}/protein.dms', 
                                      workdir   = f'{self.workdir}/protein/{label}/workdir',
-                                     turn_off_EMNVT=False, use_existing_workdir=True, nsteps=0, **kwargs)
+                                     turn_off_EMNVT=True, use_existing_workdir=True, **kwargs)
                         flipped = bm.check.output['peptide'] + bm.check.output['chiral'] 
                         if flipped == 0:
                             break
