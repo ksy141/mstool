@@ -685,7 +685,7 @@ def addCisTransTorsions(u, Kcistrans, mapping, exclude=[], turn_off_torsion_warn
                 
                 assert len(atomA) == len(atomB) == \
                     len(atomC) == len(atomD), \
-                    "the length of atoms for cistrans torsions is different"
+                    f"{resname}-{atomset} the length of atoms for cistrans torsions is different"
 
                 for a, b, c, d in zip(atomA, atomB, atomC, atomD):
                     N += 1
