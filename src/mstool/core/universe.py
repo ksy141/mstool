@@ -815,6 +815,7 @@ def Merge(*args, sort=False, ignore_index=True):
     
     u.atoms = pd.concat(atoms, ignore_index=ignore_index)
     if sort: u.sort()
+    u.addResidues()
     return u
 
 

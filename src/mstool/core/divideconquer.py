@@ -9,6 +9,65 @@ import pickle
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import squareform
 
+def _run_protein(label, workdir, extra_kw=None):
+    """Wrapper for Backmap on one protein cluster."""
+    kwargs = extra_kw or {} # safety – None → {}
+    flipped = 100
+    for i in range(3):
+        try:
+            # sometimes NaN
+            bm = Backmap(structure = f'{workdir}/protein/{label}/protein.dms',
+                         workdir   = f'{workdir}/protein/{label}/workdir',
+                         turn_off_EMNVT=False, nsteps=0, use_existing_workdir=True, wall=None, **kwargs)
+            flipped = bm.check.output['peptide'] + bm.check.output['chiral']
+            if flipped == 0:
+                break
+    
+        except Exception as e:
+            print(f"[ERROR] Backmap failed for {workdir}/protein/{label}: {e}", flush=True)
+
+
+def _run_subregion(workdir, i, j, k, dx, dy, dz, Kwall=1000, delta=0.1, rerun_unsuccesful=False, extra_kw=None):
+    """Work on one (i,j,k) sub-box. Backmap one spatial box (i,j,k)"""
+    kwargs = extra_kw or {}
+    subdir = f'{workdir}/{i}_{j}_{k}'
+
+    wall = {
+        "x0": i * dx * 0.1, "x1": (i + 1) * dx * 0.1,
+        "y0": j * dy * 0.1, "y1": (j + 1) * dy * 0.1,
+        "z0": k * dz * 0.1, "z1": (k + 1) * dz * 0.1,
+        "Kwall": Kwall, "delta": delta,
+    }
+    
+    # Save dictionary to a file
+    with open(f'{subdir}/wall.pkl', 'wb') as f:
+        pickle.dump(wall, f)
+
+    ## Load dictionary from a file
+    #with open('{subdir}/wall.pkl', 'rb') as f:
+    #    wall = pickle.load(f)
+
+    if rerun_unsuccesful and os.path.exists(f'{subdir}/workdir/step4_final.dms'):
+        print(f"[SKIP] {subdir}: already finished", flush=True)
+        return
+    
+    if os.path.exists(f'{subdir}/input.dms'):
+        flipped = 100
+        for idx in range(3):
+            bm = Backmap(
+                    structure=f'{subdir}/input.dms',
+                    workdir=f'{subdir}/workdir',
+                    AA=f'{subdir}/AA.dms' if os.path.exists(f'{subdir}/AA.dms') else None,
+                    pbc=False, wall=wall, turn_off_EMNVT=True, use_existing_workdir=True, **kwargs
+            )
+
+            flipped = bm.check.output['cistrans'] + bm.check.output['chiral']
+            if flipped == 0:
+                break
+
+    print(f"[DONE] {subdir}", flush=True)
+
+
 class DivideConquer:
     def __init__(self, structure, Nx, Ny, Nz, workdir='workdir', AA=None, pbc=True, wrap=False, std_threshold=80):
         '''As it relies on cog, lipids should be whole/unwrapped. However, proteins should be unwrapped. systems should be [0, L]'''
@@ -47,7 +106,7 @@ class DivideConquer:
         self.dz = u.dimensions[2] / self.Nz
 
 
-    def create(self, shift=False, protein_distance_cutoff=25, **kwargs):
+    def create(self, shift=False, protein_distance_cutoff=25, parallel=True, num_workers=None, **backmap_kw):
         '''use shift=True if center is origin [0, 0, 0]'''
 
         time1 = time.time()
@@ -97,27 +156,27 @@ class DivideConquer:
                 label_protein.dimensions = u.dimensions
                 label_protein.cell = u.cell
                 label_protein.write(f'{self.workdir}/protein/{label}/protein.dms')
+            
+            arglist = [(label, self.workdir, backmap_kw) for label in unique_labels]
 
-                flipped = 100
-                for i in range(3):
-                    try:
-                        # sometimes NaN
-                        bm = Backmap(structure = f'{self.workdir}/protein/{label}/protein.dms', 
-                                     workdir   = f'{self.workdir}/protein/{label}/workdir',
-                                     turn_off_EMNVT=False, nsteps=0, use_existing_workdir=True, wall=None, **kwargs)
-                        flipped = bm.check.output['peptide'] + bm.check.output['chiral'] 
-                        if flipped == 0:
-                            break
+            if parallel:
+                from multiprocessing import Pool, cpu_count
+    
+                if num_workers is None:
+                    num_workers = min(cpu_count(), len(arglist))
+    
+                with Pool(processes=num_workers) as pool:
+                    pool.starmap(_run_protein, arglist)
 
-                    except:
-                        pass
+            else:
+                for arg in arglist:
+                    _run_protein(*arg)
             
             proteinAA = Universe()
             for label in unique_labels:
                 proteinAA = Merge(proteinAA.atoms, Universe(f'{self.workdir}/protein/{label}/workdir/step4_final.dms').atoms)
             proteinAA.dimensions = u.dimensions
             proteinAA.cell = u.cell
-
 
         else:
             proteinAA = Universe()
@@ -190,71 +249,26 @@ class DivideConquer:
         with open(f'{self.workdir}/time_create.txt', 'w') as W:
             W.write(f'{(time2 - time1)/60:.3f} min\n')
 
-    def _run_subregion(self, i, j, k, Kwall=1000, delta=0.1, rerun_unsuccesful=False, **kwargs):
-        """
-        Work on one (i,j,k) sub-box.
-        All *extra* keyword arguments are forwarded unchanged to Backmap.
-        """
-        subdir = f'{self.workdir}/{i}_{j}_{k}'
 
-        wall = {
-            "x0": i * self.dx * 0.1, "x1": (i + 1) * self.dx * 0.1,
-            "y0": j * self.dy * 0.1, "y1": (j + 1) * self.dy * 0.1,
-            "z0": k * self.dz * 0.1, "z1": (k + 1) * self.dz * 0.1,
-            "Kwall": Kwall, "delta": delta,
-        }
-        
-        # Save dictionary to a file
-        with open(f'{subdir}/wall.pkl', 'wb') as f:
-            pickle.dump(wall, f)
-
-        ## Load dictionary from a file
-        #with open('{subdir}/wall.pkl', 'rb') as f:
-        #    wall = pickle.load(f)
-
-        if rerun_unsuccesful and os.path.exists(f'{subdir}/workdir/step4_final.dms'):
-            return
-        
-        if os.path.exists(f'{subdir}/input.dms'):
-            flipped = 100
-            for idx in range(3):
-                bm = Backmap(
-                        structure=f'{subdir}/input.dms',
-                        workdir=f'{subdir}/workdir',
-                        AA=f'{subdir}/AA.dms' if os.path.exists(f'{subdir}/AA.dms') else None,
-                        pbc=False, wall=wall, turn_off_EMNVT=True, use_existing_workdir=True, **kwargs
-                )
-
-                flipped = bm.check.output['cistrans'] + bm.check.output['chiral']
-                if flipped == 0:
-                    break
-
-
-    def run(self, Kwall=1000, delta=0.1, rerun_unsuccesful=False, **kwargs):
-        for i in range(self.Nx):
-            for j in range(self.Ny):
-                for k in range(self.Nz):
-                    self._run_subregion(i, j, k, Kwall, delta, rerun_unsuccesful=rerun_unsuccesful, **kwargs)
-
-
-    def runParallel(self, Kwall=1000, delta=0.1, num_workers=None, rerun_unsuccesful=False, **kwargs):
-        """
-        Parallelised version of the original `run`.  All keyword arguments
-        that are *not* explicitly consumed (`Kwall`, `delta`, `num_workers`)
-        are cascaded to every `Backmap` call via **kwargs.
-        """
-        from functools import partial
+    def run(self, Kwall=1000, delta=0.1, rerun_unsuccesful=False, parallel=True, num_workers=None, **backmap_kw):
         from itertools import product
-        from multiprocessing import Pool, cpu_count
 
-        if num_workers is None:
-            num_workers = min(cpu_count(), self.Nx * self.Ny * self.Nz)
+        arglist = []
+        for i, j, k in product(range(self.Nx), range(self.Ny), range(self.Nz)):
+            arglist.append((self.workdir, i, j, k, self.dx, self.dy, self.dz, Kwall, delta, rerun_unsuccesful, backmap_kw))
 
-        # Pre-bind the constant parameters (Kwall, delta, and the user’s **kwargs)
-        task = partial(self._run_subregion, Kwall=Kwall, delta=delta, rerun_unsuccesful=rerun_unsuccesful, **kwargs)
+        if parallel:
+            from multiprocessing import Pool, cpu_count
+    
+            if num_workers is None:
+                num_workers = min(cpu_count(), self.Nx * self.Ny * self.Nz)
+    
+            with Pool(processes=num_workers) as pool:
+                pool.starmap(_run_subregion, arglist)
 
-        with Pool(processes=num_workers) as pool:
-            pool.starmap(task, product(range(self.Nx), range(self.Ny), range(self.Nz)))
+        else:
+            for arg in arglist:
+                _run_subregion(self.workdir, *arg)
 
 
     def combine(self, **kwargs):
