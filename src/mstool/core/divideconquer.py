@@ -57,8 +57,8 @@ def _run_subregion(workdir, i, j, k, dx, dy, dz, Kwall=1000, delta=0.1, rerun_un
             bm = Backmap(
                     structure=f'{subdir}/input.dms',
                     workdir=f'{subdir}/workdir',
-                    AA=f'{subdir}/AA.dms' if os.path.exists(f'{subdir}/AA.dms') else None,
-                    pbc=False, wall=wall, turn_off_EMNVT=True, use_existing_workdir=True, **kwargs
+                    rock=f'{subdir}/AA.dms' if os.path.exists(f'{subdir}/AA.dms') else None,
+                    AA=None, pbc=False, wall=wall, turn_off_EMNVT=True, use_existing_workdir=True, **kwargs
             )
 
             flipped = bm.check.output['cistrans'] + bm.check.output['chiral']
@@ -207,7 +207,7 @@ class DivideConquer:
         #    newAA.atoms[['x','y','z']] -= u.dimensions[0:3] * np.round(newAA.atoms[['x','y','z']].to_numpy() / u.dimensions[0:3])
 
         # Non-protein
-        lipids  = Universe(u.atoms[~u.select('protein', returnbA=True)])
+        lipids  = Universe(u.atoms[~u.select('protein | nucleic', returnbA=True)])
         lipids.dimensions = u.dimensions
         cog = lipids.atoms.groupby('resn').agg({'x': 'mean', 'y': 'mean', 'z': 'mean'})
 
@@ -289,7 +289,7 @@ class DivideConquer:
 
         Backmap(structure=f'{self.workdir}/step1_ungroup.dms',
                 workdir=self.workdir,
-                AA=f'{self.workdir}/AA.pdb' if os.path.exists(f'{self.workdir}/AA.pdb') else None,
+                AA=f'{self.workdir}/AA.dms' if os.path.exists(f'{self.workdir}/AA.dms') else None,
                 use_existing_workdir=True,
                 skip_ungroup=True, **kwargs)
 

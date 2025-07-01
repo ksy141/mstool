@@ -1203,7 +1203,8 @@ def getBonds(structure, ff=[], ff_add=[]):
         ### O3': +P bonds
         bAO3 = chain_atoms['name'] == "O3'"
         bAP  = chain_atoms['name'] == 'P'
-        assert np.sum(bAO3) == np.sum(bAP) + 1, f"nucleic: len(O3')={np.sum(bAO3)}, len(P)={np.sum(bAP)}"
+        assert np.sum(bAO3) == np.sum(bAP) + 1, \
+                f"nucleic {chain}: len(O3')={np.sum(bAO3)}, len(P)={np.sum(bAP)}"
         
         tmp = np.array([chain_atoms[bAO3].index[:-1], chain_atoms[bAP].index], dtype=np.int64).T
         data.extend(list(tmp))
