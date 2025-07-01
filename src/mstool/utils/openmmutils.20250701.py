@@ -1124,151 +1124,104 @@ def getBonds(structure, ff=[], ff_add=[]):
         u = structure
 
     print("Adding bonds - started")
-
-    ### RESIDUES
-    #for resname in set(u.atoms.resname):
-    #    if resname not in xml.RESI.keys():
-    #        print(f'Warning: openMM xml does not have {resname}')
-    #        continue
-
-    #    bonds = xml.RESI[resname]['bonds']
-
-    #    for bond in bonds:
-    #        bA0 = u.atoms.resname == resname
-    #        bA1 = u.atoms.name.isin(bond)
-    #        new = u.atoms[bA0 & bA1]
-
-    #        for i in range(len(new.index) - 1):
-    #            if new.iloc[i].resn == new.iloc[i+1].resn:
-    #                data.append([new.iloc[i].id, new.iloc[i+1].id])
-
-    # Precompute atom attributes once
-    atom_resname = u.atoms.resname.values
-    atom_name = u.atoms.name.values
-    atom_id = u.atoms.id.values
-    atom_resn = u.atoms.resn.values
-    unique_resnames = np.unique(atom_resname)
-    
-    for resname in unique_resnames:
-        if resname not in xml.RESI:
+    for resname in set(u.atoms.resname):
+        if resname not in xml.RESI.keys():
             print(f'Warning: openMM xml does not have {resname}')
             continue
-    
-        bA_resname = atom_resname == resname
-        res_atoms_name = atom_name[bA_resname]
-        res_atoms_id = atom_id[bA_resname]
-        res_atoms_resn  = atom_resn[bA_resname]
-    
-        for bond in xml.RESI[resname]['bonds']:
-            bond_set = set(bond)
-            bA_bond = np.isin(res_atoms_name, bond)
-    
-            selected_ids = res_atoms_id[bA_bond]
-            selected_names = res_atoms_name[bA_bond]
-            selected_resns = res_atoms_resn[bA_bond]
-   
-            for i in range(len(selected_ids) - 1):
-                if selected_resns[i] == selected_resns[i + 1]:
-                    data.append([selected_ids[i], selected_ids[i + 1]])
 
+        bonds = xml.RESI[resname]['bonds']
+
+        for bond in bonds:
+            bA0 = u.atoms.resname == resname
+            bA1 = u.atoms.name.isin(bond)
+            new = u.atoms[bA0 & bA1]
+
+            for i in range(len(new.index) - 1):
+                if new.iloc[i].resn == new.iloc[i+1].resn:
+                    data.append([new.iloc[i].id, new.iloc[i+1].id])
+
+            #bA0 = u.atoms.name == bond[0]
+            #bA1 = u.atoms.name == bond[1]
+
+            #atomA = u.atoms[bA & bA0].index
+            #atomB = u.atoms[bA & bA1].index
+            #
+            #assert len(atomA) == len(atomB), f"bond: /{resname} @{bond[0]} @{bond[1]}"
+
+            #for a, b in zip(atomA, atomB):
+            #    data.append([a, b])
+    
 
     ### PROTEIN BACKBONE
-    # Precompute
-    resname_mask = u.atoms.resname.isin(three2one)
-    protein_atoms = u.atoms[resname_mask]
-    protein_chains = protein_atoms.chain.unique()
-    
-    # Use local variables to speed up attribute access
-    atom_chain = protein_atoms.chain.values
-    atom_name = protein_atoms.name.values
-    atom_resid = protein_atoms.resid.values
-    atom_index = protein_atoms.index.values
-    
-    for chain in protein_chains:
-        # Mask once
-        chain_mask = (atom_chain == chain)
-        chain_atoms = protein_atoms[chain_mask]
-        chain_names = atom_name[chain_mask]
-        chain_resids = atom_resid[chain_mask]
-        chain_indices = atom_index[chain_mask]
-    
-        resid_min = chain_resids.min()
-        resid_max = chain_resids.max()
-    
-        # Backbone N-C connections
-        bAN = chain_names == 'N'
-        bAC = chain_names == 'C'
-        assert bAN.sum() == bAC.sum(), f'protein: len(N) != len(C) in chain {chain}'
-    
-        data.extend(np.stack([chain_indices[bAC][:-1], chain_indices[bAN][1:]], axis=1))
-    
-        # N-terminal HT connections
-        nt_mask = (chain_resids == resid_min)
-        nt_names = chain_names[nt_mask]
-        nt_indices = chain_indices[nt_mask]
-        bAN_nt = nt_names == 'N'
-        bAH_nt = np.isin(nt_names, ['HT1', 'HT2', 'HT3'])
-        assert bAN_nt.sum() == 1, f'{bAN_nt.sum()} N termini in chain {chain}?'
-        data.extend([[nt_indices[bAN_nt][0], i] for i in nt_indices[bAH_nt]])
-    
-        # C-terminal OXT connections
-        ct_mask = (chain_resids == resid_max)
-        ct_names = chain_names[ct_mask]
-        ct_indices = chain_indices[ct_mask]
-        bAC_ct = ct_names == 'C'
-        bAO_ct = np.isin(ct_names, ['OT1', 'OT2', 'OXT1', 'OXT2', 'OXT'])
-        assert bAC_ct.sum() == 1, f'{bAC_ct.sum()} C termini in chain {chain}?'
-        data.extend([[ct_indices[bAC_ct][0], i] for i in ct_indices[bAO_ct]])
+    protein_bA     = u.atoms.resname.isin(three2one.keys())
+    protein_chains = u.atoms[protein_bA].chain.unique()
 
+    for chain in protein_chains:
+        chain_bA    = u.atoms.chain == chain
+        chain_atoms = u.atoms[protein_bA & chain_bA]
+        resid_min   = chain_atoms.resid.min()
+        resid_max   = chain_atoms.resid.max()
+        
+        ### C : +N bonds
+        bAN = chain_atoms['name'] == 'N'
+        bAC = chain_atoms['name'] == 'C'
+        assert np.sum(bAN) == np.sum(bAC), 'protein: len(N) != len(C)'
+            
+        tmp = np.array([chain_atoms[bAC].index[:-1], chain_atoms[bAN].index[1:]], dtype=np.int64).T
+        data.extend(list(tmp))
+        
+
+        ### 0N - HT1 HT2 HT3
+        residue_atoms = chain_atoms[chain_atoms.resid == resid_min]
+        bAN = residue_atoms['name'] == 'N'
+        bAH = residue_atoms['name'].isin(['HT1', 'HT2', 'HT3'])
+        assert np.sum(bAN) == 1, f'{np.sum(bAN)} N termini in chain {chain}?'
+
+        for i in residue_atoms[bAH].index:
+            data.append([residue_atoms[bAN].index[0], i])
+
+        ### -1C - OT1 OT2
+        residue_atoms = chain_atoms[chain_atoms.resid == resid_max]
+        bAC = residue_atoms['name'] == 'C'
+        bAO = residue_atoms['name'].isin(['OT1', 'OT2', 'OXT1', 'OXT2', 'OXT'])
+        assert np.sum(bAC) == 1, f'{np.sum(bAC)} C termini in chain {chain}?'
+
+        for i in residue_atoms[bAO].index:
+            data.append([residue_atoms[bAC].index[0], i])
 
 
     ### NUCLEIC BACKBONE
-    # Precompute selections and attributes
-    nucleic_bA = u.select('nucleic', returnbA=True)
-    nucleic_atoms = u.atoms[nucleic_bA]
-    
-    atom_chain = nucleic_atoms.chain.values
-    atom_name  = nucleic_atoms.name.values
-    atom_resid = nucleic_atoms.resid.values
-    atom_index = nucleic_atoms.index.values
-    
-    nucleic_chains = np.unique(atom_chain)
-    
+    nucleic_bA     = u.select('nucleic', returnbA=True)
+    nucleic_chains = u.atoms[nucleic_bA].chain.unique()
+
     for chain in nucleic_chains:
-        chain_mask = atom_chain == chain
-        chain_names = atom_name[chain_mask]
-        chain_resids = atom_resid[chain_mask]
-        chain_indices = atom_index[chain_mask]
-    
-        resid_min = chain_resids.min()
-        resid_max = chain_resids.max()
-    
-        # O3' - P backbone
-        bAO3 = chain_names == "O3'"
-        bAP  = chain_names == 'P'
-        n_O3 = np.sum(bAO3)
-        n_P  = np.sum(bAP)
-        assert n_O3 == n_P + 1, f"nucleic {chain}: len(O3')={n_O3}, len(P)={n_P}"
-    
-        data.extend(np.stack([chain_indices[bAO3][:-1], chain_indices[bAP]], axis=1))
-    
-        # Terminal: O5' - H5T (5' end)
-        nt_mask = chain_resids == resid_min
-        nt_names = chain_names[nt_mask]
-        nt_indices = chain_indices[nt_mask]
-    
-        bAO5 = nt_names == "O5'"
-        bAH5T = nt_names == "H5T"
-        data.append([nt_indices[bAO5][0], nt_indices[bAH5T][0]])
-    
-        # Terminal: O3' - H3T (3' end)
-        ct_mask = chain_resids == resid_max
-        ct_names = chain_names[ct_mask]
-        ct_indices = chain_indices[ct_mask]
-    
-        bAO3 = ct_names == "O3'"
-        bAH3T = ct_names == "H3T"
-        data.append([ct_indices[bAO3][0], ct_indices[bAH3T][0]])
+        chain_bA    = u.atoms.chain == chain
+        chain_atoms = u.atoms[nucleic_bA & chain_bA]
+        resid_min   = chain_atoms.resid.min()
+        resid_max   = chain_atoms.resid.max()
+
+        ### O3': +P bonds
+        bAO3 = chain_atoms['name'] == "O3'"
+        bAP  = chain_atoms['name'] == 'P'
+        assert np.sum(bAO3) == np.sum(bAP) + 1, \
+                f"nucleic {chain}: len(O3')={np.sum(bAO3)}, len(P)={np.sum(bAP)}"
+        
+        tmp = np.array([chain_atoms[bAO3].index[:-1], chain_atoms[bAP].index], dtype=np.int64).T
+        data.extend(list(tmp))
+ 
+
+        ### O5' - H5T
+        residue_atoms = chain_atoms[chain_atoms.resid == resid_min]
+        bAO5  = residue_atoms['name'] == "O5'"
+        bAH5T = residue_atoms['name'] == "H5T"
+        data.append([residue_atoms[bAO5].index[0], residue_atoms[bAH5T].index[0]])
+
+
+        ### O3' - H3T
+        residue_atoms = chain_atoms[chain_atoms.resid == resid_max]
+        bAO3  = residue_atoms['name'] == "O3'"
+        bAH3T = residue_atoms['name'] == "H3T"
+        data.append([residue_atoms[bAO3].index[0], residue_atoms[bAH3T].index[0]])
 
     print(f"Adding bonds - finished ({time.time() - t1:.2f} s)")
     return data

@@ -10,6 +10,7 @@ from .rem              import REM
 from .universe         import Universe, Merge
 from .checkstructure   import CheckStructure
 from .checktetrahedron import CheckTetrahedron
+from ..utils.openmmutils import *
 
 class Backmap:
 
@@ -52,20 +53,45 @@ class Backmap:
 
         ### Read AA and determine whether one should use protein or rock
         if AA:
-            try:
-                pdb = PDBFile(AA)
-                forcefield = ForceField('charmm36.xml', 'charmm36/water.xml')
-                system = forcefield.createSystem(pdb.topology)
-                protein = AA
-                rock    = None
-                print('All of the residues in the AA argument is recognizable in openMM')
-                print(f'Using protein="{AA}"')
+            if AA.endswith('.pdb'):
+                try:
+                    pdb = PDBFile(AA)
+                    forcefield = ForceField(*xml.ff)
+                    system = forcefield.createSystem(pdb.topology)
+                    protein = AA
+                    rock    = None
+                    print(f'All of the residues in {AA} is recognizable in openMM')
+                    print(f'Using protein="{AA}"')
 
-            except:
-                rock = AA
-                protein = None
-                print('Some of the residues in the AA argument is not recognizable in openMM')
-                print(f'Using rock="{AA}"')
+                except Exception as e:
+                    rock = AA
+                    protein = None
+                    print(e)
+                    print(f'Some of the residues in {AA} is not recognizable in openMM')
+                    print(f'Using rock="{AA}"')
+
+            elif AA.endswith('.dms'):
+                try:
+                    pdb   = DesmondDMSFile(structure)
+                    bonds = getBonds(structure, ff=ff, ff_add=ff_add)
+                    pdbatoms = [atom for atom in pdb.topology.atoms()]
+                    for bond in bonds:
+                        pdb.topology.addBond(pdbatoms[bond[0]], pdbatoms[bond[1]])
+                    forcefield = ForceField(*xml.ff)
+                    system = forcefield.createSystem(pdb.topology)
+                    protein = AA
+                    rock = None
+                    print(f'All of the residues in {AA} is recognizable in openMM')
+                    print(f'Using protein="{AA}"')
+
+
+                except Exception as e:
+                    rock = AA
+                    protein = None
+                    print(e)
+                    print(f'Some of the residues in {AA} is not recognizable with the provided FFs')
+                    print(f'Using rock="{AA}"')
+
 
         ### Ungroup
         if not skip_ungroup:
