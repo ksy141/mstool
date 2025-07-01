@@ -27,7 +27,7 @@ def _run_protein(label, workdir, extra_kw=None):
             print(f"[ERROR] Backmap failed for {workdir}/protein/{label}: {e}", flush=True)
 
 
-def _run_subregion(workdir, i, j, k, dx, dy, dz, Kwall=1000, delta=0.1, rerun_unsuccesful=False, extra_kw=None):
+def _run_subregion(workdir, i, j, k, dx, dy, dz, Kwall=1000, delta=0.02, rerun_unsuccesful=False, extra_kw=None):
     """Work on one (i,j,k) sub-box. Backmap one spatial box (i,j,k)"""
     kwargs = extra_kw or {}
     subdir = f'{workdir}/{i}_{j}_{k}'
@@ -250,7 +250,7 @@ class DivideConquer:
             W.write(f'{(time2 - time1)/60:.3f} min\n')
 
 
-    def run(self, Kwall=1000, delta=0.1, rerun_unsuccesful=False, parallel=True, num_workers=None, **backmap_kw):
+    def run(self, Kwall=1000, delta=0.02, rerun_unsuccesful=False, parallel=True, num_workers=None, **backmap_kw):
         from itertools import product
 
         arglist = []
