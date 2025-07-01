@@ -1031,9 +1031,13 @@ def addBonds(u, xml, pdb=None):
 
     # add bonds except for protein residues
     protein_resnames = three2one.keys()
+    nucleic_resnames = ['DA', 'DT', 'DG', 'DC', 'DU', 
+                        'ADE', 'URA', 'GUA', 'CYT', 'THY']
+
     for resname in set(u.atoms.resname):
         # openMM PDBFile takes care of protein bonds
         if resname in protein_resnames: continue
+        if resname in nucleic_resnames: continue
 
         if resname not in xml.RESI.keys():
             print(f'Warning: openMM xml does not have {resname}')

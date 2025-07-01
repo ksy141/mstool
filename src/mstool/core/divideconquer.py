@@ -127,7 +127,7 @@ class DivideConquer:
             u.write(f'{self.workdir}/input.pdb')
             u.write(f'{self.workdir}/input.dms')
 
-        protein = Universe(u.select('protein'))
+        protein = Universe(u.select('protein | nucleic'))
         protein.dimensions = u.dimensions
         if len(protein.atoms) > 0:
             os.makedirs(self.workdir + '/protein', exist_ok=True)
@@ -135,7 +135,7 @@ class DivideConquer:
             protein.write(self.workdir + '/protein/protein.dms')
 
             protein_pos = {}
-            for chain, group in protein.select('protein & @BB').groupby('chain'):
+            for chain, group in protein.select('(protein & @BB) | (nucleic & @BB2)').groupby('chain'):
                 protein_pos[chain] = group[['x','y','z']].to_numpy()
             
             protein_dm = np.zeros((len(protein_pos.keys()), len(protein_pos.keys())))
