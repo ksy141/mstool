@@ -77,6 +77,8 @@ class Ungroup(Universe):
 
 
         ### Construct
+        self.construct_backbone_nucleic()
+
         if self.backbone:
             # Prebuild backbone according to cg2aa paper
             self.construct_backbone()
@@ -178,6 +180,26 @@ class Ungroup(Universe):
                                pos     = pos)
 
 
+    def construct_backbone_nucleic(self):
+        chains = self.u.select('nucleic')['chain'].unique()
+        for chain in chains:
+            bA1 = self.u.atoms.chain == chain
+            bA2 = self.u.select('nucleic', returnbA=True)
+            bA3 = self.u.atoms.name == 'BB2'
+
+            BB2     = self.u.atoms[bA1 & bA2 & bA3]
+            resname = BB2['resname'].tolist()
+            resid   = BB2['resid'].tolist()
+            r       = BB2[['x','y','z']].to_numpy()
+
+            self.list2data(name    = ['H5T', 'H3T'],
+                           chain   = [chain, chain],
+                           resname = [resname[0], resname[-1]],
+                           resid   = [resid[0], resid[-1]],
+                           pos     = [r[0]  + (np.random.rand(3) - 0.5) * 0.3,
+                                      r[-1] + (np.random.rand(3) - 0.5) * 0.3])
+
+
     def construct_backbone(self):
         '''
         Construct a backbone according to the following CG2AA paper.
@@ -202,7 +224,7 @@ class Ungroup(Universe):
         sing2 = 0.245
         cos1166 = 0.44775908783 #CCN
         sin1166 = 0.89415423683 
-
+        
 
         for chain in self.chains:
             bA1 = self.u.atoms.chain == chain

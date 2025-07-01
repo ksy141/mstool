@@ -66,6 +66,8 @@ def changekey(dic):
 def amberSelection(string):
     if string == 'protein':
         data = {'resname': list(three2one.keys())}
+    elif string == 'nucleic':
+        data = {'resname': ['ADE', 'URA', 'GUA', 'CYT', 'THY', 'A', 'U', 'G', 'C', 'T', 'DA', 'DT', 'DG', 'DC']}
     else:
         data = changekey(dictsplit(strsplit2dict(string)))
     return data

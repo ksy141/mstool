@@ -1,7 +1,8 @@
 import os
 pwd = os.path.dirname(os.path.realpath(__file__))
 scheme = [pwd + '/../mapping/martini.protein.c36m.dat',
-          pwd + '/../mapping/martini.lipid.c36.dat']
+          pwd + '/../mapping/martini.lipid.c36.dat', 
+          pwd + '/../mapping/martini.na.c36.dat']
 
 
 class ReadMappings:

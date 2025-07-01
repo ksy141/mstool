@@ -1185,8 +1185,42 @@ def getBonds(structure, ff=[], ff_add=[]):
         for i in residue_atoms[bAO].index:
             data.append([residue_atoms[bAC].index[0], i])
 
+
+    ### NUCLEIC BACKBONE
+    nucleic_bA     = u.select('nucleic', returnbA=True)
+    nucleic_chains = u.atoms[nucleic_bA].chain.unique()
+
+    for chain in nucleic_chains:
+        chain_bA    = u.atoms.chain == chain
+        chain_atoms = u.atoms[nucleic_bA & chain_bA]
+        resid_min   = chain_atoms.resid.min()
+        resid_max   = chain_atoms.resid.max()
+
+        ### O3': +P bonds
+        bAO3 = chain_atoms['name'] == "O3'"
+        bAP  = chain_atoms['name'] == 'P'
+        assert np.sum(bAO3) == np.sum(bAP) + 1, f"nucleic: len(O3')={np.sum(bAO3)}, len(P)={np.sum(bAP)}"
+        
+        tmp = np.array([chain_atoms[bAO3].index[:-1], chain_atoms[bAP].index], dtype=np.int64).T
+        data.extend(list(tmp))
+ 
+
+        ### O5' - H5T
+        residue_atoms = chain_atoms[chain_atoms.resid == resid_min]
+        bAO5  = residue_atoms['name'] == "O5'"
+        bAH5T = residue_atoms['name'] == "H5T"
+        data.append([residue_atoms[bAO5].index[0], residue_atoms[bAH5T].index[0]])
+
+
+        ### O3' - H3T
+        residue_atoms = chain_atoms[chain_atoms.resid == resid_max]
+        bAO3  = residue_atoms['name'] == "O3'"
+        bAH3T = residue_atoms['name'] == "H3T"
+        data.append([residue_atoms[bAO3].index[0], residue_atoms[bAH3T].index[0]])
+
     print(f"Adding bonds - finished ({time.time() - t1:.2f} s)")
     return data
+
 
 def addFlatBottomZ(u, bfactor_posre, radius, rfb, R0z=0.0, fc=1000.0, chain=False):
     '''Apply Flat-bottomed position restraints for sphere simulations

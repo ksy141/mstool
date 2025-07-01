@@ -26,7 +26,8 @@ class Backmap:
                  use_existing_workdir=False, fileindex=1, pdbsave=True, cospower=2,
                  nsteps=10000, rem_nsteps=0, turn_off_EMNVT=False, T=310, sanitizeMartini=True,
                  changename={':CHOL':':CHL1',':ION@NA':':SOD@SOD',':NA@NA':':SOD@SOD',
-                             ':ION@CL':':CLA@CLA',':CL@CL':':CLA@CLA',':ION@CA':':CAL@CAL'},
+                             ':ION@CL':':CLA@CLA',':CL@CL':':CLA@CLA',':ION@CA':':CAL@CAL',
+                             ':A':   ':ADE', ':U':   ':URA',  ':G':  ':GUA',  ':C':  ':CYT',  ':T':  ':THY'},
                  changename_add={}, wall=None, skip_ungroup=False):
         
         time1 = time.time()
