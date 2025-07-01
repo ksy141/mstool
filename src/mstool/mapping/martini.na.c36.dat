@@ -1,8 +1,5 @@
 ;;; In Martini, 5'-RNA doesn't have BB1
 ;;; While 5'-DNA has BB1
-;;; For seamless Map <-> Backmap
-;;; I included O5' in BB2 for RNA
-;;; and O5' in BB1 for DNA
 
 ; RNA A
 ; 5' Terminus has no BB1 (P/O1P/O2P)
@@ -225,9 +222,9 @@ H1'  C1' O4' N1  C2'
 RESI DA
 [ BB1 ]
 P O1P O2P 
-O5'
 
 [ BB2 ]
+O5'
 C5' H5' H5''
 C4' H4'
 C3' H3'
@@ -270,9 +267,9 @@ H1'  C1' O4' N9  C2'
 RESI DU
 [ BB1 ]
 P O1P O2P 
-O5'
 
 [ BB2 ]
+O5'
 C5' H5' H5''
 C4' H4'
 C3' H3'
@@ -310,9 +307,9 @@ H1'  C1' O4' N1  C2'
 RESI DG
 [ BB1 ]
 P O1P O2P 
-O5'
 
 [ BB2 ]
+O5'
 C5' H5' H5''
 C4' H4'
 C3' H3'
@@ -355,9 +352,9 @@ H1'  C1' O4' N9  C2'
 RESI DC
 [ BB1 ]
 P O1P O2P 
-O5'
 
 [ BB2 ]
+O5'
 C5' H5' H5''
 C4' H4'
 C3' H3'
@@ -392,9 +389,9 @@ H1'  C1' O4' N1  C2'
 RESI DT
 [ BB1 ] 
 P O1P O2P
-O5'
 
 [ BB2 ]
+O5'
 C5' H5' H5''
 C4' H4'
 C3' H3'

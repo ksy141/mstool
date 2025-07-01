@@ -182,6 +182,17 @@ class Ungroup(Universe):
 
     def construct_backbone_nucleic(self):
         chains = self.u.select('nucleic')['chain'].unique()
+        
+        # RNA -> the first BB1 is already removed
+        # DNA -> in my mapping, BB1 contains P, OP1, OP2, which can be removed for the first BB1
+        for chain in chains:
+            bA1 = self.u.atoms.chain == chain
+            bA2 = self.u.select('nucleic', returnbA=True)
+            bA3 = self.u.atoms.name == 'BB1'
+            bA4 = self.u.atoms.resid == min(self.u.atoms[bA1 & bA2 & bA3]['resid'])
+            index = self.u.atoms[bA1 & bA2 & bA3 & bA4].index
+            self.u.atoms = self.u.atoms.drop(index, axis=0)
+
         for chain in chains:
             bA1 = self.u.atoms.chain == chain
             bA2 = self.u.select('nucleic', returnbA=True)
