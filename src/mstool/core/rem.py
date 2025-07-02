@@ -159,16 +159,10 @@ class REM:
                     for bond in bonds:
                         proteinpdb.topology.addBond(pdbatoms[bond[0]], pdbatoms[bond[1]])
 
-            else:
-                # already openMM instance
-                proteinpdb = protein
-
             if pbc:
                 proteinpdb.topology.setPeriodicBoxVectors(realpbc)
             else:
                 proteinpdb.topology.setPeriodicBoxVectors(fakepbc)
-
-
 
             modeller_combined.append([proteinpdb.topology, proteinpdb.positions])
             universe_combined.append(Universe(protein).atoms)
