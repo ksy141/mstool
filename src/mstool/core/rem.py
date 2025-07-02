@@ -148,11 +148,28 @@ class REM:
             universe_combined.append(Universe(rr.dms).atoms)
 
         if protein:
-            proteinpdb = PDBFile(protein)
+            if isinstance(protein, str):
+                if protein.endswith('.pdb'):
+                    proteinpdb = PDBFile(protein)
+
+                elif protein.endswith('.dms'):
+                    proteinpdb = DesmondDMSFile(structure)
+                    bonds = getBonds(structure, ff=ff, ff_add=ff_add)
+                    pdbatoms = [atom for atom in proteinpdb.topology.atoms()]
+                    for bond in bonds:
+                        proteinpdb.topology.addBond(pdbatoms[bond[0]], pdbatoms[bond[1]])
+
+            else:
+                # already openMM instance
+                proteinpdb = protein
+
             if pbc:
                 proteinpdb.topology.setPeriodicBoxVectors(realpbc)
             else:
                 proteinpdb.topology.setPeriodicBoxVectors(fakepbc)
+
+
+
             modeller_combined.append([proteinpdb.topology, proteinpdb.positions])
             universe_combined.append(Universe(protein).atoms)
         

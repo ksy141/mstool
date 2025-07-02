@@ -58,7 +58,8 @@ class Backmap:
                     pdb = PDBFile(AA)
                     forcefield = ForceField(*xml.ff)
                     system = forcefield.createSystem(pdb.topology)
-                    protein = AA
+                    #protein = AA
+                    protein = pdb
                     rock    = None
                     print(f'All of the residues in {AA} is recognizable in openMM')
                     print(f'Using protein="{AA}"')
@@ -79,7 +80,8 @@ class Backmap:
                         pdb.topology.addBond(pdbatoms[bond[0]], pdbatoms[bond[1]])
                     forcefield = ForceField(*xml.ff)
                     system = forcefield.createSystem(pdb.topology)
-                    protein = AA
+                    #protein = AA
+                    protein = pdb
                     rock = None
                     print(f'All of the residues in {AA} is recognizable in openMM')
                     print(f'Using protein="{AA}"')
