@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import pandas as pd
 from  .universe           import Universe
 from  .readmappings       import ReadMappings
 from  ..utils.protein_sel import three2one
@@ -311,6 +312,7 @@ class CheckStructure:
 
     def combine(self):
         self.output = {'peptide': 0, 'cistrans': 0, 'chiral': 0, 'dihedral': 0}
+        data = {'key': [], 'resname': [], 'resid': [], 'chain': []}
         for report in self.reports:
             if report[0].startswith('cis'):
                 self.output['cistrans'] += len(report[2])
@@ -322,6 +324,14 @@ class CheckStructure:
                 self.output['dihedral'] += len(report[2])
             elif report[0].startswith('peptide'):
                 self.output['peptide'] += 1
+            
+            if not report[0].startswith('peptide'):
+                data['key'].extend([report[0]] * len(report[2]))
+                data['resname'].extend([report[1]] * len(report[2]))
+                data['resid'].extend(list(report[2]))
+                data['chain'].extend(list(report[3]))
+
+        self.df = pd.DataFrame(data)   
 
 
     def printout(self):
@@ -385,10 +395,11 @@ class CheckStructure:
 
         w += spacedivide
 
-        print(w)
         if self.log is not None:
             with open(self.log, 'w') as f:
                 f.write(w)
+        else:
+            print(w)
 
 
 
