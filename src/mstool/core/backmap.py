@@ -73,12 +73,12 @@ class Backmap:
             elif AA.endswith('.dms'):
                 try:
                     pdb   = DesmondDMSFile(AA)
-                    bonds = [bond for bond in pdb.topology.bonds()]
-                    if len(bonds) == 0:
-                        bonds = getBonds(AA, ff=ff, ff_add=ff_add)
-                        pdbatoms = [atom for atom in pdb.topology.atoms()]
-                        for bond in bonds:
-                            pdb.topology.addBond(pdbatoms[bond[0]], pdbatoms[bond[1]])
+                    #bonds = [bond for bond in pdb.topology.bonds()]
+                    #if len(bonds) == 0:
+                    bonds = getBonds(AA, ff=ff, ff_add=ff_add)
+                    pdbatoms = [atom for atom in pdb.topology.atoms()]
+                    for bond in bonds:
+                        pdb.topology.addBond(pdbatoms[bond[0]], pdbatoms[bond[1]])
                     forcefield = ForceField(*xml.ff)
                     system = forcefield.createSystem(pdb.topology)
                     protein = AA

@@ -154,12 +154,10 @@ class REM:
 
                 elif protein.endswith('.dms'):
                     proteinpdb = DesmondDMSFile(protein)
-                    bonds = [bond for bond in pdb.topology.bonds()]
-                    if len(bonds) == 0:
-                        bonds = getBonds(AA, ff=ff, ff_add=ff_add)
-                        pdbatoms = [atom for atom in pdb.topology.atoms()]
-                        for bond in bonds:
-                            pdb.topology.addBond(pdbatoms[bond[0]], pdbatoms[bond[1]])
+                    bonds = getBonds(protein, ff=ff, ff_add=ff_add)
+                    proteinpdbatoms = [atom for atom in proteinpdb.topology.atoms()]
+                    for bond in bonds:
+                        proteinpdb.topology.addBond(proteinpdbatoms[bond[0]], proteinpdbatoms[bond[1]])
 
             if pbc:
                 proteinpdb.topology.setPeriodicBoxVectors(realpbc)
