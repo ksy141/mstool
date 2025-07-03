@@ -2,6 +2,7 @@ from .universe import Universe, Merge, Wrap
 from .backmap import Backmap
 from .rem import REM
 from ..lib.distance import distance_matrix
+from ..utils.openmmutils import getBonds
 import os
 import numpy as np
 import time
@@ -145,19 +146,30 @@ class DivideConquer:
                     protein_dm[i, j] = np.min(distance_matrix(posi, posj, u.dimensions))
                     protein_dm[j, i] = protein_dm[i, j]
             
-            Z = linkage(squareform(protein_dm))
-            labels = fcluster(Z, t=protein_distance_cutoff, criterion='distance')
-            unique_labels = np.unique(labels)
-
-            for label in unique_labels:
+            if protein_dm.shape[0] == 1 and protein_dm.shape[1] == 1:
+                # has only one chain
+                unique_labels = [1]
+                label = 1
                 os.makedirs(f'{self.workdir}/protein/{label}', exist_ok=True)
-                label_chains  = np.array(list(protein_pos.keys()))[label == labels]
-                label_protein = Universe(protein.atoms[protein.atoms['chain'].isin(label_chains)])
-                label_protein.dimensions = u.dimensions
-                label_protein.cell = u.cell
-                label_protein.write(f'{self.workdir}/protein/{label}/protein.dms')
+                protein.dimensions = u.dimensions
+                protein.cell = u.cell
+                protein.write(f'{self.workdir}/protein/{label}/protein.dms')
+                arglist = [(label, self.workdir, backmap_kw)]
             
-            arglist = [(label, self.workdir, backmap_kw) for label in unique_labels]
+            else:
+                Z = linkage(squareform(protein_dm))
+                labels = fcluster(Z, t=protein_distance_cutoff, criterion='distance')
+                unique_labels = np.unique(labels)
+
+                for label in unique_labels:
+                    os.makedirs(f'{self.workdir}/protein/{label}', exist_ok=True)
+                    label_chains  = np.array(list(protein_pos.keys()))[label == labels]
+                    label_protein = Universe(protein.atoms[protein.atoms['chain'].isin(label_chains)])
+                    label_protein.dimensions = u.dimensions
+                    label_protein.cell = u.cell
+                    label_protein.write(f'{self.workdir}/protein/{label}/protein.dms')
+                
+                arglist = [(label, self.workdir, backmap_kw) for label in unique_labels]
 
             if parallel:
                 from multiprocessing import Pool, cpu_count
@@ -193,6 +205,10 @@ class DivideConquer:
         newAA.dimensions = u.dimensions
         newAA.cell = u.cell
         if len(newAA.atoms) > 0:
+            ff = backmap_kw.pop('ff', [])
+            ff_add = backmap_kw.pop('ff_add', [])
+            bonds = getBonds(newAA, ff=ff, ff_add=ff_add)
+            newAA.bonds = bonds
             newAA.write(f'{self.workdir}/AA.dms')
             newAA.write(f'{self.workdir}/AA.pdb')
 

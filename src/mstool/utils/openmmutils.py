@@ -1145,7 +1145,7 @@ def getBonds(structure, ff=[], ff_add=[]):
     # Precompute atom attributes once
     atom_resname = u.atoms.resname.values
     atom_name = u.atoms.name.values
-    atom_id = u.atoms.id.values
+    atom_id = u.atoms.index.values
     atom_resn = u.atoms.resn.values
     unique_resnames = np.unique(atom_resname)
     
