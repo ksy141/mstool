@@ -39,7 +39,7 @@ class REM:
         fcx = 1000.0, fcy = 1000.0, fcz = 1000.0,
         bfactor_posre = 0.5, add_bonds=True, sort=False, version='v4',
         cospower=2, turn_off_torsion_warning=False,
-        nsteps=10000, rem_nsteps=0,
+        nsteps=1000, rem_nsteps=0,
         turn_off_EMNVT=False,
         T=310, wall=None):
         
@@ -523,7 +523,7 @@ class REM:
         return customforce
 
     def runEMNVT(self, nsteps):
-        integrator  = LangevinIntegrator(self.T*kelvin, 1/picosecond, 0.002*picoseconds)
+        integrator  = LangevinIntegrator(self.T*kelvin, 1/picosecond, 0.001*picoseconds)
         simulation = Simulation(self.final.topology, self.system, integrator)
         simulation.context.setPositions(self.positions)
         platform = simulation.context.getPlatform().getName()
