@@ -160,8 +160,9 @@ class REM:
                     for bond in bonds:
                         proteinpdb.topology.addBond(proteinpdbatoms[bond[0]], proteinpdbatoms[bond[1]])
                     # special bond (CYS-CYS, or provided)
-                    for bond in proteinpdb.topology.bonds():
-                        proteinpdb.topology.addBond(bond)
+                    special_bonds = [bond for bond in proteinpdb.topology.bonds()]
+                    for bond in special_bonds:
+                        proteinpdb.topology.addBond(bond[0], bond[1])
 
             if pbc:
                 proteinpdb.topology.setPeriodicBoxVectors(realpbc)
@@ -297,6 +298,8 @@ class REM:
         self.runEMNVT(rem_nsteps)
 
         ### Save outREM
+        # Why not adding bonds? 20250705
+        self.u.bonds = self.bonds
         if outrem: self.u.write(outrem)
         #CheckTetrahedron(outrem, ff=ff, ff_add=ff_add)
 

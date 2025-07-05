@@ -207,8 +207,11 @@ class DivideConquer:
         if len(newAA.atoms) > 0:
             ff = backmap_kw.pop('ff', [])
             ff_add = backmap_kw.pop('ff_add', [])
-            bonds = getBonds(newAA, ff=ff, ff_add=ff_add)
-            newAA.bonds = bonds
+            try:
+                bonds = getBonds(newAA, ff=ff, ff_add=ff_add)
+                newAA.bonds = bonds
+            except:
+                pass
             newAA.write(f'{self.workdir}/AA.dms')
             newAA.write(f'{self.workdir}/AA.pdb')
 
