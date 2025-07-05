@@ -138,12 +138,18 @@ class Ungroup(Universe):
 
     def disulfide(self, ss):
         sgatoms = self.select(':CYS,CYX@SG*')
+        if len(sgatoms) == 0:
+            return
+
         pos = sgatoms[['x','y','z']].to_numpy()
         if self.u.dimensions is None or self.u.dimensions[0] * self.u.dimensions[1] * self.u.dimensions[2] == 0:
             dm = distance_matrix(pos, pos)
         else:
             dm = distance_matrix(pos, pos, dimensions=self.u.dimensions)
         np.fill_diagonal(dm, np.inf)
+        
+        if np.sum(dm < ss) == 0:
+            return
 
         # Mask entries >= 3.5
         masked_dm = np.where(dm < ss, dm, np.inf)
