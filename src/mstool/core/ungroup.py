@@ -7,6 +7,7 @@ from  ..lib.align         import rotation_matrix
 from  .readmappings       import ReadMappings
 from  ..utils.protein_sel import three2one
 from  ..utils.util        import fibo
+from  ..lib.distance      import distance_matrix
 
 pwd = os.path.dirname(os.path.realpath(__file__))
 AAdefaults = glob.glob(pwd + '/../mapping/structures/*_AA.pdb')
@@ -19,7 +20,7 @@ class Ungroup(Universe):
         sort=True,
         fibor=0.5, version='v1',
         water_resname='W', water_chain=None, water_number=4, water_fibor=2.0, water_chain_dms=False,
-        use_AA_structure=False, AA_structure=[], AA_structure_add=[], AA_shrink_factor=0.8):
+        use_AA_structure=False, AA_structure=[], AA_structure_add=[], AA_shrink_factor=0.8, ss=0.35):
 
         if isinstance(structure, str):
             self.u = Universe(structure)
@@ -103,6 +104,10 @@ class Ungroup(Universe):
         
         #if self.version == 'v1': self.remove_duplicate_coordinates()
         if sort: self.sort()
+
+        ### Disulfide bond
+        self.disulfide(ss)
+
         if out is not None: self.write(out)
 
 
@@ -129,6 +134,53 @@ class Ungroup(Universe):
                 xyz = self.atoms[['x','y','z']]
                 uni, count = np.unique(xyz, axis=0, return_counts=True)
                 dup = uni[count > 1]  
+    
+
+    def disulfide(self, ss):
+        sgatoms = self.select(':CYS,CYX@SG*')
+        pos = sgatoms[['x','y','z']].to_numpy()
+        if self.u.dimensions is None or self.u.dimensions[0] * self.u.dimensions[1] * self.u.dimensions[2] == 0:
+            dm = distance_matrix(pos, pos)
+        else:
+            dm = distance_matrix(pos, pos, dimensions=self.u.dimensions)
+        np.fill_diagonal(dm, np.inf)
+
+        # Mask entries >= 3.5
+        masked_dm = np.where(dm < ss, dm, np.inf)
+        
+        # Get index of the minimum distance < 3.5 per row
+        min_indices = np.argmin(masked_dm, axis=1)
+        
+        # Get the minimum values to verify they're < ss
+        min_values = masked_dm[np.arange(dm.shape[0]), min_indices]
+        
+        # Keep only valid pairs where minimum is < 3.5
+        valid = min_values < ss
+        rows = np.arange(dm.shape[0])[valid]
+        cols = min_indices[valid]
+        
+        # Output index pairs
+        bonds = list(zip(rows, cols))
+        resns = set()
+        for i, j in bonds:
+            resns.add(sgatoms.iloc[i]['resn'])
+            resns.add(sgatoms.iloc[j]['resn'])
+        
+        # Remove HG1
+        bA1 = self.atoms.resn.isin(list(resns))
+        bA2 = self.atoms.name == 'HG1'
+        self.atoms.drop(self.atoms[bA1 & bA2].index, inplace=True)
+        old2new_index = {oldindex: i for i, oldindex in enumerate(self.atoms.index)}
+        
+        oldbonds = []
+        for i, j in bonds:
+            if i >= j: continue
+            newi = old2new_index[sgatoms.index[i]]
+            newj = old2new_index[sgatoms.index[j]]
+            self.bonds.append([newi, newj])
+            oldbonds.append([sgatoms.index[i], sgatoms.index[j]])
+        
+        self.atoms.reset_index(drop=True, inplace=True)
 
 
     def construct_using_AA(self):

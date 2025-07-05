@@ -29,7 +29,7 @@ class Backmap:
                  changename={':CHOL':':CHL1',':ION@NA':':SOD@SOD',':NA@NA':':SOD@SOD',
                              ':ION@CL':':CLA@CLA',':CL@CL':':CLA@CLA',':ION@CA':':CAL@CAL',
                              ':A':   ':ADE', ':U':   ':URA',  ':G':  ':GUA',  ':C':  ':CYT',  ':T':  ':THY'},
-                 changename_add={}, wall=None, skip_ungroup=False):
+                 changename_add={}, wall=None, skip_ungroup=False, ss=3.5):
         
         time1 = time.time()
 
@@ -109,7 +109,7 @@ class Backmap:
                     water_chain=water_chain, water_number=water_number,
                     water_fibor=water_fibor, water_chain_dms=water_chain_dms,
                     sort=True, use_AA_structure=use_AA_structure,
-                    AA_structure=AA_structure, AA_structure_add=AA_structure_add, AA_shrink_factor=0.8)
+                    AA_structure=AA_structure, AA_structure_add=AA_structure_add, AA_shrink_factor=0.8, ss=ss)
         
         REM(structure   = workdir + f'/step{fileindex}_ungroup.dms', 
             outrem      = workdir + f'/step{fileindex+1}_rem.dms',

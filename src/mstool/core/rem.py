@@ -55,6 +55,7 @@ class REM:
 
 
         ### NonbondedMethod
+        self.pbc = pbc
         if pbc:
             self.nonbondedMethod = CutoffPeriodic
         else:
@@ -158,6 +159,9 @@ class REM:
                     proteinpdbatoms = [atom for atom in proteinpdb.topology.atoms()]
                     for bond in bonds:
                         proteinpdb.topology.addBond(proteinpdbatoms[bond[0]], proteinpdbatoms[bond[1]])
+                    # special bond (CYS-CYS, or provided)
+                    for bond in proteinpdb.topology.bonds():
+                        proteinpdb.topology.addBond(bond)
 
             if pbc:
                 proteinpdb.topology.setPeriodicBoxVectors(realpbc)
@@ -536,9 +540,13 @@ class REM:
             simulation.step(nsteps)
             print("E2: %.3e kJ/mol" %simulation.context.getState(getEnergy=True).getPotentialEnergy()._value)
         print("-------------------------------")
-
-        self.positions              = simulation.context.getState(getPositions=True).getPositions()
-        self.numpypositions         = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)._value * 10
+        
+        if self.pbc:
+            self.positions      = simulation.context.getState(getPositions=True, enforcePeriodicBox=True).getPositions()
+            self.numpypositions = simulation.context.getState(getPositions=True, enforcePeriodicBox=True).getPositions(asNumpy=True)._value * 10
+        else:
+            self.positions      = simulation.context.getState(getPositions=True).getPositions()
+            self.numpypositions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)._value * 10
         self.u.atoms[['x','y','z']] = self.numpypositions
 
 
