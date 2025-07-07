@@ -32,6 +32,7 @@ from .utils.change_his import changeHIS
 from .utils.performance import Performance
 from .utils.saveargs import saveargs
 from .utils.rockresidue import RockResidue
+from .utils.writepsf import WritePSF
 from .core.orient import *
 from .utils.sdminimizer import SDMinimizer
 from .core.calSolv import calSolv
