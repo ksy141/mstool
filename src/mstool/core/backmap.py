@@ -22,7 +22,7 @@ class Backmap:
                  rock=None, rockCtype='CTL3', rockHtype='HAL3',
                  rcut=1.2, pbc=True, A=100, C=50,
                  add_bonds = True, remversion='v4',
-                 water_resname='W', water_chain=None, water_number=4, water_fibor=2.0, water_chain_dms=True, 
+                 water_resname='W', water_chain=None, water_number=4, water_fibor=2.0, water_chain_dms=True,
                  use_AA_structure=True, AA_structure=[], AA_structure_add=[], AA_shrink_factor=0.8,
                  use_existing_workdir=False, fileindex=1, pdbsave=True, cospower=2,
                  nsteps=10000, rem_nsteps=0, turn_off_EMNVT=False, T=310, sanitizeMartini=True,
@@ -30,7 +30,7 @@ class Backmap:
                              ':ION@CL':':CLA@CLA',':CL@CL':':CLA@CLA',':ION@CA':':CAL@CAL',
                              ':A':   ':ADE', ':U':   ':URA',  ':G':  ':GUA',  ':C':  ':CYT',  ':T':  ':THY'},
                  changename_add={}, wall=None, skip_ungroup=False, ss=3.5):
-        
+
         time1 = time.time()
 
         ### workdir
@@ -103,15 +103,18 @@ class Backmap:
                     changename[key] = value
                 structure.changeName(changename)
 
-            Ungroup(structure, out=workdir + f'/step{fileindex}_ungroup.dms', 
+            Ungroup(structure, out=workdir + f'/step{fileindex}_ungroup.dms',
                     mapping=mapping, mapping_add=mapping_add, backbone=backbone,
                     water_resname=water_resname,
                     water_chain=water_chain, water_number=water_number,
                     water_fibor=water_fibor, water_chain_dms=water_chain_dms,
                     sort=True, use_AA_structure=use_AA_structure,
                     AA_structure=AA_structure, AA_structure_add=AA_structure_add, AA_shrink_factor=0.8, ss=ss)
-        
-        REM(structure   = workdir + f'/step{fileindex}_ungroup.dms', 
+        else:
+            if not os.path.exists(workdir + f'/step{fileindex}_ungroup.dms'):
+                shutil.copyfile(structure, workdir + f'/step{fileindex}_ungroup.dms')
+
+        REM(structure   = workdir + f'/step{fileindex}_ungroup.dms',
             outrem      = workdir + f'/step{fileindex+1}_rem.dms',
             out         = workdir + f'/step{fileindex+2}_em.dms',
             rockout     = workdir + f'/step{fileindex+2}_rock.dms',
@@ -121,9 +124,9 @@ class Backmap:
             rock        = rock,
             rockCtype   = rockCtype,
             rockHtype   = rockHtype,
-            mapping     = mapping, 
+            mapping     = mapping,
             mapping_add = mapping_add,
-            ff          = ff, 
+            ff          = ff,
             ff_add      = ff_add,
             A           = A,
             C           = C,
@@ -135,15 +138,15 @@ class Backmap:
             T           = T,
             version     = remversion,
             Kchiral     = Kchiral,
-            Kpeptide    = Kpeptide, 
-            Kcistrans   = Kcistrans, 
+            Kpeptide    = Kpeptide,
+            Kcistrans   = Kcistrans,
             Kdihedral   = Kdihedral,
             wall        = wall,
             turn_off_EMNVT = turn_off_EMNVT)
-        
+
 
         ### CheckStructure
-        self.check = CheckStructure(structure   = workdir + f'/step{fileindex+2}_em.dms', 
+        self.check = CheckStructure(structure   = workdir + f'/step{fileindex+2}_em.dms',
                                     log         = workdir + '/log.txt',
                                     mapping     = mapping,
                                     mapping_add = mapping_add)
@@ -153,7 +156,7 @@ class Backmap:
         if rock:
             if os.path.exists('ROCK.dms'): os.rename('ROCK.dms', workdir + '/ROCK.dms')
             if os.path.exists('ROCK.xml'): os.rename('ROCK.xml', workdir + '/ROCK.xml')
-            
+
             if AA:
                 u1 = Universe(AA)
             else:
@@ -161,7 +164,7 @@ class Backmap:
             #memory-intensive job
             #if len(u1.bonds) == 0: u1.addBondFromDistance()
 
-            shutil.copyfile(workdir + f'/step{fileindex+2}_nonrock.dms', 
+            shutil.copyfile(workdir + f'/step{fileindex+2}_nonrock.dms',
                             workdir + f'/step{fileindex+3}_nonprotein.dms')
 
             u2 = Universe(workdir + f'/step{fileindex+2}_nonrock.dms')
@@ -171,7 +174,7 @@ class Backmap:
             u.cell       = u2.cell
             u.write(workdir + f'/step{fileindex+3}_final.dms')
             u.write(workdir + f'/step{fileindex+3}_final.pdb')
-            
+
             u1.dimensions = u2.dimensions
             u1.cell       = u2.cell
             u1.write(workdir + f'/step{fileindex+3}_protein.pdb')
@@ -181,7 +184,7 @@ class Backmap:
                             workdir + f'/step{fileindex+3}_final.dms')
             Universe(workdir + f'/step{fileindex+3}_final.dms').write(
                      workdir + f'/step{fileindex+3}_final.pdb')
-        
+
         ### PDB
         if pdbsave:
             step1file = workdir + f'/step{fileindex}_ungroup'
@@ -196,7 +199,7 @@ class Backmap:
             #step3file = workdir + f'/step{fileindex+3}_final'
             #Universe(step3file + '.dms').write(step3file + '.pdb')
             #CheckTetrahedron(step3file + '.dms', ff=ff, ff_add=ff_add)
-        
+
         time2 = time.time()
         with open(f'{workdir}/time.txt', 'w') as W:
             W.write(f'{(time2 - time1)/60:.3f} min\n')
@@ -210,14 +213,14 @@ class Backmap:
             if resname not in xml.RESI.keys():
                 print(f'WARNING: {resname} is defined in mapping files but not in forcefield files. This will likely cause a probelm if your system contains this residue.')
                 continue
-            
+
             aa_map = map.RESI[resname]['AAAtoms']
             aa_xml = xml.RESI[resname]['names']
             if set(aa_map) == set(aa_xml) and len(aa_map) == len(aa_xml): continue
 
             for atom in set(aa_map) - set(aa_xml):
                 print(f'WARNING: {resname} has {atom} in mapping files but not in forcefield files. This will likely cause a probelm if your system contains this atom.')
-            
+
             for atom in set(aa_xml) - set(aa_map):
                 print(f'WARNING: {resname} has {atom} in forcefield files but not in mapping files. This will likely cause a probelm if your system contains this atom.')
 

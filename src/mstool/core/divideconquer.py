@@ -23,12 +23,12 @@ def _run_protein(label, workdir, extra_kw=None):
             flipped = bm.check.output['peptide'] + bm.check.output['chiral']
             if flipped == 0:
                 break
-    
+
         except Exception as e:
             print(f"[ERROR] Backmap failed for {workdir}/protein/{label}: {e}", flush=True)
 
 
-def _run_subregion(workdir, i, j, k, dx, dy, dz, Kwall=1000, delta=0.02, rerun_unsuccesful=False, extra_kw=None):
+def _run_subregion(workdir, i, j, k, dx, dy, dz, Kwall=1000, delta=0.02, rerun_unsuccesful=False, repeat=3, extra_kw=None):
     """Work on one (i,j,k) sub-box. Backmap one spatial box (i,j,k)"""
     kwargs = extra_kw or {}
     subdir = f'{workdir}/{i}_{j}_{k}'
@@ -39,7 +39,7 @@ def _run_subregion(workdir, i, j, k, dx, dy, dz, Kwall=1000, delta=0.02, rerun_u
         "z0": k * dz * 0.1, "z1": (k + 1) * dz * 0.1,
         "Kwall": Kwall, "delta": delta,
     }
-    
+
     # Save dictionary to a file
     with open(f'{subdir}/wall.pkl', 'wb') as f:
         pickle.dump(wall, f)
@@ -51,10 +51,10 @@ def _run_subregion(workdir, i, j, k, dx, dy, dz, Kwall=1000, delta=0.02, rerun_u
     if rerun_unsuccesful and os.path.exists(f'{subdir}/workdir/step4_final.dms'):
         print(f"[SKIP] {subdir}: already finished", flush=True)
         return
-    
+
     if os.path.exists(f'{subdir}/input.dms'):
         flipped = 100
-        for idx in range(3):
+        for idx in range(repeat):
             bm = Backmap(
                     structure=f'{subdir}/input.dms',
                     workdir=f'{subdir}/workdir',
@@ -79,7 +79,7 @@ class DivideConquer:
         self.Nx = Nx
         self.Ny = Ny
         self.Nz = Nz
-        
+
         self.translate = np.zeros(3)
         u = Universe(structure)
         if wrap:
@@ -96,7 +96,7 @@ class DivideConquer:
             u.cell         = np.array([[dimensions[0], 0, 0], [0, dimensions[1], 0], [0, 0, dimensions[2]]])
             self.translate = -center + u.dimensions[0:3] / 2
             u.atoms[['x','y','z']] += self.translate
-        
+
         self.dimensions = u.dimensions
         self.cell = u.cell
         self.u = u
@@ -114,13 +114,13 @@ class DivideConquer:
 
         # Make a directory
         os.makedirs(self.workdir, exist_ok=True)
-       
+
         # Should backmap protein first
         u = self.u
         if shift:
             u.atoms[['x','y','z']] += u.dimensions[0:3] / 2
             self.translate += u.dimensions[0:3] / 2
-        
+
         if np.all(self.translate == np.zeros(3)) and not self.wrap:
             # writing takes some time. Do not write unless necessary
             pass
@@ -138,14 +138,14 @@ class DivideConquer:
             protein_pos = {}
             for chain, group in protein.select('(protein & @BB) | (nucleic & @BB2)').groupby('chain'):
                 protein_pos[chain] = group[['x','y','z']].to_numpy()
-            
+
             protein_dm = np.zeros((len(protein_pos.keys()), len(protein_pos.keys())))
             for i, (chaini, posi) in enumerate(protein_pos.items()):
                 for j, (chainj, posj) in enumerate(protein_pos.items()):
                     if i >= j: continue
                     protein_dm[i, j] = np.min(distance_matrix(posi, posj, u.dimensions))
                     protein_dm[j, i] = protein_dm[i, j]
-            
+
             if protein_dm.shape[0] == 1 and protein_dm.shape[1] == 1:
                 # has only one chain
                 unique_labels = [1]
@@ -155,7 +155,7 @@ class DivideConquer:
                 protein.cell = u.cell
                 protein.write(f'{self.workdir}/protein/{label}/protein.dms')
                 arglist = [(label, self.workdir, backmap_kw)]
-            
+
             else:
                 Z = linkage(squareform(protein_dm))
                 labels = fcluster(Z, t=protein_distance_cutoff, criterion='distance')
@@ -168,22 +168,22 @@ class DivideConquer:
                     label_protein.dimensions = u.dimensions
                     label_protein.cell = u.cell
                     label_protein.write(f'{self.workdir}/protein/{label}/protein.dms')
-                
+
                 arglist = [(label, self.workdir, backmap_kw) for label in unique_labels]
 
             if parallel:
                 from multiprocessing import Pool, cpu_count
-    
+
                 if num_workers is None:
                     num_workers = min(cpu_count(), len(arglist))
-    
+
                 with Pool(processes=num_workers) as pool:
                     pool.starmap(_run_protein, arglist)
 
             else:
                 for arg in arglist:
                     _run_protein(*arg)
-            
+
             proteinAA = Universe()
             for label in unique_labels:
                 proteinAA = Merge(proteinAA.atoms, Universe(f'{self.workdir}/protein/{label}/workdir/step4_final.dms').atoms)
@@ -245,7 +245,7 @@ class DivideConquer:
                 for k in range(self.Nz):
                     subworkdir = f'{self.workdir}/{i}_{j}_{k}'
                     os.makedirs(subworkdir, exist_ok=True)
-                    
+
                     # lipids
                     bAx = partition(i, self.dx, self.Nx, cog['x'])
                     bAy = partition(j, self.dy, self.Ny, cog['y'])
@@ -255,7 +255,7 @@ class DivideConquer:
                     sublipids = Universe(lipids.atoms[lipids.atoms['resn'].isin(resn.index)])
                     if len(sublipids.atoms) > 0:
                         sublipids.write(subworkdir + '/input.dms')
-                    
+
                     # ROCK
                     bAx = partition(i, self.dx, self.Nx, newAA.atoms['x'])
                     bAy = partition(j, self.dy, self.Ny, newAA.atoms['y'])
@@ -269,19 +269,19 @@ class DivideConquer:
             W.write(f'{(time2 - time1)/60:.3f} min\n')
 
 
-    def run(self, Kwall=1000, delta=0.02, rerun_unsuccesful=False, parallel=True, num_workers=None, **backmap_kw):
+    def run(self, Kwall=1000, delta=0.02, rerun_unsuccesful=False, parallel=True, num_workers=None, repeat=2, **backmap_kw):
         from itertools import product
 
         arglist = []
         for i, j, k in product(range(self.Nx), range(self.Ny), range(self.Nz)):
-            arglist.append((self.workdir, i, j, k, self.dx, self.dy, self.dz, Kwall, delta, rerun_unsuccesful, backmap_kw))
+            arglist.append((self.workdir, i, j, k, self.dx, self.dy, self.dz, Kwall, delta, rerun_unsuccesful, repeat, backmap_kw))
 
         if parallel:
             from multiprocessing import Pool, cpu_count
-    
+
             if num_workers is None:
                 num_workers = min(cpu_count(), self.Nx * self.Ny * self.Nz)
-    
+
             with Pool(processes=num_workers) as pool:
                 pool.starmap(_run_subregion, arglist)
 
