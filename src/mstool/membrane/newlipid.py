@@ -191,6 +191,11 @@ def ReadBuildingBlock(ifiles):
 
 
 class NewLipid:
+    """Create a new lipid type based on SMILES.
+    >>> from mstool.membrane.newlipid import NewLipid
+    >>> n = NewLipid('CCCCCCCC/C=C\CCCCCCCC(O[C@H](COC(CCCCCCCCCCCCCCC)=O)COP(OCC[N+](C)(C)C)([O-])=O)=O')
+    >>> VisG(n.nxmol)
+    """
     def __init__(self, smiles, bb=[], bb_add=[]):
         self.smiles    = smiles
         self.rdkitmol  = rdkit.Chem.MolFromSmiles(smiles)
