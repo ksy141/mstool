@@ -1,7 +1,7 @@
 import os
 pwd = os.path.dirname(os.path.realpath(__file__))
 scheme = [pwd + '/../mapping/martini.protein.c36m.dat',
-          pwd + '/../mapping/martini.lipid.c36.dat', 
+          pwd + '/../mapping/martini.lipid.c36.dat',
           pwd + '/../mapping/martini.na.c36.dat']
 
 
@@ -11,7 +11,7 @@ class ReadMappings:
         if not isinstance(mapping, list):
             mapping = [mapping]
 
-        if not isinstance(mapping_add, list): 
+        if not isinstance(mapping_add, list):
             mapping_add = [mapping_add]
 
         if mapping == []:
@@ -45,8 +45,9 @@ class ReadMappings:
         for ifile in self.ifiles:
             with open(ifile) as W:
                 for line in W.readlines():
+                    line = line.strip()
                     if line.startswith(';'): continue
-                    if not line.strip(): continue
+                    if not line: continue
 
                     if line.startswith('RESI'):
                         sl = line.split()
@@ -83,7 +84,7 @@ class ReadMappings:
                         read = line.split('[')[1].split(']')[0].strip().lower()
                         if read in ['cis', 'trans', 'chiral', 'chirals', 'dihedral', 'dihedrals', 'antidihedral', 'antidihedrals']:
                             continue
-                        
+
                         # CG bead
                         CGName = line.split('[')[1].split(']')[0].strip()
                         d[resname]['CGAtoms'][CGName] = []
