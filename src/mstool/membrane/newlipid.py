@@ -1,33 +1,10 @@
-import rdkit.Chem
+from rdkit import Chem
 import networkx as nx
 import os
 import xml.etree.ElementTree as ET
 import numpy as np
 import matplotlib.pyplot as plt
 pwd = os.path.dirname(os.path.realpath(__file__))
-
-#def VisG(G, attrs=True):
-#    # Generate positions using a layout
-#    pos = nx.spring_layout(G)
-#    
-#    # Create custom labels
-#    if attrs:
-#        labels = {
-#            n: f"{n} ({G.nodes[n]['type']}, q={G.nodes[n]['charge']})"
-#            for n in G.nodes
-#        }
-#    else:
-#        labels = {n: f"{n}" for n in G.nodes}
-#    
-#    # Draw the graph
-#    edge_widths = [G[u][v].get('order', 1) * 2 for u, v in G.edges()]
-#    nx.draw(G, pos, with_labels=False, node_color='skyblue', node_size=2000, font_size=10, width=edge_widths)
-#    nx.draw_networkx_labels(G, pos, labels, font_size=9)
-#    
-#    plt.title("Graph with name, type, and charge per node")
-#    plt.axis('off')
-#    plt.show()
-
 
 def VisG(G, attrs=True):
     # Layout positions
@@ -93,7 +70,7 @@ def DFS(G):
             for neighbor in G.neighbors(current):
                 if neighbor not in visited:
                     queue.append(neighbor)
-    
+
     return nodes, visited
 
 
@@ -102,10 +79,10 @@ def rdkit_to_nx(mol):
 
     for atom in mol.GetAtoms():
         G.add_node(atom.GetIdx(), atomic_number=atom.GetAtomicNum())
-    
+
     for bond in mol.GetBonds():
         G.add_edge(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), order=bond.GetBondType())
-    
+
     for idx, atom in G.nodes(data=True):
         count_C = 0; count_H = 0
         if atom['atomic_number'] == 6:
@@ -120,28 +97,34 @@ def rdkit_to_nx(mol):
             if count_H == 3 and count_C == 1:
                 G.nodes[idx]['type']   = 'CTL3'
                 G.nodes[idx]['charge'] = -0.27
+                G.nodes[idx]['z']      = -10
                 for neighbor in neighbors:
                     if G.nodes[neighbor]['atomic_number'] == 1:
                         G.nodes[neighbor]['type']   = 'HAL3'
                         G.nodes[neighbor]['charge'] = 0.09
+                        G.nodes[neighbor]['z']      = -10
 
             elif count_H == 2 and count_C == 2:
                 G.nodes[idx]['type']   = 'CTL2'
                 G.nodes[idx]['charge'] = -0.18
+                G.nodes[idx]['z']      = -10
                 for neighbor in neighbors:
                     if G.nodes[neighbor]['atomic_number'] == 1:
                         G.nodes[neighbor]['type']   = 'HAL2'
                         G.nodes[neighbor]['charge'] = 0.09
+                        G.nodes[neighbor]['z']      = -10
 
             elif count_H == 1 and count_C == 2:
                 G.nodes[idx]['type']   = 'CEL1'
                 G.nodes[idx]['charge'] = -0.15
+                G.nodes[idx]['z']      = -10
                 for neighbor in neighbors:
                     if G.nodes[neighbor]['atomic_number'] == 1:
                         G.nodes[neighbor]['type']   = 'HEL1'
                         G.nodes[neighbor]['charge'] = 0.15
+                        G.nodes[neighbor]['z']      = -10
 
-    G.smiles = rdkit.Chem.MolToSmiles(mol)
+    G.smiles = Chem.MolToSmiles(mol)
     return G
 
 def node_match(n1, n2):
@@ -152,34 +135,40 @@ def edge_match(e1, e2):
 
 def ReadBuildingBlock(ifiles):
     graphs = []
-    
+
     for ifile in ifiles:
         root = ET.parse(ifile).getroot()
 
         for block in root.findall('BuildingBlock'):
             name = block.get("name") or "Unnamed"
             G = nx.Graph()
-        
+
+            for pos in block.findall("Pos"):
+                if pos.get("z") is not None:
+                    z = float(pos.get("z"))
+                else:
+                    z = 0.0
+
             for atom in block.findall("Atom"):
                 atom_name = atom.get("name")
-                G.add_node(atom_name, 
+                G.add_node(atom_name,
                            charge=float(atom.get("charge", 0.0)),
-                           type=atom.get("type"),
+                           type=atom.get("type"), z=z,
                            atomic_number=int(atom.get("number", 0)) if atom.get("number") else None)
-        
+
             # Add edges based on Bonds
             for bond in block.findall("Bond"):
                 atom1 = bond.get("atomName1")
                 atom2 = bond.get("atomName2")
                 order_str = bond.get("order")
-                
+
                 try:
                     order = int(order_str) if order_str is not None else 1
                 except ValueError:
                     order = 1  # Fallback in case of malformed input
 
                 G.add_edge(atom1, atom2, order=order)
-            
+
             DFS_nodes, DFS_visited = DFS(G)
             if len(DFS_nodes) == len(DFS_visited):
                 graphs.append(G)
@@ -190,6 +179,81 @@ def ReadBuildingBlock(ifiles):
     return graphs
 
 
+def CisTrans(mol):
+    cis   = []
+    trans = []
+
+    for bond in mol.GetBonds():
+        if bond.GetBondType() == Chem.BondType.DOUBLE and bond.GetStereo() in (Chem.BondStereo.STEREOE, Chem.BondStereo.STEREOZ):
+            begin_atom = bond.GetBeginAtom()
+            end_atom = bond.GetEndAtom()
+
+            # Get substituents (only 1 neighbor that's not the double-bonded atom)
+            begin_neighbors = [nbr.GetIdx() for nbr in begin_atom.GetNeighbors() if nbr.GetIdx() != end_atom.GetIdx()]
+            end_neighbors = [nbr.GetIdx() for nbr in end_atom.GetNeighbors() if nbr.GetIdx() != begin_atom.GetIdx()]
+
+            # Sort to ensure reproducibility
+            begin_neighbors.sort()
+            end_neighbors.sort()
+
+            if len(begin_neighbors) != 1 or len(end_neighbors) != 1:
+                print(f"Warning: Unexpected number of neighbors for E/Z bond {bond.GetIdx()}")
+                continue
+
+            i = begin_neighbors[0]  # atom1
+            j = begin_atom.GetIdx() # atom2
+            k = end_atom.GetIdx()   # atom3
+            l = end_neighbors[0]    # atom4
+
+            stereo = bond.GetStereo()
+
+            if stereo == Chem.BondStereo.STEREOZ:
+                cis.append([i, j, k, l])
+            else:
+                trans.append([i, j, k, l])
+
+    return cis, trans
+
+
+def Chiral(mol):
+    chirals = []
+    Chem.FindMolChiralCenters(mol, includeUnassigned=False)  # to update atom stereo tags
+    chiral_centers = Chem.FindMolChiralCenters(mol, includeUnassigned=False)
+
+    for center_idx, config in chiral_centers:
+        center_atom = mol.GetAtomWithIdx(center_idx)
+        neighbors = center_atom.GetNeighbors()
+
+        if len(neighbors) != 4:
+            print(f"Warning: atom {center_idx} is not bonded to 4 atoms.")
+            continue
+
+        hydrogen_idx = None
+        heavy_atom_indices = []
+
+        for nbr in neighbors:
+            if nbr.GetAtomicNum() == 1:  # Hydrogen
+                hydrogen_idx = nbr.GetIdx()
+            else:
+                heavy_atom_indices.append(nbr.GetIdx())
+
+        if hydrogen_idx is None:
+            # No hydrogen, fall back to default
+            neighbor_indices = sorted([nbr.GetIdx() for nbr in neighbors])
+            atom1, atom3, atom4, atom5 = neighbor_indices
+        else:
+            if len(heavy_atom_indices) != 3:
+                print(f"Warning: unexpected number of heavy atoms at center {center_idx}")
+                continue
+            atom1 = hydrogen_idx
+            atom3, atom4, atom5 = sorted(heavy_atom_indices)
+
+        atom2 = center_idx  # chiral center
+        chirals.append([atom1, atom2, atom3, atom4, atom5])
+
+    return chirals
+
+
 class NewLipid:
     """Create a new lipid type based on SMILES.
     >>> from mstool.membrane.newlipid import NewLipid
@@ -198,8 +262,8 @@ class NewLipid:
     """
     def __init__(self, smiles, bb=[], bb_add=[]):
         self.smiles    = smiles
-        self.rdkitmol  = rdkit.Chem.MolFromSmiles(smiles)
-        self.rdkitmolH = rdkit.Chem.AddHs(self.rdkitmol)
+        self.rdkitmol  = Chem.MolFromSmiles(smiles)
+        self.rdkitmolH = Chem.AddHs(self.rdkitmol)
         self.nxmol     = rdkit_to_nx(self.rdkitmolH)
 
         if len(bb) == 0:
@@ -209,6 +273,13 @@ class NewLipid:
 
         # Perfect Match
         self.PerfectMatch()
+
+        # Check
+        self.HasType()
+
+        # StereoChemistry
+        self.cis, self.trans = CisTrans(self.rdkitmol)
+        self.chiral = Chiral(self.rdkitmolH)
 
 
     def PerfectMatch(self):
@@ -221,5 +292,17 @@ class NewLipid:
                 for index, name in mapping.items():
                     self.nxmol.nodes[index]['type']   = nodes[name]['type']
                     self.nxmol.nodes[index]['charge'] = nodes[name]['charge']
+                    self.nxmol.nodes[index]['z']      = nodes[name]['z']
+
+    def HasType(self):
+        qtot = 0.0
+        for nodeid, attr in self.nxmol.nodes(data=True):
+            if 'type' not in attr.keys():
+                print(f"{nodeid} has no assigned atomtype")
+            if 'charge' in attr.keys():
+                qtot += attr['charge']
+
+        if abs(int(qtot) - qtot) > 0.0001:
+            print(f'qtot = {qtot}')
 
 
