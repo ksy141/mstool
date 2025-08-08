@@ -1608,7 +1608,7 @@ class DMSFile(object):
         print('-------------------------------')
 
         ### SAVE THE LAST FRAME
-        self.positions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)._value
+        self.positions = simulation.context.getState(getPositions=True, enforcePeriodicBox=True).getPositions(asNumpy=True)._value
         
         if out:
             shutil.copy(self._file[0], out)
@@ -1685,7 +1685,7 @@ class DMSFile(object):
 
         ### SAVE EM
         if emout:
-            self.positions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)._value
+            self.positions = simulation.context.getState(getPositions=True, enforcePeriodicBox=True).getPositions(asNumpy=True)._value
             shutil.copy(self._file[0], emout)
             conn    = sqlite3.connect(emout)
             cursor  = conn.cursor()
@@ -1706,7 +1706,7 @@ class DMSFile(object):
         
         simulation.context.setVelocitiesToTemperature(T)
         simulation.step(nsteps)
-        self.positions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)._value
+        self.positions = simulation.context.getState(getPositions=True, enforcePeriodicBox=True).getPositions(asNumpy=True)._value
         self.cell = getCell(simulation)
     
         ### SAVE THE LAST FRAME
@@ -1741,7 +1741,7 @@ def getCell(simulation):
     return simulation.context.getState().getPeriodicBoxVectors(asNumpy=True)._value
 
 def getPositions(simulation):
-    return simulation.context.getState(getPositions=True).getPositions(asNumpy=True)._value
+    return simulation.context.getState(getPositions=True, enforcePeriodicBox=True).getPositions(asNumpy=True)._value
 
 def Pressure(P=1.0, T=310.0, barfreq=100):
     return MonteCarloBarostat(P*bar, T*kelvin)

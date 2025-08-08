@@ -6,6 +6,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 pwd = os.path.dirname(os.path.realpath(__file__))
 
+number2element = {
+    1: 'H', 6: 'C', 7: 'N', 8: 'O', 15: 'P', 16: 'S'
+}
+
 def VisG(G, attrs=True):
     # Layout positions
     pos = nx.spring_layout(G)
@@ -78,7 +82,7 @@ def rdkit_to_nx(mol):
     G = nx.Graph()
 
     for atom in mol.GetAtoms():
-        G.add_node(atom.GetIdx(), atomic_number=atom.GetAtomicNum())
+        G.add_node(atom.GetIdx(), atomic_number=atom.GetAtomicNum(), z=0.0)
 
     for bond in mol.GetBonds():
         G.add_edge(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), order=bond.GetBondType())
@@ -257,12 +261,20 @@ def Chiral(mol):
 class NewLipid:
     """Create a new lipid type based on SMILES.
     >>> from mstool.membrane.newlipid import NewLipid
-    >>> n = NewLipid('CCCCCCCC/C=C\CCCCCCCC(O[C@H](COC(CCCCCCCCCCCCCCC)=O)COP(OCC[N+](C)(C)C)([O-])=O)=O')
-    >>> VisG(n.nxmol)
+    >>> POPC = NewLipid('POPC', 'CCCCCCCC/C=C\CCCCCCCC(O[C@H](COC(CCCCCCCCCCCCCCC)=O)COP(OCC[N+](C)(C)C)([O-])=O)=O')
+    >>> POPE = NewLipid('POPE', '[H][C@@](COP([O-])(OCC[NH3+])=O)(OC(CCCCCCC/C=C\CCCCCCCC)=O)COC(CCCCCCCCCCCCCCC)=O')
+    >>> VisG(POPC.nxmol)
+    >>> POPC.WriteMapping('lipid.itp')
+    >>> POPC.WriteFF('ff.xml')
+    >>> POPE.WriteMapping('lipid.itp')
+    >>> POPE.WriteFF('ff.xml')
     """
-    def __init__(self, smiles, bb=[], bb_add=[]):
+    def __init__(self, resname, smiles, bb=[], bb_add=[]):
+        self.resname   = resname
         self.smiles    = smiles
         self.rdkitmol  = Chem.MolFromSmiles(smiles)
+        # added hydrogens will be at the end of the molecule
+        # therefore, it will not mess up with the original atom order
         self.rdkitmolH = Chem.AddHs(self.rdkitmol)
         self.nxmol     = rdkit_to_nx(self.rdkitmolH)
 
@@ -281,6 +293,136 @@ class NewLipid:
         self.cis, self.trans = CisTrans(self.rdkitmol)
         self.chiral = Chiral(self.rdkitmolH)
 
+        # names
+        self.names = []
+        for nodeid, attr in self.nxmol.nodes(data=True):
+            name = number2element[attr['atomic_number']] + str(nodeid)
+            self.names.append(name)
+            self.nxmol.nodes[nodeid]['name'] = name
+
+
+    def WriteMapping(self, ofile):
+        """Write the mapping of the new lipid to a file."""
+        data = {'NC3': [], 'PO4': [], 'GL1': [], 'C3A': []}
+        for nodeid, attr in self.nxmol.nodes(data=True):
+            posz = attr.get('z', 0.0)
+            if posz <= -5:
+                data['C3A'].append(attr['name'])
+            elif posz > -5 and posz <= 0:
+                data['GL1'].append(attr['name'])
+            elif posz > 0 and posz <= 2.5:
+                data['PO4'].append(attr['name'])
+            elif posz > 2.5:
+                data['NC3'].append(attr['name'])
+            
+        with open(ofile, 'a') as f:
+            f.write(f'\nRESI {self.resname}\n')
+
+            for key, atoms in data.items():
+                if atoms:
+                    f.write(f'[ {key} ]\n')
+                    for atom in atoms:
+                        f.write(f'{atom}\n')
+                    f.write('\n')
+
+            for stereo, values in [('chiral', self.chiral), ('cis', self.cis), ('trans', self.trans)]:
+                if len(values) > 0:
+                    f.write(f'[ {stereo} ]\n')
+                    for value in values:
+                        text = ''
+                        for v in value:
+                            text += self.names[v] + ' '
+                        f.write(text.strip() + '\n')
+                    f.write('\n')
+
+    def WriteFF(self, ofile):
+        """Append this lipid's force field info as a <Residue> to the XML file"""
+        # Read existing content except closing tags
+        realcontent = []
+        if os.path.exists(ofile):
+            with open(ofile, 'r') as fin:
+                for line in fin:
+                    if line.strip().startswith('<ForceField>'):
+                        continue
+                    elif line.strip().startswith('<Residues>'):
+                        continue
+                    elif line.strip().startswith('</ForceField>'):
+                        continue
+                    elif line.strip().startswith('</Residues>'):
+                        continue
+                    realcontent.append(line)
+
+        content = '<ForceField>\n  <Residues>\n'
+
+        # Build residue block as lines
+        lines = [f'    <Residue name="{self.resname}">']
+        for nodeid, attr in self.nxmol.nodes(data=True):
+            lines.append(
+                f'      <Atom charge="{attr.get("charge", 0.0)}" name="{attr.get("name", f"A{nodeid}")}" type="{attr.get("type", "UNK")}"/>'
+            )
+        for atom1, atom2, bond_attr in self.nxmol.edges(data=True):
+            lines.append(
+                f'      <Bond atomName1="{self.nxmol.nodes[atom1]["name"]}" atomName2="{self.nxmol.nodes[atom2]["name"]}"/>'
+            )
+        lines.append('    </Residue>')
+
+        # Write everything back with blank lines between each line
+        with open(ofile, 'w') as f:
+            f.write(content)
+            if realcontent:
+                for line in realcontent:
+                    f.write(line)
+            for line in lines:
+                f.write(line + '\n')
+            f.write('  </Residues>\n</ForceField>\n')
+
+    def WriteMartini(self, ofile):
+        with open(ofile, 'a') as f:
+            f.write(f"""
+ [ moleculetype ]
+ ; molname      nrexcl
+   {self.resname}          1
+
+ [ atoms ]
+ ; id    type    resnr   residu  atom    cgnr    charge
+    1    Q0   1  {self.resname}    NC3      1  1.0
+    2    Qa   1  {self.resname}    PO4      2  -1.0
+    3    Na   1  {self.resname}    GL1      3  0
+    4    Na   1  {self.resname}    GL2      4  0
+    5    C1   1  {self.resname}    C1A      5  0
+    6    C3   1  {self.resname}    D2A      6  0
+    7    C1   1  {self.resname}    C3A      7  0
+    8    C1   1  {self.resname}    C4A      8  0
+    9    C1   1  {self.resname}    C1B      9  0
+   10    C1   1  {self.resname}    C2B     10  0
+   11    C1   1  {self.resname}    C3B     11  0
+   12    C1   1  {self.resname}    C4B     12  0
+
+ [ bonds ]
+ ;  i  j     funct   length  force.c.
+    1  2     1   0.47    1250
+    2  3     1   0.47    1250
+    3  4     1   0.37    1250
+    3  5     1   0.47    1250
+    5  6     1   0.47    1250
+    6  7     1   0.47    1250
+    7  8     1   0.47    1250
+    4  9     1   0.47    1250
+    9 10     1   0.47    1250
+   10 11     1   0.47    1250
+   11 12     1   0.47    1250
+
+ [ angles ]
+ ;  i  j  k  funct   angle   force.c.
+    2  3  4  2   120.0   25.0
+    2  3  5  2   180.0   25.0
+    3  5  6  2   180.0   25.0
+    5  6  7  2   120.0   45.0
+    6  7  8  2   180.0   25.0
+    4  9 10  2   180.0   25.0
+    9 10 11  2   180.0   25.0
+   10 11 12  2   180.0   25.0
+\n""")
 
     def PerfectMatch(self):
         for ffgraph in self.graphs:

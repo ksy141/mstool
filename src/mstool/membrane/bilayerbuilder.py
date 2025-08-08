@@ -1,9 +1,12 @@
 import os
+import sys
 import shutil
 import numpy as np
 from  .bilayer               import Bilayer, make_rect2
+from  .newlipid              import NewLipid
 from  ..core.map             import Map
 from  ..core.readmartini     import ReadMartini
+from  ..core.readxml         import ReadXML
 from  ..core.solvate_martini import SolvateMartini, ionize
 from  ..core.martinizedms    import MartinizeDMS
 from  ..core.dmsfile         import DMSFile
@@ -124,6 +127,34 @@ class BilayerBuilder:
         ### workdir
         if (not use_existing_folder) or (use_existing_folder and not os.path.exists(workdir)):
             os.mkdir(workdir)
+
+        ### original ff
+        originalff = ReadXML(ff=ff, ff_add=ff_add)
+
+        ### new lipid
+        lipidkeys = set(list(upper.keys()) + list(lower.keys()))
+        newlipidkeys = set()
+        for lipidkey in lipidkeys:
+            if isinstance(lipidkey, NewLipid):
+                lipidkey.WriteMapping(workdir + '/mapping_add.dat')
+                lipidkey.WriteMartini(workdir + '/martini_add.itp')
+                lipidkey.WriteFF(workdir + '/ff_add.xml')
+                newlipidkeys.add(lipidkey.resname)
+
+        if len(newlipidkeys) > 0:
+            mapping_add.append(workdir + '/mapping_add.dat')
+            martini_add.append(workdir + '/martini_add.itp')
+            ff_add.append(workdir + '/ff_add.xml')
+
+            upper = {key if not isinstance(key, NewLipid) else key.resname: value for key, value in upper.items()}
+            lower = {key if not isinstance(key, NewLipid) else key.resname: value for key, value in lower.items()}
+
+        # abort if there are duplicated residue names
+        duplicates = set(originalff.RESI.keys()) & newlipidkeys
+        if len(duplicates) > 0:
+            print("Error: One or more new lipids have resname that conflicts with an existing force field.")
+            print(duplicates)
+            sys.exit(1)
 
         ### save args
         args = locals()
@@ -271,7 +302,10 @@ class BilayerBuilder:
         usol.atoms[['x','y','z']] += shift
         usol.write(workdir + '/step1.sol.dms')
         usol.write(workdir + '/step1.sol.pdb')
-
+        proteinU.atoms[['x','y','z']] += shift
+        proteinU.write(workdir + '/protein_translated.dms', wrap=False)
+        proteinU.write(workdir + '/protein_translated.pdb', wrap=False)
+ 
         ### Martinize
         MartinizeDMS(workdir + '/step1.sol.dms', out = workdir + '/step1.martini.dms', martini=martiniff, addnbtype=addnbtype[0])
         try:
@@ -332,12 +366,12 @@ class BilayerBuilder:
         bA   = bA1 | bA2 | bA3
         NtotalW = len(u.atoms[bA1])
 
-        if protein:
-            membranecenter = shift
-        else:
-            membranecenter = u.atoms[~bA][['x','y','z']].mean(axis=0).to_numpy()
+        #if protein:
+        #    membranecenter = shift
+        #else:
+        #    membranecenter = u.atoms[~bA][['x','y','z']].mean(axis=0).to_numpy()
 
-        u.atoms[['x','y','z']] -= membranecenter
+        #u.atoms[['x','y','z']] -= membranecenter
 
 
         ### APL
@@ -359,11 +393,11 @@ class BilayerBuilder:
             u.cell = cell
         
         u.sort()
-        u.write(workdir + '/step3.dms', wrap=True)
-        u.write(workdir + '/step3.pdb', wrap=True)
+        #u.write(workdir + '/step3.dms', wrap=True)
+        #u.write(workdir + '/step3.pdb', wrap=True)
         #u.atoms[['x','y','z']] -= u.dimensions[0:3] / 2
-        #u.write(workdir + '/step3.dms')
-        #u.write(workdir + '/step3.pdb')
+        u.write(workdir + '/step3.dms')
+        u.write(workdir + '/step3.pdb')
 
         if CG_only:
             return
@@ -378,7 +412,7 @@ class BilayerBuilder:
             noprotein.cell = u.cell
             noprotein.write(workdir + '/step3.noprotein.dms')
             Backmap(workdir + '/step3.noprotein.dms', workdir=workdir, use_existing_workdir=True, nsteps=int(aa_nsteps),
-                    AA=workdir + '/protein.dms', fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
+                    AA=workdir + '/protein_translated.dms', fileindex=4, mapping=mapping, mapping_add=mapping_add, ff=ff, ff_add=ff_add,
                     use_AA_structure=use_AA_structure, AA_shrink_factor=AA_shrink_factor, rockCtype=rockCtype, rockHtype=rockHtype, T=T, water_chain='6789',
                     changename=changename)
         else:
