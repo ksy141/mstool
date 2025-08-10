@@ -12,6 +12,7 @@ from  ..core.martinizedms    import MartinizeDMS
 from  ..core.dmsfile         import DMSFile
 from  ..core.universe        import Universe
 from  ..core.backmap         import Backmap
+from  ..core.checkff         import CheckFF, mol2nx
 from  ..utils.dump           import dumpsql
 from  ..utils.openmmutils    import addPosre, addPosrePeriodicZ, addFlatBottomZ
 from  ..utils.protein_sel    import one2three, three2one
@@ -133,14 +134,20 @@ class BilayerBuilder:
 
         ### new lipid
         lipidkeys = set(list(upper.keys()) + list(lower.keys()))
-        newlipidkeys = set()
+        newlipidkeys = dict()
         for lipidkey in lipidkeys:
             if isinstance(lipidkey, NewLipid):
-                lipidkey.WriteMapping(workdir + '/mapping_add.dat')
-                lipidkey.WriteMartini(workdir + '/martini_add.itp')
-                lipidkey.WriteFF(workdir + '/ff_add.xml')
-                newlipidkeys.add(lipidkey.resname)
+                newlipidkeys[lipidkey.resname] = lipidkey
 
+        for key, value in newlipidkeys.items():
+            value.WriteMapping(workdir + '/mapping_add.dat')
+            value.WriteMartini(workdir + '/martini_add.itp')
+            value.WriteFF(workdir + '/ff_add.xml')
+
+            newff = ReadXML(workdir + '/ff_add.xml')
+            count = CheckFF(originalff, newff)
+            assert count == 0, "Duplicate residues found between original and new force fields"
+        
         if len(newlipidkeys) > 0:
             mapping_add.append(workdir + '/mapping_add.dat')
             martini_add.append(workdir + '/martini_add.itp')
@@ -150,11 +157,11 @@ class BilayerBuilder:
             lower = {key if not isinstance(key, NewLipid) else key.resname: value for key, value in lower.items()}
 
         # abort if there are duplicated residue names
-        duplicates = set(originalff.RESI.keys()) & newlipidkeys
+        duplicates = set(originalff.RESI.keys()) & set(newlipidkeys.values())
         if len(duplicates) > 0:
             print("Error: One or more new lipids have resname that conflicts with an existing force field.")
             print(duplicates)
-            sys.exit(1)
+        ReadXML(ff=ff, ff_add=ff_add)
 
         ### save args
         args = locals()
@@ -302,9 +309,10 @@ class BilayerBuilder:
         usol.atoms[['x','y','z']] += shift
         usol.write(workdir + '/step1.sol.dms')
         usol.write(workdir + '/step1.sol.pdb')
-        proteinU.atoms[['x','y','z']] += shift
-        proteinU.write(workdir + '/protein_translated.dms', wrap=False)
-        proteinU.write(workdir + '/protein_translated.pdb', wrap=False)
+        if protein:
+            proteinU.atoms[['x','y','z']] += shift
+            proteinU.write(workdir + '/protein_translated.dms', wrap=False)
+            proteinU.write(workdir + '/protein_translated.pdb', wrap=False)
  
         ### Martinize
         MartinizeDMS(workdir + '/step1.sol.dms', out = workdir + '/step1.martini.dms', martini=martiniff, addnbtype=addnbtype[0])

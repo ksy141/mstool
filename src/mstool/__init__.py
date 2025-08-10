@@ -6,6 +6,7 @@ from .core.rem              import REM
 from .core.readmappings     import ReadMappings
 from .core.readmartini      import ReadMartini
 from .core.readxml          import ReadXML
+from .core.readtoppars      import ReadToppars
 from .core.ungroup          import Ungroup
 from .core.map              import Map
 from .core.gmx2dms          import GMX2DMS
@@ -21,6 +22,7 @@ from .core.dmsfile          import DMSFile
 from .core.backmap          import Backmap
 from .core.divideconquer    import DivideConquer
 from .core.reorderatoms     import ReorderAtoms
+from .core.checkff          import CheckFF, mol2nx
 from .utils.protein_sel     import three2one, one2three
 from .utils.dump            import dumpsql, dumpdf
 from .utils.gmx_energy      import getGMXEnergy
@@ -41,6 +43,7 @@ from .lib.align import rotation_matrix, _fit_to, Align
 from .membrane.bilayerbuilder import BilayerBuilder
 from .membrane.spherebuilder  import SphereBuilder
 from .membrane.sphereprotein  import SphereProtein
+from .membrane.buildingblock import *
 
 
 # examples

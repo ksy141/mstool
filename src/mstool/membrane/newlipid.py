@@ -7,7 +7,31 @@ import matplotlib.pyplot as plt
 pwd = os.path.dirname(os.path.realpath(__file__))
 
 number2element = {
-    1: 'H', 6: 'C', 7: 'N', 8: 'O', 15: 'P', 16: 'S'
+    1: 'H',    # Hydrogen
+    2: 'He',   # Helium
+    3: 'Li',   # Lithium
+    4: 'Be',   # Beryllium
+    5: 'B',    # Boron
+    6: 'C',    # Carbon
+    7: 'N',    # Nitrogen
+    8: 'O',    # Oxygen
+    9: 'F',    # Fluorine
+    10: 'Ne',  # Neon
+    11: 'Na',  # Sodium
+    12: 'Mg',  # Magnesium
+    13: 'Al',  # Aluminum
+    14: 'Si',  # Silicon
+    15: 'P',   # Phosphorus
+    16: 'S',   # Sulfur
+    17: 'Cl',  # Chlorine
+    18: 'Ar',  # Argon
+    19: 'K',   # Potassium
+    20: 'Ca',  # Calcium
+    26: 'Fe',  # Iron
+    29: 'Cu',  # Copper
+    30: 'Zn',  # Zinc
+    35: 'Br',  # Bromine
+    53: 'I',   # Iodine
 }
 
 def VisG(G, attrs=True):
@@ -16,10 +40,12 @@ def VisG(G, attrs=True):
 
     # Custom labels
     if attrs:
-        labels = {
-            n: f"{n} ({G.nodes[n]['type']}, q={G.nodes[n]['charge']})"
-            for n in G.nodes
-        }
+        labels = {}
+        for n in G.nodes:
+            tt = G.nodes[n]['type']
+            qq = G.nodes[n]['charge']
+            labels[n] = f"{n} ({tt}, q={qq})"
+
     else:
         labels = {n: f"{n}" for n in G.nodes}
 
@@ -139,6 +165,9 @@ def edge_match(e1, e2):
 
 def ReadBuildingBlock(ifiles):
     graphs = []
+    
+    if isinstance(ifiles, str):
+        ifiles = [ifiles]
 
     for ifile in ifiles:
         root = ET.parse(ifile).getroot()
@@ -147,6 +176,7 @@ def ReadBuildingBlock(ifiles):
             name = block.get("name") or "Unnamed"
             G = nx.Graph()
 
+            z = 0.0
             for pos in block.findall("Pos"):
                 if pos.get("z") is not None:
                     z = float(pos.get("z"))
@@ -261,8 +291,11 @@ def Chiral(mol):
 class NewLipid:
     """Create a new lipid type based on SMILES.
     >>> from mstool.membrane.newlipid import NewLipid
-    >>> POPC = NewLipid('POPC', 'CCCCCCCC/C=C\CCCCCCCC(O[C@H](COC(CCCCCCCCCCCCCCC)=O)COP(OCC[N+](C)(C)C)([O-])=O)=O')
-    >>> POPE = NewLipid('POPE', '[H][C@@](COP([O-])(OCC[NH3+])=O)(OC(CCCCCCC/C=C\CCCCCCCC)=O)COC(CCCCCCCCCCCCCCC)=O')
+    >>> POPC    = NewLipid('POPC',    'CCCCCCCC/C=C\CCCCCCCC(O[C@H](COC(CCCCCCCCCCCCCCC)=O)COP(OCC[N+](C)(C)C)([O-])=O)=O')
+    >>> POPE    = NewLipid('POPE',    '[H][C@@](COP([O-])(OCC[NH3+])=O)(OC(CCCCCCC/C=C\CCCCCCCC)=O)COC(CCCCCCCCCCCCCCC)=O')
+    >>> BMPSS   = NewLipid('BMPSS',   '[H][C@](COP(OC[C@@]([H])(O)COC(CCCCCCC/C=C\CCCCCCCC)=O)([O-])=O)(O)COC(CCCCCCC/C=C\CCCCCCCC)=O')
+    >>> BMPSR   = NewLipid('BMPSR',   '[H][C@@](COP(OC[C@@]([H])(O)COC(CCCCCCC/C=C\CCCCCCCC)=O)([O-])=O)(O)COC(CCCCCCC/C=C\CCCCCCCC)=O')
+    >>> PEG2000 = NewLipid('PEG2000', 'O=C(CCCCCCCCCCCCC)OCC(OC(CCCCCCCCCCCCC)=O)COCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOC')
     >>> VisG(POPC.nxmol)
     >>> POPC.WriteMapping('lipid.itp')
     >>> POPC.WriteFF('ff.xml')
@@ -278,6 +311,10 @@ class NewLipid:
         self.rdkitmolH = Chem.AddHs(self.rdkitmol)
         self.nxmol     = rdkit_to_nx(self.rdkitmolH)
 
+        if isinstance(bb, str):
+            bb = [bb]
+        if isinstance(bb_add, str):
+            bb_add = [bb_add]
         if len(bb) == 0:
             bb = [pwd + '/buildingblock.xml']
         bb_final = bb + bb_add
@@ -314,7 +351,7 @@ class NewLipid:
                 data['PO4'].append(attr['name'])
             elif posz > 2.5:
                 data['NC3'].append(attr['name'])
-            
+
         with open(ofile, 'a') as f:
             f.write(f'\nRESI {self.resname}\n')
 
@@ -444,6 +481,7 @@ class NewLipid:
             if 'charge' in attr.keys():
                 qtot += attr['charge']
 
+        self.charge = qtot
         if abs(int(qtot) - qtot) > 0.0001:
             print(f'qtot = {qtot}')
 

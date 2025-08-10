@@ -5,15 +5,18 @@ build-backend = "setuptools.build_meta"
 [project]
 name        = "mstool"
 authors     = [{ name = "Siyoung Kim", email = "siyoung.k@icloud.com" }]
-description = "Multiscale Simulation Tool for Backmapping"
+description = "Multiscale Simulation Tool for Backmapping and Membrane Builder"
 readme      = "README.md"
 license     = { file = "LICENSE" }
-requires-python = ">= 3.7"
+requires-python = ">= 3.10"
 dynamic     = ['version']
 dependencies = [
     "pandas",
     "matplotlib",
-    "scipy"
+    "scipy",
+    "networkx",
+    "rdkit",
+    "openmm"
 ]
 
 [project.urls]
