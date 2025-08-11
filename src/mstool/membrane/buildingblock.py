@@ -55,7 +55,7 @@ def BuildingBlock(mol, resname=None):
 
 def nx2xml(nxmols, ofile, lower_cutoff=3.5, upper_cutoff=49.5):
     """ Create an XML file for building blocks from a list of networkx molecules.
-    >>> d = mstool.ReadToppars()
+    >>> d = mstool.ReadToppars('/Users/siyoungkim/mstool/src/mstool/FF/charmm36.toppar/toppar.lipid.str')
     >>> mstool.nx2xml(d.GRAPH, 'bb.xml')
     """
     lines = []
@@ -78,9 +78,14 @@ def nx2xml(nxmols, ofile, lower_cutoff=3.5, upper_cutoff=49.5):
                 f'    <Atom name="{nodeid}" number="{attr.get("atomic_number", "0")}" type="{attr.get("type", "UNK")}" charge="{attr.get("charge", 0.0)}"/>'
             )
         for atom1, atom2, bond_attr in nxmol.edges(data=True):
-            lines.append(
-                f'    <Bond atomName1="{atom1}" atomName2="{atom2}"/>'
-            )
+            if 'order' in bond_attr.keys():
+                border = bond_attr['order']
+                if border != 1:
+                    lines.append(f'    <Bond atomName1="{atom1}" atomName2="{atom2}" order="{border}"/>')
+                else:
+                    lines.append(f'    <Bond atomName1="{atom1}" atomName2="{atom2}"/>')
+            else:
+                lines.append(f'    <Bond atomName1="{atom1}" atomName2="{atom2}"/>')
         lines.append('  </BuildingBlock>')
 
     # Write everything back with blank lines between each line

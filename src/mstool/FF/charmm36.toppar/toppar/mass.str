@@ -1,0 +1,171 @@
+MASS  -1  H          1.00800 ! polar H
+MASS  -1  HC         1.00800 ! N-ter H
+MASS  -1  HA         1.00800 ! nonpolar H
+MASS  -1  HP         1.00800 ! aromatic H
+MASS  -1  HB1        1.00800 ! backbone H
+MASS  -1  HB2        1.00800 ! aliphatic backbone H, to CT2
+MASS  -1  HR1        1.00800 ! his he1, (+) his HG,HD2
+MASS  -1  HR2        1.00800 ! (+) his HE1
+MASS  -1  HR3        1.00800 ! neutral his HG, HD2
+MASS  -1  HS         1.00800 ! thiol hydrogen
+MASS  -1  HE1        1.00800 ! for alkene; RHC=CR
+MASS  -1  HE2        1.00800 ! for alkene; H2C=CR
+MASS  -1  HA1        1.00800 ! alkane, CH, new LJ params (see toppar_all22_prot_aliphatic_c27.str)
+MASS  -1  HA2        1.00800 ! alkane, CH2, new LJ params (see toppar_all22_prot_aliphatic_c27.str)
+MASS  -1  HA3        1.00800 ! alkane, CH3, new LJ params (see toppar_all22_prot_aliphatic_c27.str)
+MASS  -1  C         12.01100 ! carbonyl C, peptide backbone
+MASS  -1  CA        12.01100 ! aromatic C
+MASS  -1  CT        12.01100 ! aliphatic sp3 C, new LJ params, no hydrogens, see retinol stream file for parameters
+MASS  -1  CT1       12.01100 ! aliphatic sp3 C for CH
+MASS  -1  CT2       12.01100 ! aliphatic sp3 C for CH2
+MASS  -1  CT2A      12.01100 ! from CT2 (GLU, HSP chi1/chi2 fitting) 05282010, zhu
+MASS  -1  CT3       12.01100 ! aliphatic sp3 C for CH3
+MASS  -1  CPH1      12.01100 ! his CG and CD2 carbons
+MASS  -1  CPH2      12.01100 ! his CE1 carbon
+MASS  -1  CPT       12.01100 ! trp C between rings
+MASS  -1  CY        12.01100 ! TRP C in pyrrole ring
+MASS  -1  CP1       12.01100 ! tetrahedral C (proline CA)
+MASS  -1  CP2       12.01100 ! tetrahedral C (proline CB/CG)
+MASS  -1  CP3       12.01100 ! tetrahedral C (proline CD)
+MASS  -1  CC        12.01100 ! carbonyl C, asn,asp,gln,glu,cter,ct2
+MASS  -1  CD        12.01100 ! carbonyl C, pres aspp,glup,ct1
+MASS  -1  CS        12.01100 ! thiolate carbon
+MASS  -1  CE1       12.01100 ! for alkene; RHC=CR
+MASS  -1  CE2       12.01100 ! for alkene; H2C=CR
+MASS  -1  CAI       12.01100 ! aromatic C next to CPT in trp
+MASS  -1  C3        12.01100 ! cyclopropane carbon
+MASS  -1  N         14.00700 ! proline N
+MASS  -1  NR1       14.00700 ! neutral his protonated ring nitrogen
+MASS  -1  NR2       14.00700 ! neutral his unprotonated ring nitrogen
+MASS  -1  NR3       14.00700 ! charged his ring nitrogen
+MASS  -1  NH1       14.00700 ! peptide nitrogen
+MASS  -1  NH2       14.00700 ! amide nitrogen
+MASS  -1  NH3       14.00700 ! ammonium nitrogen
+MASS  -1  NC2       14.00700 ! guanidinium nitrogen
+MASS  -1  NY        14.00700 ! TRP N in pyrrole ring
+MASS  -1  NP        14.00700 ! Proline ring NH2+ (N-terminal)
+MASS  -1  O         15.99900 ! carbonyl oxygen
+MASS  -1  OB        15.99900 ! carbonyl oxygen in acetic acid
+MASS  -1  OC        15.99900 ! carboxylate oxygen
+MASS  -1  OH1       15.99900 ! hydroxyl oxygen
+MASS  -1  OS        15.99940 ! ester oxygen
+MASS  -1  S         32.06000 ! sulphur
+MASS  -1  SM        32.06000 ! sulfur C-S-S-C type
+MASS  -1  SS        32.06000 ! thiolate sulfur
+
+
+
+MASS  -1  HN1        1.00800 ! Nucleic acid amine proton
+MASS  -1  HN2        1.00800 ! Nucleic acid ring nitrogen proton
+MASS  -1  HN3        1.00800 ! Nucleic acid aromatic carbon proton
+MASS  -1  HN4        1.00800 ! Nucleic acid phosphate hydroxyl proton
+MASS  -1  HN5        1.00800 ! Nucleic acid ribose hydroxyl proton
+MASS  -1  HN6        1.00800 ! Nucleic acid ribose aliphatic proton
+MASS  -1  HN7        1.00800 ! Nucleic acid proton (equivalent to protein HA)
+MASS  -1  HN8        1.00800 ! Bound to CN8 in nucleic acids/model compounds
+MASS  -1  HN9        1.00800 ! Bound to CN9 in nucleic acids/model compounds
+MASS  -1  CN1       12.01100 ! Nucleic acid carbonyl carbon
+MASS  -1  CN1T      12.01100 ! Nucleic acid carbonyl carbon (T/U C2)
+MASS  -1  CN2       12.01100 ! Nucleic acid aromatic carbon to amide
+MASS  -1  CN3       12.01100 ! Nucleic acid aromatic carbon
+MASS  -1  CN3T      12.01100 ! Nucleic acid aromatic carbon, Thy C5
+MASS  -1  CN4       12.01100 ! Nucleic acid purine C8 and ADE C2
+MASS  -1  CN5       12.01100 ! Nucleic acid purine C4 and C5
+MASS  -1  CN5G      12.01100 ! Nucleic acid guanine C5
+MASS  -1  CN7       12.01100 ! Nucleic acid carbon (equivalent to protein CT1)
+MASS  -1  CN7B      12.01100 ! Nucleic acid aliphatic carbon for C1'
+MASS  -1  CN8       12.01100 ! Nucleic acid carbon (equivalent to protein CT2)
+MASS  -1  CN8B      12.01100 ! Nucleic acid carbon (equivalent to protein CT2)
+MASS  -1  CN9       12.01100 ! Nucleic acid carbon (equivalent to protein CT3)
+MASS  -1  NN1       14.00700 ! Nucleic acid amide nitrogen
+MASS  -1  NN2       14.00700 ! Nucleic acid protonated ring nitrogen
+MASS  -1  NN2B      14.00700 ! From NN2, for N9 in GUA different from ADE
+MASS  -1  NN2U      14.00700 ! Nucleic acid protonated ring nitrogen, ura N3
+MASS  -1  NN2G      14.00700 ! Nucleic acid protonated ring nitrogen, gua N1
+MASS  -1  NN3       14.00700 ! Nucleic acid unprotonated ring nitrogen
+MASS  -1  NN3A      14.00700 ! Nucleic acid unprotonated ring nitrogen, ade N1 and N3
+MASS  -1  NN3G      14.00700 ! Nucleic acid unprotonated ring nitrogen, gua N3
+MASS  -1  NN4       14.00700 ! Nucleic acid purine N7
+MASS  -1  NN6       14.00700 ! Nucleic acid sp3 amine nitrogen (equiv to protein nh3)
+MASS  -1  ON1       15.99940 ! Nucleic acid carbonyl oxygen
+MASS  -1  ON1C      15.99940 ! Nucleic acid carbonyl oxygen, cyt O2
+MASS  -1  ON2       15.99940 ! Nucleic acid phosphate ester oxygen
+MASS  -1  ON3       15.99940 ! Nucleic acid =O in phosphate
+MASS  -1  ON4       15.99940 ! Nucleic acid phosphate hydroxyl oxygen
+MASS  -1  ON5       15.99940 ! Nucleic acid ribose hydroxyl oxygen
+MASS  -1  ON6       15.99940 ! Nucleic acid deoxyribose ring oxygen
+MASS  -1  ON6B      15.99940 ! Nucleic acid ribose ring oxygen
+MASS  -1  P         30.97400 ! phosphorus
+MASS  -1  P2        30.97400 ! phosphorus, adm, 2011 DNA update
+MASS  -1  P3        30.97400 ! pyrophosphate phosphorus
+MASS  -1  P4        30.97400 ! protonated pyrophosphate phosphorus
+
+
+
+!! C6H12O6 pyranose monosaccharide atom types
+!MASS  -1  CC301     12.01100 ! aliphatic C, no H's
+!MASS  -1  CC311     12.01100 ! generic acyclic CH carbon
+!MASS  -1  CC312     12.01100 ! CH carbon in linear polyols
+!MASS  -1  CC3161    12.01100 ! C2, C3, C4 CH bound to OH
+!MASS  -1  CC3162    12.01100 ! C1 (anomeric) CH bound to OH
+!MASS  -1  CC3163    12.01100 ! C5 CH bound to exocylic CH2OH
+!MASS  -1  CC321     12.01100 ! generic acyclic CH2 carbon (hexopyranose C6)
+!MASS  -1  CC322     12.01100 ! CH2 carbon in linear polyols erh
+!MASS  -1  CC3263    12.01100 ! C5 in xylose
+!MASS  -1  CC331     12.01100 ! generic acyclic CH3 carbon (xyl C6, glcna/galna CT)
+!MASS  -1  CC2O1     12.01100 ! sp2 carbon in amides, aldoses
+!MASS  -1  CC2O2     12.01100 ! sp2 carbon in carboxylates
+!MASS  -1  CC2O3     12.01100 ! sp2 carbon in acetone, ketoses
+!MASS  -1  CC2O4     12.01100 ! c22 CD
+!MASS  -1  HCA1       1.00800 ! aliphatic proton, CH
+!MASS  -1  HCA2       1.00800 ! aliphatic proton, CH2
+!MASS  -1  HCA3       1.00800 ! aliphatic proton, CH3
+!MASS  -1  HCP1       1.00800 ! polar H
+!MASS  -1  HCR1       1.00800 ! c22 HR1
+!MASS  -1  OC311     15.99940 ! hydroxyl oxygen
+!MASS  -1  OC3C61    15.99940 ! ether in six membered ring
+!MASS  -1  OC301     15.99940 ! generic linear ether
+!MASS  -1  OC302     15.99940 ! linear ether in 1-1 glycosidic linkage
+!MASS  -1  OC2D1     15.99940 ! sp2 oxygen in amides, aldoses
+!MASS  -1  OC2D2     15.99940 ! sp2 oxygen in carboxylates
+!MASS  -1  OC2D3     15.99940 ! sp2 oxygen in acetone, ketoses
+!MASS  -1  OC2D4     15.99940 ! par22 O
+!MASS  -1  NC2D1     14.00700 ! peptide, NMA, IPAA nitrogen (C=NHR)
+!! model compound atom types
+!MASS  -1  CC321C    12.01100 ! cyclohexane, thp CH2
+!MASS  -1  HCA3M      1.00800 ! alcohol aliphatic proton, CH3
+!MASS  -1  HCP1M      1.00800 ! EGLY hydroxyl H
+!MASS  -1  OC311M    15.99940 ! MEOH, ETOH, PRO2, EGLY hydroxyl O
+!MASS  -1  CC321D    12.01100 ! cyclohexane, thp CH2 model for 1-1 linkage
+!MASS  -1  CC311C    12.01100 ! patch C1 in model compound
+!MASS  -1  CC311D    12.01100 ! patch C1 in model compound
+!! THF atom types
+!MASS  -1  OC3C5M    15.99940 ! thf ring oxygen
+!MASS  -1  CC322C    12.01100 ! cyclopentane, thf CH2
+!MASS  -1  HCA2C2     1.00800 ! cyclopentane, thp aliphatic proton, CH2
+!MASS  -1  CC312C    12.01100 ! tf2m CH1
+!MASS  -1  HCA1C2     1.00800 ! tf2m aliphatic proton, CH1
+!! Furanose atom types; erh 10/24/07
+!MASS  -1  OC3C51    15.99940 ! furan ring oxygen
+!MASS  -1  CC3152    12.01100 ! furan ring carbon
+!MASS  -1  CC3153    12.01100 ! furan ring carbon
+!MASS  -1  CC3251    12.01100 ! furan ring carbon; C2 deoxy
+!MASS  -1  CC3151    12.01100 ! furan ring carbon
+!MASS  -1  CC3051    12.01100 ! furan ring carbon; C2 fructose
+!! pyranose derivatives
+!MASS  -1  CC3062    12.01100 ! C2 on NE5AC
+!MASS  -1  CC3261    12.01100 ! C3 on NE5AC
+!!Added by sai for modelling phosphate
+!MASS  -1  OC312     15.99940 ! OH in PO3H (phosphate) || OHL in top_all27_lipid.rtf
+!MASS  -1  OC30P     15.99940 ! ester O in PO3H (phosphate) || OSL in top_all27_lipid.rtf
+!MASS  -1  OC2DP     15.99940 ! =0 in P03H (phosphate) || O2L in top_all27_lipid.rtf
+!MASS  -1  PC        30.97400 ! phosphorus || PL in top_all27_lipid.rtf
+!MASS  -1  SC        32.06000 ! Sulfate sulfur
+!!pram, furanosyl linkages
+!MASS  -1  CC312D    12.01100 ! from CC322C; THF anomeric carbon
+!MASS  -1  OC303     15.99940 ! from OC301; linear ether in P1->F3 pyranose-furanose glycosidic linkage
+!!o-acetyl on ABEQ and ARHM, my
+!MASS  -1  CC2O5     12.01100 ! carbonyl C on acetyl
+!!Sulfamate nitrogen, xxwy
+!MASS  -1  NC311     14.00700 !N ! Sulfamate nitrogen, xxwy
+!

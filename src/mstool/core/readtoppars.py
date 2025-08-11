@@ -265,6 +265,7 @@ class ReadToppars:
         cmaps     = []
         groups    = []
         g         = []
+        numbers   = []
 
         for line in ssave:
             segments = line.split()
@@ -283,12 +284,22 @@ class ReadToppars:
 
                 if type not in self.ATOMS.keys():
                     masses.append(0)
+                    numbers.append(0)
                 else:
                     masses.append(self.ATOMS[type]['mass'])
+                    numbers.append(self.ATOMS[type]['numb'])
 
-            elif line.startswith(('BOND', 'DOUB')):
+            elif line.startswith('BOND'):
                 for i in range(0, len(segments[1:]), 2):
-                    bonds.append([segments[i+1], segments[i+2]])
+                    bonds.append([segments[i+1], segments[i+2], 1])
+
+            elif line.startswith(('DOUB', 'DOUBLE')):
+                for i in range(0, len(segments[1:]), 2):
+                    bonds.append([segments[i+1], segments[i+2], 2])
+
+            elif line.startswith(('TRIP', 'TRIPLE')):
+                for i in range(0, len(segments[1:]), 2):
+                    bonds.append([segments[i+1], segments[i+2], 3])
 
             elif line.startswith('ANGL'):
                 for i in range(0, len(segments[1:]), 3):
@@ -314,7 +325,7 @@ class ReadToppars:
 
         if g:
             groups.append(g)
-
+        
         if self.create_group and rtype == 'RESI':
             for group in groups:
                 if len(group) < 3.5:
@@ -326,9 +337,9 @@ class ReadToppars:
                     for atom in group:
                         G.add_node(atom[0], type=atom[1], charge=atom[2],
                                    atomic_number=self.ATOMS[atom[1]]['numb'])
-                    for atomi, atomj in bonds:
+                    for atomi, atomj, border in bonds:
                         if atomi in G and atomj in G:
-                            G.add_edge(atomi, atomj)
+                            G.add_edge(atomi, atomj, order=int(border))
 
                     if len(G.edges) == 0:
                         continue
@@ -345,6 +356,7 @@ class ReadToppars:
         self.RESI[resname] = {'names':     np.array(names),
                               'types':     np.array(types),
                               'masses':    np.array(masses),
+                              'numbers':   np.array(numbers), 
                               'bonds':     np.array(bonds),
                               'imprs':     np.array(imprs),
                               'cmaps':     np.array(cmaps),

@@ -22,7 +22,7 @@ from .core.dmsfile          import DMSFile
 from .core.backmap          import Backmap
 from .core.divideconquer    import DivideConquer
 from .core.reorderatoms     import ReorderAtoms
-from .core.checkff          import CheckFF, mol2nx
+from .core.checkff          import *
 from .utils.protein_sel     import three2one, one2three
 from .utils.dump            import dumpsql, dumpdf
 from .utils.gmx_energy      import getGMXEnergy
@@ -44,6 +44,7 @@ from .membrane.bilayerbuilder import BilayerBuilder
 from .membrane.spherebuilder  import SphereBuilder
 from .membrane.sphereprotein  import SphereProtein
 from .membrane.buildingblock import *
+from .membrane.newlipid import *
 
 
 # examples

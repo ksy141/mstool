@@ -6,33 +6,34 @@ import numpy as np
 import matplotlib.pyplot as plt
 pwd = os.path.dirname(os.path.realpath(__file__))
 
-number2element = {
-    1: 'H',    # Hydrogen
-    2: 'He',   # Helium
-    3: 'Li',   # Lithium
-    4: 'Be',   # Beryllium
-    5: 'B',    # Boron
-    6: 'C',    # Carbon
-    7: 'N',    # Nitrogen
-    8: 'O',    # Oxygen
-    9: 'F',    # Fluorine
-    10: 'Ne',  # Neon
-    11: 'Na',  # Sodium
-    12: 'Mg',  # Magnesium
-    13: 'Al',  # Aluminum
-    14: 'Si',  # Silicon
-    15: 'P',   # Phosphorus
-    16: 'S',   # Sulfur
-    17: 'Cl',  # Chlorine
-    18: 'Ar',  # Argon
-    19: 'K',   # Potassium
-    20: 'Ca',  # Calcium
-    26: 'Fe',  # Iron
-    29: 'Cu',  # Copper
-    30: 'Zn',  # Zinc
-    35: 'Br',  # Bromine
-    53: 'I',   # Iodine
+E2Z = {
+    "H": 1,   "He": 2,  "Li": 3,  "Be": 4,  "B": 5,
+    "C": 6,   "N": 7,   "O": 8,   "F": 9,   "Ne": 10,
+    "Na": 11, "Mg": 12, "Al": 13, "Si": 14, "P": 15,
+    "S": 16,  "Cl": 17, "Ar": 18, "K": 19,  "Ca": 20,
+    "Sc": 21, "Ti": 22, "V": 23,  "Cr": 24, "Mn": 25,
+    "Fe": 26, "Co": 27, "Ni": 28, "Cu": 29, "Zn": 30,
+    "Ga": 31, "Ge": 32, "As": 33, "Se": 34, "Br": 35,
+    "Kr": 36, "Rb": 37, "Sr": 38, "Y": 39,  "Zr": 40,
+    "Nb": 41, "Mo": 42, "Tc": 43, "Ru": 44, "Rh": 45,
+    "Pd": 46, "Ag": 47, "Cd": 48, "In": 49, "Sn": 50,
+    "Sb": 51, "Te": 52, "I": 53,  "Xe": 54, "Cs": 55,
+    "Ba": 56, "La": 57, "Ce": 58, "Pr": 59, "Nd": 60,
+    "Pm": 61, "Sm": 62, "Eu": 63, "Gd": 64, "Tb": 65,
+    "Dy": 66, "Ho": 67, "Er": 68, "Tm": 69, "Yb": 70,
+    "Lu": 71, "Hf": 72, "Ta": 73, "W": 74,  "Re": 75,
+    "Os": 76, "Ir": 77, "Pt": 78, "Au": 79, "Hg": 80,
+    "Tl": 81, "Pb": 82, "Bi": 83, "Po": 84, "At": 85,
+    "Rn": 86, "Fr": 87, "Ra": 88, "Ac": 89, "Th": 90,
+    "Pa": 91, "U": 92,  "Np": 93, "Pu": 94, "Am": 95,
+    "Cm": 96, "Bk": 97, "Cf": 98, "Es": 99, "Fm": 100,
+    "Md": 101,"No": 102,"Lr": 103,"Rf": 104,"Db": 105,
+    "Sg": 106,"Bh": 107,"Hs": 108,"Mt": 109,"Ds": 110,
+    "Rg": 111,"Cn": 112,"Nh": 113,"Fl": 114,"Mc": 115,
+    "Lv": 116,"Ts": 117,"Og": 118, 
 }
+
+Z2E = {value: key for key, value in E2Z.items()}
 
 def VisG(G, attrs=True):
     # Layout positions
@@ -105,13 +106,25 @@ def DFS(G):
 
 
 def rdkit_to_nx(mol):
+    # Kekulize the molecule in-place
+    # aromatic bonds into single or double
+    Chem.Kekulize(mol, clearAromaticFlags=True)
+
+    bond_order_map = {
+        Chem.rdchem.BondType.SINGLE: 1,
+        Chem.rdchem.BondType.DOUBLE: 2,
+        Chem.rdchem.BondType.TRIPLE: 3,
+        Chem.rdchem.BondType.AROMATIC: 1.5,
+        Chem.rdchem.BondType.QUADRUPLE: 4,
+    }
+
     G = nx.Graph()
 
     for atom in mol.GetAtoms():
         G.add_node(atom.GetIdx(), atomic_number=atom.GetAtomicNum(), z=0.0)
 
     for bond in mol.GetBonds():
-        G.add_edge(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), order=bond.GetBondType())
+        G.add_edge(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), order=bond_order_map[bond.GetBondType()])
 
     for idx, atom in G.nodes(data=True):
         count_C = 0; count_H = 0
@@ -175,6 +188,7 @@ def ReadBuildingBlock(ifiles):
         for block in root.findall('BuildingBlock'):
             name = block.get("name") or "Unnamed"
             G = nx.Graph()
+            G.name = name
 
             z = 0.0
             for pos in block.findall("Pos"):
@@ -292,12 +306,14 @@ def Chiral(mol):
 class NewLipid:
     """Create a new lipid type based on SMILES.
     >>> from mstool.membrane.newlipid import NewLipid
-    >>> POPC    = NewLipid('POPC',    'CCCCCCCC/C=C\CCCCCCCC(O[C@H](COC(CCCCCCCCCCCCCCC)=O)COP(OCC[N+](C)(C)C)([O-])=O)=O')
-    >>> POPE    = NewLipid('POPE',    '[H][C@@](COP([O-])(OCC[NH3+])=O)(OC(CCCCCCC/C=C\CCCCCCCC)=O)COC(CCCCCCCCCCCCCCC)=O')
+    >>> POPC    = NewLipid('POPC1',    'CCCCCCCC/C=C\CCCCCCCC(O[C@H](COC(CCCCCCCCCCCCCCC)=O)COP(OCC[N+](C)(C)C)([O-])=O)=O')
+    >>> POPE    = NewLipid('POPE1',    '[H][C@@](COP([O-])(OCC[NH3+])=O)(OC(CCCCCCC/C=C\CCCCCCCC)=O)COC(CCCCCCCCCCCCCCC)=O')
     >>> BMPSS   = NewLipid('BMPSS',   '[H][C@](COP(OC[C@@]([H])(O)COC(CCCCCCC/C=C\CCCCCCCC)=O)([O-])=O)(O)COC(CCCCCCC/C=C\CCCCCCCC)=O')
     >>> BMPSR   = NewLipid('BMPSR',   '[H][C@@](COP(OC[C@@]([H])(O)COC(CCCCCCC/C=C\CCCCCCCC)=O)([O-])=O)(O)COC(CCCCCCC/C=C\CCCCCCCC)=O')
     >>> BMPRS   = NewLipid('BMPRS',   '[H][C@](COP(OC[C@]([H])(O)COC(CCCCCCC/C=C\CCCCCCCC)=O)([O-])=O)(O)COC(CCCCCCC/C=C\CCCCCCCC)=O')
     >>> BMPRR   = NewLipid('BMPRR',   '[H][C@@](COP(OC[C@]([H])(O)COC(CCCCCCC/C=C\CCCCCCCC)=O)([O-])=O)(O)COC(CCCCCCC/C=C\CCCCCCCC)=O')
+    >>> SM102N  = NewLipid('SM102N',  'O=C(OC(CCCCCCCC)CCCCCCCC)CCCCCCC[N](CCO)CCCCCC(OCCCCCCCCCCC)=O')
+    >>> SM102P  = NewLipid('SM102P',  'O=C(OC(CCCCCCCC)CCCCCCCC)CCCCCCC[NH+](CCO)CCCCCC(OCCCCCCCCCCC)=O')
     >>> PEG2000 = NewLipid('PEG2000', 'O=C(CCCCCCCCCCCCC)OCC(OC(CCCCCCCCCCCCC)=O)COCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOC')
     >>> VisG(POPC.nxmol)
     >>> POPC.WriteMapping('lipid.itp')
@@ -337,7 +353,7 @@ class NewLipid:
         # names
         self.names = []
         for nodeid, attr in self.nxmol.nodes(data=True):
-            name = number2element[attr['atomic_number']] + str(nodeid)
+            name = Z2E[attr['atomic_number']] + str(nodeid)
             self.names.append(name)
             self.nxmol.nodes[nodeid]['name'] = name
 
@@ -468,10 +484,11 @@ class NewLipid:
     def PerfectMatch(self):
         for ffgraph in self.graphs:
             nodes    = ffgraph.nodes(data=True)
-            GM       = nx.isomorphism.GraphMatcher(self.nxmol, ffgraph, node_match=node_match)
+            GM       = nx.isomorphism.GraphMatcher(self.nxmol, ffgraph, node_match=node_match, edge_match=edge_match)
             mappings = [mapping for mapping in GM.subgraph_isomorphisms_iter()]
 
             for mapping in mappings:
+                #print(ffgraph.name)
                 for index, name in mapping.items():
                     self.nxmol.nodes[index]['type']   = nodes[name]['type']
                     self.nxmol.nodes[index]['charge'] = nodes[name]['charge']
