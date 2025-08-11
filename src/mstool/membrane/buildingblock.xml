@@ -9,16 +9,6 @@
     <Bond atomName1="N" atomName2="CA"/>
     <Bond atomName1="CA" atomName2="HA"/>
   </BuildingBlock>
-  <BuildingBlock name="ALA_1">
-    <Pos z="-5.0"/>
-    <Atom name="CB" number="6" type="CT3" charge="-0.27"/>
-    <Atom name="HB1" number="1" type="HA3" charge="0.09"/>
-    <Atom name="HB2" number="1" type="HA3" charge="0.09"/>
-    <Atom name="HB3" number="1" type="HA3" charge="0.09"/>
-    <Bond atomName1="CB" atomName2="HB1"/>
-    <Bond atomName1="CB" atomName2="HB2"/>
-    <Bond atomName1="CB" atomName2="HB3"/>
-  </BuildingBlock>
   <BuildingBlock name="CYS_2">
     <Pos z="-5.0"/>
     <Atom name="CB" number="6" type="CT2" charge="-0.11"/>

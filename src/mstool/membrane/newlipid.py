@@ -251,8 +251,8 @@ def CisTrans(mol):
 
 def Chiral(mol):
     chirals = []
-    Chem.FindMolChiralCenters(mol, includeUnassigned=False)  # to update atom stereo tags
     chiral_centers = Chem.FindMolChiralCenters(mol, includeUnassigned=False)
+    ranks = list(Chem.CanonicalRankAtoms(mol, breakTies=False))
 
     for center_idx, config in chiral_centers:
         center_atom = mol.GetAtomWithIdx(center_idx)
@@ -262,29 +262,30 @@ def Chiral(mol):
             print(f"Warning: atom {center_idx} is not bonded to 4 atoms.")
             continue
 
-        hydrogen_idx = None
-        heavy_atom_indices = []
+        neighbors = center_atom.GetNeighbors()
+        # print(f"Chiral center at atom {center_idx}, config: {config}")
 
+        # Collect neighbor ranks and symbols
+        neighbor_info = []
         for nbr in neighbors:
-            if nbr.GetAtomicNum() == 1:  # Hydrogen
-                hydrogen_idx = nbr.GetIdx()
-            else:
-                heavy_atom_indices.append(nbr.GetIdx())
+            idx = nbr.GetIdx()
+            rank = ranks[idx]
+            neighbor_info.append((rank, idx, nbr.GetSymbol()))
+        neighbor_info.sort()
 
-        if hydrogen_idx is None:
-            # No hydrogen, fall back to default
-            neighbor_indices = sorted([nbr.GetIdx() for nbr in neighbors])
-            atom1, atom3, atom4, atom5 = neighbor_indices
-        else:
-            if len(heavy_atom_indices) != 3:
-                print(f"Warning: unexpected number of heavy atoms at center {center_idx}")
-                continue
-            atom1 = hydrogen_idx
-            atom3, atom4, atom5 = sorted(heavy_atom_indices)
-
-        atom2 = center_idx  # chiral center
-        chirals.append([atom1, atom2, atom3, atom4, atom5])
-
+        if config == 'R':
+            chirals.append([neighbor_info[3][1], 
+                            center_idx,
+                            neighbor_info[0][1],
+                            neighbor_info[1][1],
+                            neighbor_info[2][1]])
+        elif config == 'S':
+            chirals.append([neighbor_info[3][1], 
+                            center_idx,
+                            neighbor_info[0][1],
+                            neighbor_info[2][1],
+                            neighbor_info[1][1]])
+            
     return chirals
 
 
@@ -295,6 +296,8 @@ class NewLipid:
     >>> POPE    = NewLipid('POPE',    '[H][C@@](COP([O-])(OCC[NH3+])=O)(OC(CCCCCCC/C=C\CCCCCCCC)=O)COC(CCCCCCCCCCCCCCC)=O')
     >>> BMPSS   = NewLipid('BMPSS',   '[H][C@](COP(OC[C@@]([H])(O)COC(CCCCCCC/C=C\CCCCCCCC)=O)([O-])=O)(O)COC(CCCCCCC/C=C\CCCCCCCC)=O')
     >>> BMPSR   = NewLipid('BMPSR',   '[H][C@@](COP(OC[C@@]([H])(O)COC(CCCCCCC/C=C\CCCCCCCC)=O)([O-])=O)(O)COC(CCCCCCC/C=C\CCCCCCCC)=O')
+    >>> BMPRS   = NewLipid('BMPRS',   '[H][C@](COP(OC[C@]([H])(O)COC(CCCCCCC/C=C\CCCCCCCC)=O)([O-])=O)(O)COC(CCCCCCC/C=C\CCCCCCCC)=O')
+    >>> BMPRR   = NewLipid('BMPRR',   '[H][C@@](COP(OC[C@]([H])(O)COC(CCCCCCC/C=C\CCCCCCCC)=O)([O-])=O)(O)COC(CCCCCCC/C=C\CCCCCCCC)=O')
     >>> PEG2000 = NewLipid('PEG2000', 'O=C(CCCCCCCCCCCCC)OCC(OC(CCCCCCCCCCCCC)=O)COCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOCCOC')
     >>> VisG(POPC.nxmol)
     >>> POPC.WriteMapping('lipid.itp')
@@ -328,6 +331,7 @@ class NewLipid:
 
         # StereoChemistry
         self.cis, self.trans = CisTrans(self.rdkitmol)
+        Chem.AssignStereochemistry(self.rdkitmolH, force=True, cleanIt=True)
         self.chiral = Chiral(self.rdkitmolH)
 
         # names
