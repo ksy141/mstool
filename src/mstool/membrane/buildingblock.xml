@@ -1140,7 +1140,7 @@
         <Bond atomName1="C2S" atomName2="NF"/>
         <Bond atomName1="NF"  atomName2="HNF"/>
         <Bond atomName1="NF"  atomName2="C1F"/>
-        <Bond atomName1="C1F" atomName2="OF"/>
+        <Bond atomName1="C1F" atomName2="OF" order="2"/>
         <Bond atomName1="C1F" atomName2="C2F"/>
         <Bond atomName1="C2F" atomName2="H2F"/>
         <Bond atomName1="C2F" atomName2="H2G"/>

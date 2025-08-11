@@ -306,8 +306,8 @@ def Chiral(mol):
 class NewLipid:
     """Create a new lipid type based on SMILES.
     >>> from mstool.membrane.newlipid import NewLipid
-    >>> POPC    = NewLipid('POPC1',    'CCCCCCCC/C=C\CCCCCCCC(O[C@H](COC(CCCCCCCCCCCCCCC)=O)COP(OCC[N+](C)(C)C)([O-])=O)=O')
-    >>> POPE    = NewLipid('POPE1',    '[H][C@@](COP([O-])(OCC[NH3+])=O)(OC(CCCCCCC/C=C\CCCCCCCC)=O)COC(CCCCCCCCCCCCCCC)=O')
+    >>> POPC    = NewLipid('POPC1',   'CCCCCCCC/C=C\CCCCCCCC(O[C@H](COC(CCCCCCCCCCCCCCC)=O)COP(OCC[N+](C)(C)C)([O-])=O)=O')
+    >>> POPE    = NewLipid('POPE1',   '[H][C@@](COP([O-])(OCC[NH3+])=O)(OC(CCCCCCC/C=C\CCCCCCCC)=O)COC(CCCCCCCCCCCCCCC)=O')
     >>> BMPSS   = NewLipid('BMPSS',   '[H][C@](COP(OC[C@@]([H])(O)COC(CCCCCCC/C=C\CCCCCCCC)=O)([O-])=O)(O)COC(CCCCCCC/C=C\CCCCCCCC)=O')
     >>> BMPSR   = NewLipid('BMPSR',   '[H][C@@](COP(OC[C@@]([H])(O)COC(CCCCCCC/C=C\CCCCCCCC)=O)([O-])=O)(O)COC(CCCCCCC/C=C\CCCCCCCC)=O')
     >>> BMPRS   = NewLipid('BMPRS',   '[H][C@](COP(OC[C@]([H])(O)COC(CCCCCCC/C=C\CCCCCCCC)=O)([O-])=O)(O)COC(CCCCCCC/C=C\CCCCCCCC)=O')
@@ -341,7 +341,7 @@ class NewLipid:
 
         # Perfect Match
         self.PerfectMatch()
-
+        
         # Check
         self.HasType()
 
@@ -356,6 +356,9 @@ class NewLipid:
             name = Z2E[attr['atomic_number']] + str(nodeid)
             self.names.append(name)
             self.nxmol.nodes[nodeid]['name'] = name
+
+        # Amide
+        self.AmideMatch()
 
 
     def WriteMapping(self, ofile):
@@ -493,6 +496,22 @@ class NewLipid:
                     self.nxmol.nodes[index]['type']   = nodes[name]['type']
                     self.nxmol.nodes[index]['charge'] = nodes[name]['charge']
                     self.nxmol.nodes[index]['z']      = nodes[name]['z']
+
+    def AmideMatch(self):
+        amide = nx.Graph()
+        amide.add_node('H', atomic_number=1, type='H')
+        amide.add_node('N', atomic_number=7, type='N')
+        amide.add_node('C', atomic_number=6, type='C')
+        amide.add_node('O', atomic_number=8, type='O')
+        amide.add_edge('H', 'N', order=1)
+        amide.add_edge('N', 'C', order=1)
+        amide.add_edge('C', 'O', order=2)
+
+        GM = nx.isomorphism.GraphMatcher(self.nxmol, amide, node_match=node_match, edge_match=edge_match)
+        for mapping in GM.subgraph_isomorphisms_iter():
+            if ''.join(mapping.values()) == 'HNCO':
+                self.trans.append(list(mapping.keys()))
+
 
     def HasType(self):
         qtot = 0.0
