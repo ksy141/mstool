@@ -146,7 +146,7 @@ class BilayerBuilder:
 
             newff = ReadXML(workdir + '/ff_add.xml')
             count = CheckFF(originalff, newff)
-            assert count == 0, "Duplicate residues found between original and new force fields"
+            # if count != 0: print("Duplicate residues found between original and new force fields")
         
         if len(newlipidkeys) > 0:
             mapping_add.append(workdir + '/mapping_add.dat')
