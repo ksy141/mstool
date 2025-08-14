@@ -7,7 +7,7 @@ from  .newlipid              import NewLipid
 from  ..core.map             import Map
 from  ..core.readmartini     import ReadMartini
 from  ..core.readxml         import ReadXML
-from  ..core.solvate_martini import SolvateMartini, ionize
+from  ..core.solvate_martini import SolvateMartini, ProbeMartini, ionize
 from  ..core.martinizedms    import MartinizeDMS
 from  ..core.dmsfile         import DMSFile
 from  ..core.universe        import Universe
@@ -22,8 +22,8 @@ pwd = os.path.dirname(os.path.realpath(__file__))
 # CHARMM36 HA3: addnbtype=['ZCARBON', 0.23876, 0.1]
 
 class BilayerBuilder:
-    def __init__(self, workdir='workdir', protein=None, upper={}, lower={}, between={}, sep=0.0, dx=8.0, area=None, water=50.0, 
-                 rcut=4.0, rcut_use_enclosed_protein=False, mode='shift', 
+    def __init__(self, workdir='workdir', protein=None, upper={}, lower={}, between={}, sep=0.0, dx=8.0, area=None, water=50.0,
+                 rcut=4.0, rcut_use_enclosed_protein=False, mode='shift',
                  dN=10, rockCtype='CTL3', rockHtype='HAL3',
                  martini=[], martini_add=[], lipidpath=pwd+'/../../../FF/martini2.2/structures/',
                  mapping=[], mapping_add=[],
@@ -31,8 +31,8 @@ class BilayerBuilder:
                  removedr=6.0, aa_nsteps=0, fc=10.0, fc2=10.0,
                  dt_rem=0.025, cg_nsteps_rem=100000,
                  dt=0.020, cg_nsteps=500000,
-                 frictionCoeff=10.0, barfreq=10, nonbondedCutoff=1.1, 
-                 dcdfreq=1000, csvfreq=1000, tension=0.0, P=1.0, T=310, 
+                 frictionCoeff=10.0, barfreq=10, nonbondedCutoff=1.1,
+                 dcdfreq=1000, csvfreq=1000, tension=0.0, P=1.0, T=310,
                  improper_prefactor=0.99, use_existing_folder=False,
                  hydrophobic_thickness=30, ionconc=0.15,
                  use_AA_structure=True, AA_shrink_factor=0.8,
@@ -41,7 +41,7 @@ class BilayerBuilder:
                  tapering='shift',
                  protein_dict_pbc_shrink_factor=0.9,
                  changename={}, addnbtype=['ZCARBON', 0.34, 1.51],
-                 CG_only=False):
+                 CG_only=False, probes=[], molfrac=0.01):
 
         '''Bilayer builder.
         Parameters
@@ -52,7 +52,7 @@ class BilayerBuilder:
             If protein is provided, the protein structure will be protein.dms; lipids will be step6_nonprotein.dms; combined will be step6_final.dms.
         protein: str=None
             provide a protein input structure file (.pdb or .dms). None (default) for protein is not needed in your membrane.
-            Protein should be prealigned and oriented before providing a structure to the workflow 
+            Protein should be prealigned and oriented before providing a structure to the workflow
             with respect to a membrane whose center is (0,0,0) and whose normal is [0, 0, 1].
         upper: dict={}
             type (key) and number (value) of each lipid in the upper leaflet.
@@ -116,7 +116,7 @@ class BilayerBuilder:
             However, this causes numerical stability issue in Linux (no problem in Mac).
             Therefore, I have to introduce a prefactor, so that cosine values do not exceed 1.
             k*(acos(improper_prefactor * cos(theta-theta0)))^2.
-            It works fine for most of the case. However, when you compare potential energy calculated with gromacs and openMM, 
+            It works fine for most of the case. However, when you compare potential energy calculated with gromacs and openMM,
             make sure you change it to 1.0.
         hydrophobic_thickness: float=30
             Hydrophobic thickness in A.
@@ -124,7 +124,7 @@ class BilayerBuilder:
             Ion concentration in M.
         '''
 
-        
+
         ### workdir
         if (not use_existing_folder) or (use_existing_folder and not os.path.exists(workdir)):
             os.mkdir(workdir)
@@ -147,7 +147,7 @@ class BilayerBuilder:
             newff = ReadXML(workdir + '/ff_add.xml')
             count = CheckFF(originalff, newff)
             assert count == 0, "Duplicate residues found between original and new force fields"
-        
+
         if len(newlipidkeys) > 0:
             mapping_add.append(workdir + '/mapping_add.dat')
             martini_add.append(workdir + '/martini_add.itp')
@@ -189,10 +189,10 @@ class BilayerBuilder:
         if protein:
             if isinstance(protein, str):
                 proteinU = Universe(protein)
- 
+
             elif isinstance(protein, Universe):
                 proteinU = protein
- 
+
             elif isinstance(protein, dict):
                 # protein = {'GPCR.pdb': 3, 'ompf.pdb': 2}
                 # proteinlayer_keys = ['GPCR.pdb', 'ompf.pdb']
@@ -203,7 +203,7 @@ class BilayerBuilder:
                     proteinlayer_list += [idx] * number
                 np.random.shuffle(proteinlayer_list)
                 proteindata = {'name': [], 'resname': [], 'resid': [], 'chain': [], 'x': [], 'y': [], 'z': []}
-                
+
                 proteinN = len(proteinlayer_list)
                 pbcx = np.sqrt(max([sum(upper.values()), sum(lower.values())])) * dx * protein_dict_pbc_shrink_factor
                 proteinP, _ = make_rect2(proteinN, dx=pbcx/int(np.sqrt(proteinN)), dN=1)
@@ -217,7 +217,7 @@ class BilayerBuilder:
                         save_name    = univ.atoms['name'].tolist()
                         save_resid   = univ.atoms['resid'].tolist()
                         save_chain   = np.char.add(univ.atoms['chain'].tolist(), [str(i)] * len(positions))
-        
+
                     elif isinstance(key, Universe):
                         # a structure e.g., protein or lipid with a structure
                         positions     = key.atoms[['x','y','z']].to_numpy()
@@ -225,10 +225,10 @@ class BilayerBuilder:
                         save_name     = key.atoms['name'].tolist()
                         save_resid    = key.atoms['resid'].tolist()
                         save_chain    = np.char.add(key.atoms['chain'].tolist(), [str(i)] * len(positions))
-        
+
                     else:
                         raise IOError('input protein structure is not found')
-        
+
                     finalpositions = positions + proteinP[i]
                     proteindata['chain'].extend(save_chain)
                     proteindata['resname'].extend(save_resname)
@@ -237,7 +237,7 @@ class BilayerBuilder:
                     proteindata['x'].extend(finalpositions[:,0])
                     proteindata['y'].extend(finalpositions[:,1])
                     proteindata['z'].extend(finalpositions[:,2])
-        
+
                 proteinU = Universe(data=proteindata)
                 proteinU.atoms = proteinU.atoms.astype({'resid': int})
 
@@ -251,35 +251,38 @@ class BilayerBuilder:
             #if len(proteinU.bonds) == 0: proteinU.addBondFromDistance()
             proteinU.write(workdir + '/protein.dms', wrap=False)
             proteinU.write(workdir + '/protein.pdb', wrap=False)
-  
-       
+
+
         ### Read Martini
         #martiniff = ReadMartini(ff=martini, ff_add=martini_add, define={'FLEXIBLE': 'True'})
         martiniff = ReadMartini(ff=martini, ff_add=martini_add, constraint_to_bond=True, Kc2b=10000.0, addnbtype=addnbtype)
 
         ### Mapping & Translate
         if protein: Map(workdir + '/protein.dms', workdir + '/protein_CG.dms', add_notavailableAAAtoms=True, mapping=mapping, mapping_add=mapping_add)
-        
+
         ### Construct a bilayer
-        instance = Bilayer(protein=workdir + '/protein_CG.dms' if protein else None, 
+        instance = Bilayer(protein=workdir + '/protein_CG.dms' if protein else None,
                            upper=upper, lower=lower, between=between, sep=sep,
                            waterz=water, rcut=rcut, rcut_use_enclosed_protein=rcut_use_enclosed_protein,
-                           out=workdir + '/step1.bilayer.dms', 
-                           martini=martiniff, 
+                           out=workdir + '/step1.bilayer.dms',
+                           martini=martiniff,
                            lipidpath=lipidpath,
                            hydrophobic_thickness=hydrophobic_thickness,
                            mode=mode, dN=dN, dx=dx)
 
         ### Solvate
         if solvate:
-            usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=0.0, waterchain='6')
+            if probes:
+                usol = ProbeMartini(workdir + '/step1.bilayer.dms', removedr=removedr, waterchain='6', probes=probes, molfrac=molfrac)
+            else:
+                usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=0.0, waterchain='6')
             cell = usol.cell
             dim  = usol.dimensions
             bA1  = usol.atoms.name == 'W'
             bA2  = usol.atoms.z    <  hydrophobic_thickness / 2 + sep/2 + 10
             bA3  = usol.atoms.z    > -hydrophobic_thickness / 2 - sep/2 - 10
             usol = Universe(data=usol.atoms[~(bA1 & bA2 & bA3)])
-        
+
             qtot = 0
             for resn, value in usol.atoms.groupby('resn'):
                 resname = value.resname.values[0]
@@ -292,7 +295,7 @@ class BilayerBuilder:
             usol = ionize(usol, conc=ionconc, posionchain='4', negionchain='5', qtot=qtot)
             usol.dimensions = dim
             usol.cell       = cell
- 
+
             #usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc)
             #if protein:
             #    usol = SolvateMartini(workdir + '/step1.bilayer.dms', removedr=removedr, conc=ionconc)
@@ -313,7 +316,7 @@ class BilayerBuilder:
             proteinU.atoms[['x','y','z']] += shift
             proteinU.write(workdir + '/protein_translated.dms', wrap=False)
             proteinU.write(workdir + '/protein_translated.pdb', wrap=False)
- 
+
         ### Martinize
         MartinizeDMS(workdir + '/step1.sol.dms', out = workdir + '/step1.martini.dms', martini=martiniff, addnbtype=addnbtype[0])
         try:
@@ -347,7 +350,7 @@ class BilayerBuilder:
         #dms.createSystem(REM=True, tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=False)
         #dms.system.addForce(posre)
         #dms.runEMNPT(workdir + '/step2.rem.dms', emout=None, dt=dt, nsteps=0, frictionCoeff=frictionCoeff, barfreq=0, T=T)
-        
+
         martiniU = Universe(workdir + '/step1.martini.dms')
         #martiniU.atoms.loc[((martiniU.atoms.name == 'GL1')), 'bfactor'] = 2.0
         martiniU.atoms.loc[((martiniU.atoms.name == 'PO4')), 'bfactor'] = 2.0
@@ -364,7 +367,7 @@ class BilayerBuilder:
         dms.createSystem(REM=False, tapering=tapering, martini=True, nonbondedCutoff=nonbondedCutoff, nonbondedMethod='CutoffPeriodic', improper_prefactor=improper_prefactor, removeCMMotion=True)
         if protein: dms.system.addForce(addPosre(martiniU, bfactor_posre=1.5, fcx=0.0, fcy=0.0, fcz=fc2))
         dms.runEMNPT(dt=dt, nsteps=int(cg_nsteps), frictionCoeff=frictionCoeff, barfreq=barfreq, dcdfreq=dcdfreq, csvfreq=csvfreq, tension=tension, P=P, T=T, semiisotropic=True, out=workdir + '/step2.dms')
-        
+
         ### Translate Back
         u = Universe(workdir + '/step2.dms')
 
@@ -399,7 +402,7 @@ class BilayerBuilder:
             u    = Universe(data=u.atoms[~bA])
             u.dimensions = dimensions
             u.cell = cell
-        
+
         u.sort()
         #u.write(workdir + '/step3.dms', wrap=True)
         #u.write(workdir + '/step3.pdb', wrap=True)
