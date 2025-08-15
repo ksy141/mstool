@@ -4,6 +4,7 @@ import os
 import xml.etree.ElementTree as ET
 import numpy as np
 import matplotlib.pyplot as plt
+from   ..core.readxml import ReadXML
 pwd = os.path.dirname(os.path.realpath(__file__))
 
 E2Z = {
@@ -30,7 +31,7 @@ E2Z = {
     "Md": 101,"No": 102,"Lr": 103,"Rf": 104,"Db": 105,
     "Sg": 106,"Bh": 107,"Hs": 108,"Mt": 109,"Ds": 110,
     "Rg": 111,"Cn": 112,"Nh": 113,"Fl": 114,"Mc": 115,
-    "Lv": 116,"Ts": 117,"Og": 118, 
+    "Lv": 116,"Ts": 117,"Og": 118,
 }
 
 Z2E = {value: key for key, value in E2Z.items()}
@@ -178,7 +179,7 @@ def edge_match(e1, e2):
 
 def ReadBuildingBlock(ifiles):
     graphs = []
-    
+
     if isinstance(ifiles, str):
         ifiles = [ifiles]
 
@@ -288,18 +289,18 @@ def Chiral(mol):
         neighbor_info.sort()
 
         if config == 'R':
-            chirals.append([neighbor_info[3][1], 
+            chirals.append([neighbor_info[3][1],
                             center_idx,
                             neighbor_info[0][1],
                             neighbor_info[1][1],
                             neighbor_info[2][1]])
         elif config == 'S':
-            chirals.append([neighbor_info[3][1], 
+            chirals.append([neighbor_info[3][1],
                             center_idx,
                             neighbor_info[0][1],
                             neighbor_info[2][1],
                             neighbor_info[1][1]])
-            
+
     return chirals
 
 
@@ -321,7 +322,7 @@ class NewLipid:
     >>> POPE.WriteMapping('lipid.itp')
     >>> POPE.WriteFF('ff.xml')
     """
-    def __init__(self, resname, smiles, bb=[], bb_add=[]):
+    def __init__(self, resname, smiles, bb=[], bb_add=[], ff=[], ff_add=[]):
         self.resname   = resname
         self.smiles    = smiles
         self.rdkitmol  = Chem.MolFromSmiles(smiles)
@@ -329,6 +330,7 @@ class NewLipid:
         # therefore, it will not mess up with the original atom order
         self.rdkitmolH = Chem.AddHs(self.rdkitmol)
         self.nxmol     = rdkit_to_nx(self.rdkitmolH)
+        self.xml       = ReadXML(ff=ff, ff_add=ff_add)
 
         if isinstance(bb, str):
             bb = [bb]
@@ -341,7 +343,7 @@ class NewLipid:
 
         # Perfect Match
         self.PerfectMatch()
-        
+
         # Check
         self.HasType()
 
@@ -398,7 +400,7 @@ class NewLipid:
     def WriteFF(self, ofile):
         """Append this lipid's force field info as a <Residue> to the XML file"""
         # Read existing content except closing tags
-        realcontent = []
+        realcontent = []; bondcontent = []
         if os.path.exists(ofile):
             with open(ofile, 'r') as fin:
                 for line in fin:
@@ -410,31 +412,58 @@ class NewLipid:
                         continue
                     elif line.strip().startswith('</Residues>'):
                         continue
+                    elif line.strip().startswith('<HarmonicBondForce>'):
+                        continue
+                    elif line.strip().startswith('</HarmonicBondForce>'):
+                        continue
+                    elif line.strip().startswith('<Bond k='):
+                        bondcontent.append(line)
+                        continue
                     realcontent.append(line)
 
-        content = '<ForceField>\n  <Residues>\n'
-
         # Build residue block as lines
+        harmonic_bonds = dict()
         lines = [f'    <Residue name="{self.resname}">']
         for nodeid, attr in self.nxmol.nodes(data=True):
             lines.append(
                 f'      <Atom charge="{attr.get("charge", 0.0)}" name="{attr.get("name", f"A{nodeid}")}" type="{attr.get("type", "UNK")}"/>'
             )
         for atom1, atom2, bond_attr in self.nxmol.edges(data=True):
-            lines.append(
-                f'      <Bond atomName1="{self.nxmol.nodes[atom1]["name"]}" atomName2="{self.nxmol.nodes[atom2]["name"]}"/>'
-            )
+            name1 = self.nxmol.nodes[atom1]["name"]
+            name2 = self.nxmol.nodes[atom2]["name"]
+            lines.append(f'      <Bond atomName1="{name1}" atomName2="{name2}"/>')
+            type1 = self.nxmol.nodes[atom1]["type"]
+            type2 = self.nxmol.nodes[atom2]["type"]
+            if type1 > type2: type1, type2 = type2, type1
+            if (type1, type2) not in self.xml.BOND.keys():
+                numb1 = self.nxmol.nodes[atom1]['atomic_number']
+                numb2 = self.nxmol.nodes[atom2]['atomic_number']
+                if numb1 == 1 or numb2 == 1:
+                    harmonic_bonds[(type1, type2)] = [0.1111, 269449.6]
+                else:
+                    harmonic_bonds[(type1, type2)] = [0.1530, 186188.0]
         lines.append('    </Residue>')
 
         # Write everything back with blank lines between each line
         with open(ofile, 'w') as f:
-            f.write(content)
+            f.write('<ForceField>\n  <Residues>\n')
             if realcontent:
                 for line in realcontent:
                     f.write(line)
+
             for line in lines:
                 f.write(line + '\n')
-            f.write('  </Residues>\n</ForceField>\n')
+            f.write('  </Residues>\n')
+
+            if bondcontent or harmonic_bonds:
+                f.write('  <HarmonicBondForce>\n')
+                for bond in bondcontent:
+                    f.write(bond)
+                for key, value in harmonic_bonds.items():
+                    f.write(f'    <Bond k="{value[1]}" length="{value[0]}" type1="{key[0]}" type2="{key[1]}"/>\n')
+                f.write('  </HarmonicBondForce>\n')
+
+            f.write('</ForceField>\n')
 
     def WriteMartini(self, ofile):
         with open(ofile, 'a') as f:

@@ -32,7 +32,7 @@ E2Z = {
     "Md": 101,"No": 102,"Lr": 103,"Rf": 104,"Db": 105,
     "Sg": 106,"Bh": 107,"Hs": 108,"Mt": 109,"Ds": 110,
     "Rg": 111,"Cn": 112,"Nh": 113,"Fl": 114,"Mc": 115,
-    "Lv": 116,"Ts": 117,"Og": 118, 
+    "Lv": 116,"Ts": 117,"Og": 118,
 }
 
 class ReadXML:
@@ -54,6 +54,7 @@ class ReadXML:
     def collect(self):
         self.RESI = {}
         self.TYPE = {}
+        self.BOND = {}
 
         for toppar in self.ff:
             root = ET.parse(toppar).getroot()
@@ -89,7 +90,7 @@ class ReadXML:
 
                 data = {'names': np.array(names),
                         'types': np.array(types),
-                        'numbers': np.array(numbers), 
+                        'numbers': np.array(numbers),
                         'charges': np.array(charges),
                         'bonds': np.array(bonds)}
 
@@ -97,3 +98,15 @@ class ReadXML:
                     raise Exception(f"residue {resname} already defined")
                 else:
                     self.RESI[resname] = data
+
+            for bonds in root.findall('HarmonicBondForce'):
+                for bond in bonds.findall('Bond'):
+                    type1 = bond.get('type1')
+                    type2 = bond.get('type2')
+                    length = float(bond.get('length'))
+                    k = float(bond.get('k'))
+                    if type1 > type2:
+                        type1, type2 = type2, type1
+                    self.BOND[(type1, type2)] = {'length': length, 'k': k}
+
+
