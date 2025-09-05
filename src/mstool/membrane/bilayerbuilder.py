@@ -41,7 +41,7 @@ class BilayerBuilder:
                  tapering='shift',
                  protein_dict_pbc_shrink_factor=0.9,
                  changename={}, addnbtype=['ZCARBON', 0.34, 1.51],
-                 CG_only=False, probes=[], molfrac=0.01):
+                 CG_only=False, probes=[], molfrac=0.01, qtot=None):
 
         '''Bilayer builder.
         Parameters
@@ -282,16 +282,17 @@ class BilayerBuilder:
             bA2  = usol.atoms.z    <  hydrophobic_thickness / 2 + sep/2 + 10
             bA3  = usol.atoms.z    > -hydrophobic_thickness / 2 - sep/2 - 10
             usol = Universe(data=usol.atoms[~(bA1 & bA2 & bA3)])
-
-            qtot = 0
-            for resn, value in usol.atoms.groupby('resn'):
-                resname = value.resname.values[0]
-                if resname == 'W': continue
-                if resname in martiniff.martini['molecules']:
-                    qtot += np.sum(martiniff.martini['molecules'][value.resname.values[0]]['atoms']['q'])
-                else:
-                    qtot += 0
-
+            
+            if qtot is None:
+                qtot = 0
+                for resn, value in usol.atoms.groupby('resn'):
+                    resname = value.resname.values[0]
+                    if resname == 'W': continue
+                    if resname in martiniff.martini['molecules']:
+                        qtot += np.sum(martiniff.martini['molecules'][value.resname.values[0]]['atoms']['q'])
+                    else:
+                        qtot += 0
+            
             usol = ionize(usol, conc=ionconc, posionchain='4', negionchain='5', qtot=qtot)
             usol.dimensions = dim
             usol.cell       = cell
