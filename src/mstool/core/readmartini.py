@@ -103,6 +103,7 @@ class ReadMartini:
             if martini3:
                 ff = [pwd + '/../FF/martini3.0.0/martini_v3.0.0.itp',
                       pwd + '/../FF/martini3.0.0/martini_v3.0.0_ions_v1.itp',
+                      pwd + '/../FF/martini3.0.0/protein.itp',
                       pwd + '/../FF/martini3.0.0/martini_v3.0.0_nucleobases_v1.itp',
                       pwd + '/../FF/martini3.0.0/martini_v3.0.0_phospholipids_v1.itp',
                       pwd + '/../FF/martini3.0.0/martini_v3.0.0_phospholipids_v1_matthieu.itp',
