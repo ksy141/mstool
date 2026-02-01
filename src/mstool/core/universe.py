@@ -652,10 +652,13 @@ class Universe:
         #self.bonds = bonds_tmp
 
         #self.atoms = self.atoms.sort_values(by=by, ignore_index=ignore_index)
+        if 'id' not in self.atoms.columns:
+            self.atoms['id'] = [i for i in range(len(self.atoms))]
         self.atoms = self.atoms.sort_values(by=by, ignore_index=ignore_index, key=lambda x: x.apply(custom_sort))
-        self.bonds = []
+        oldid2newid = {atom.id: idx for idx, atom in self.atoms.iterrows()}
+        self.bonds = [(oldid2newid[bond[0]], oldid2newid[bond[1]]) for bond in self.bonds]
 
-    
+
     def update_anum_mass_vdw_from_name(self):
         names  = self.atoms['name'].str.upper().values
         masses = np.zeros(len(names))
