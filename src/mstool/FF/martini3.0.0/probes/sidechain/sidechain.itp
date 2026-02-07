@@ -1,0 +1,248 @@
+; Please note that this is not the original martiniv3.0.0 file.
+; I modified this file to make it compatible with my membrane builder.
+; While my modification is mainly re-formatting (not changing any parameters),
+; I have to make a big modification onto tryptophan, which is removing a virtual site.
+; I am sorry, tryptophan =(
+
+;ZCYS: TC6
+;ZVAL: SC3
+;ZLEU: SC2
+;ZMET: C6
+;ZASN: SP5
+;ZGLN: P5
+;ZASP: SQ5n
+;ZGLU: Q5n
+;ZTHR: SP1
+;ZSER: TP1
+
+
+;;; CYSTEINE
+[ moleculetype ]
+; molname       nrexcl
+ZCYS                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   TC6    1   ZCYS    SC1    1      0     
+
+
+;;; VALINE
+[ moleculetype ]
+; molname       nrexcl
+ZVAL                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   SC3  1     ZVAL     SC1    1      0    
+
+
+;;; LEUCINE
+[ moleculetype ]
+; molname       nrexcl
+ZLEU                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   SC2  1     ZLEU     SC1    1      0    
+
+
+;;; METHIONINE
+[ moleculetype ]
+; molname       nrexcl
+ZMET                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   C6   1     ZMET     SC1    1      0     
+
+
+;;; ASPARAGINE
+[ moleculetype ]
+; molname       nrexcl
+ZASN                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   SP5    1     ZASN     SC1    1      0    
+
+
+;;; GLUTAMINE
+[ moleculetype ]
+; molname       nrexcl
+ZGLN                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   P5    1     ZGLN     SC1    1      0    
+
+
+;;; ASPARTATE
+[ moleculetype ]
+; molname       nrexcl
+ZASP                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   SQ5n    1     ZASP     SC1    1   -1.0    
+
+
+;;; GLUTAMATE
+[ moleculetype ]
+; molname       nrexcl
+ZGLU                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   Q5n    1     ZGLU     SC1    1   -1.0    
+
+
+;;; THREONINE
+[ moleculetype ]
+; molname       nrexcl
+ZTHR                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+1   SP1     1     ZTHR     SC1    1      0    
+
+
+;;; SERINE
+[ moleculetype ]
+; molname       nrexcl
+ZSER                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+1   TP1     1    ZSER     SC1    1      0    
+
+
+;;; LYSINE 
+[ moleculetype ]
+; molname       nrexcl
+ZLYS                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+ 1   SC3    1     ZLYS     SC1    1      0    
+ 2   SQ4p   1     ZLYS     SC2    2    1.0    
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.360     5000  
+
+
+;;; ARGININE 
+[ moleculetype ]
+; molname       nrexcl
+ZARG                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+1   SC3      1     ZARG     SC1    1      0    
+2   SQ3p     1     ZARG     SC2    2    1.0    
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.380     5000  
+
+
+;;; HISTIDINE 
+[ moleculetype ]
+;molname       nrexcl
+ZHIS                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+1   TC4     1     ZHIS     SC1    1    0    ; three side chains in triangle
+2   TN6d    1     ZHIS     SC2    2    0    ; configuration, mimicking
+3   TN5a    1     ZHIS     SC3    3    0    ; ring structure
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.320  10000.0
+   1     3    1       0.300  10000.0 
+   2     3    1       0.270  10000.0
+
+[ exclusions ]
+1 2 3
+2 3
+
+
+;;; PHENYLALANINE
+[ moleculetype ]
+; molname       nrexcl
+ZPHE                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+1   SC4    1     ZPHE     SC1    1    0    ; three side chains in triangle
+2   TC5    1     ZPHE     SC2    2    0    ; configuration, mimicking
+3   TC5    1     ZPHE     SC3    3    0    ; ring structure
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.340  10000.0
+   1     3    1       0.340  10000.0
+   2     3    1       0.290  10000.0
+
+[ exclusions ]
+1 2 3
+2 3
+
+
+;;; TYROSINE
+[ moleculetype ]
+; molname       nrexcl
+ZTYR                1
+
+[ atoms ]
+;id type resnr residu atom cgnr   charge
+1   TC4    1     ZTYR     SC1    1    0  
+2   TC5    1     ZTYR     SC2    2    0 
+3   TC5    1     ZTYR     SC3    3    0  
+4   TN6    1     ZTYR     SC4    4    0
+
+[ bonds ]
+;  i     j   funct   length  force.c.
+   1     2    1       0.300  10000.0
+   1     3    1       0.300  10000.0
+   2     4    1       0.285  10000.0
+   3     4    1       0.285  10000.0
+   2     3    1       0.300  10000.0
+
+[ dihedrals ]
+;  i     j    k    l   funct   angle  force.c.
+   4     2    3    1       2    180.0    50.0
+
+[ exclusions ]
+1 2 3 4 
+2 3 4 
+3 4
+
+
+;;; TRYPTOPHAN
+[ moleculetype ]
+; molname       nrexcl
+ZTRP                1
+
+[ atoms ]
+1 TC4  1 ZTRP SC1 1 0.0 36.0
+2 TN6d 1 ZTRP SC2 2 0.0 36.0
+3 TC5  1 ZTRP SC3 3 0.0 36.0
+4 TC5  1 ZTRP SC4 4 0.0 36.0
+
+[ bonds ]
+1 2 1 0.335 1000000
+1 3 1 0.404 1000000
+2 3 1 0.470 1000000
+2 4 1 0.412 1000000
+3 4 1 0.293 1000000
+
+[ dihedrals ]
+4 3 2 1 2 180.0 100.0
+
+[ exclusions ]
+1 2 3 4
+2 3 4 
+3 4  
+

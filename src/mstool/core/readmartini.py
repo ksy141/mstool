@@ -273,6 +273,7 @@ class ReadMartini:
                         d['molecules'][resname]['dihedrals']           = []
                         d['molecules'][resname]['exclusions']          = []
                         d['molecules'][resname]['virtual_sites3']      = []
+                        d['molecules'][resname]['virtual_sitesn']      = []
                         d['molecules'][resname]['position_restraints'] = []
 
                         d['molecules'][resname]['idx_bonds']               = []
@@ -280,6 +281,7 @@ class ReadMartini:
                         d['molecules'][resname]['idx_dihedrals']           = []
                         d['molecules'][resname]['idx_exclusions']          = []
                         d['molecules'][resname]['idx_virtual_sites3']      = []
+                        d['molecules'][resname]['idx_virtual_sitesn']      = []
                         d['molecules'][resname]['idx_position_restraints'] = []
 
 
@@ -405,6 +407,21 @@ class ReadMartini:
                         except:
                             d['molecules'][resname]['virtual_sites3'].append([name1, name2, name3, name4, f, a, b])
                             d['molecules'][resname]['idx_virtual_sites3'].append([id1, id2, id3, id4, f, a, b])
+
+
+                    if read == 'virtual_sitesn':
+                        sl    = line.split()
+                        c     = int(sl[0])
+                        f     = int(sl[1])
+                        cname = d['molecules'][resname]['atoms']['name'][c-1]
+                        ids   = [int(i) for i in sl[2:]]
+                        names = [d['molecules'][resname]['atoms']['name'][id-1] for id in ids]
+
+                        d['molecules'][resname]['virtual_sitesn'].append([cname, f, *names])
+                        d['molecules'][resname]['idx_virtual_sitesn'].append([c, f, *ids])
+                        # f = 1: COG
+                        # f = 2: COM
+                        # f = 3: COW
 
 
                     if read == 'position_restraints':

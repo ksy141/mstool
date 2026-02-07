@@ -1,0 +1,7 @@
+MODEL        1
+TITLE     MDANALYSIS FRAME 0: Created by PDBWriter
+CRYST1    1.000    1.000    1.000  90.00  90.00  90.00 P 1           1
+ATOM      1  BB  THR X 147      23.290  -6.221  34.833  1.00  0.00           B 
+ATOM      2  SC1 THR X 147      24.373  -5.377  32.587  1.00  0.00           S 
+TER
+ENDMDL

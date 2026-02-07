@@ -215,13 +215,20 @@ def probelize(u, probes, out=None, molfrac=0.1, waterresname='W', probechain='X'
     bA = u.atoms.resname == waterresname
     nonwateratoms = u.atoms[~bA]
     wateratoms    = u.atoms[bA].sample(frac=1, ignore_index=True) # a new object
-    Noct          = int(len(wateratoms) * molfrac)
-    newwateratoms = wateratoms.loc[Noct:].copy(deep=True)
+    wateratoms['resid'] = np.arange(1, len(wateratoms) + 1)
+    wateratoms['id']    = wateratoms.index
 
     if not isinstance(probes, list):
         probes = [probes]
 
-    refmolecules = (probes * Noct)[:Noct]
+    if molfrac < 1.0: 
+        Noct = int(len(wateratoms) * molfrac)
+        refmolecules = (probes * Noct)[:Noct]
+    else:
+        Noct = int(molfrac)
+        refmolecules = (probes * Noct)
+
+    newwateratoms = wateratoms.loc[Noct:].copy(deep=True)
 
     chunks = []
     rng = np.random.default_rng()
@@ -241,10 +248,14 @@ def probelize(u, probes, out=None, molfrac=0.1, waterresname='W', probechain='X'
         base.loc[:, 'chain']   = probechain
         base.loc[:, 'resid']   = i + 1
 
-        # vectorized jitter
-        base[['x','y','z']] = (
-            base[['x','y','z']].to_numpy() + (rng.random((n, 3)) - 0.5) * 0.1
-        )
+        ## vectorized jitter
+        #base[['x','y','z']] = (
+        #    base[['x','y','z']].to_numpy() + (rng.random((n, 3)) - 0.5) * 0.1
+        #)
+
+        base[['x','y','z']] += base[['x','y','z']].to_numpy() + \
+                               refmol.atoms[['x','y','z']].to_numpy() * 0.8 + \
+                                (rng.random((n, 3)) - 0.5) * 0.1
 
         chunks.append(base)
 
@@ -389,7 +400,8 @@ def ProbeMartini(structure=None, probes=None, out=None, t=None,
 
     solvatedu = solvate(u, solventdr=solventdr, removedr=removedr, waterslab=waterslab,
                         waterchain=waterchain, center=center, pbc=pbc)
-    if molfrac == 0.0:
+
+    if molfrac == 0.0 or len(probes) == 0:
         if out: solvatedu.write(out)
         return solvatedu
 

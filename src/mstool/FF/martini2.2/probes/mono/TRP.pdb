@@ -1,0 +1,10 @@
+MODEL        1
+TITLE     MDANALYSIS FRAME 0: Created by PDBWriter
+CRYST1    1.000    1.000    1.000  90.00  90.00  90.00 P 1           1
+ATOM      1  BB  TRP X 214      38.581 -41.490  46.847  1.00  0.00           B 
+ATOM      2  SC1 TRP X 214      36.690 -41.120  48.830  1.00  0.00           S 
+ATOM      3  SC2 TRP X 214      34.857 -40.083  48.833  1.00  0.00           S 
+ATOM      4  SC3 TRP X 214      37.790 -38.685  50.247  1.00  0.00           S 
+ATOM      5  SC4 TRP X 214      35.899 -37.495  50.252  1.00  0.00           S 
+TER
+ENDMDL

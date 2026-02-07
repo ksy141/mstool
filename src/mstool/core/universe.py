@@ -71,7 +71,7 @@ class Universe:
         self.cell       = None
         self.dimensions = None
         self.bonds = []
-        self.cols  = {'anum': -1, 'name': 'tbd', 'charge': 0.0, 'mass': 0.0,
+        self.cols  = {'anum': -1, 'name': 'tbd', 'charge': 0.0, 'mass': -1.0,
                       'type': 'tbd', 'nbtype': 0, 'resname': 'tbd', 'resid': 0, 
                       'segname': '', 'chain': 'S', 
                       'x': 0.0, 'y': 0.0, 'z': 0.0, 'bfactor': 0.0, 'vdw': 0.0, 'resn': 0}
@@ -87,10 +87,12 @@ class Universe:
                 raise ValueError('only pdb, dms, and gro are supported')
             if ext == 'pdb' or ext == 'PDB':
                 self.readPDB(data)
+                self.atoms['id'] = self.atoms.index
             if ext == 'dms' or ext == 'DMS':
                 self.readDMS(data)
             if ext == 'gro' or ext == 'GRO':
                 self.readGRO(data)
+                self.atoms['id'] = self.atoms.index
             self.ext = ext.lower()
 
         elif isinstance(data, dict):
@@ -101,20 +103,22 @@ class Universe:
 
         else:
             self.atoms = pd.DataFrame(columns = self.cols)
+            self.atoms['id'] = self.atoms.index
         self.atoms.universe = self
         
 
         ### IF atomic number / mass / vdw is not in input
         anum_sum = np.sum(self.atoms.anum == -1)
-        mass_sum = np.sum(self.atoms.mass == 0.0)
-        vdw_sum  = np.sum(self.atoms.vdw  == 0.0)
-        anum_mass_vdw_sum  = anum_sum + mass_sum + vdw_sum
+        mass_sum = np.sum(self.atoms.mass == -1)
+        #vdw_sum  = np.sum(self.atoms.vdw  == 0.0)
+        #anum_mass_vdw_sum  = anum_sum + mass_sum + vdw_sum
+        anum_mass_vdw_sum  = anum_sum + mass_sum
 
         if anum_mass_vdw_sum > 0.5:
             anum, mass, vdw = self.update_anum_mass_vdw_from_name()
             if anum_sum > 0.5: self.atoms.anum = anum
             if mass_sum > 0.5: self.atoms.mass = mass
-            if vdw_sum  > 0.5: self.atoms.vdw  = vdw
+            #if vdw_sum  > 0.5: self.atoms.vdw  = vdw
 
 
         # if sort is needed before adding resn
@@ -147,12 +151,16 @@ class Universe:
             if col not in data.keys():
                 data[col] = self.cols[col]
         self.atoms = pd.DataFrame(data)
+        self.atoms['id'] = self.atoms.index
 
     def construct_from_df(self, data):
+        if 'id' in data.columns:
+            data = data.drop('id', axis=1)
         self.atoms = data.copy().reset_index()
         for col in self.cols:
             if col not in self.atoms.columns:
                 self.atoms[col] = self.cols[col]
+        self.atoms['id'] = self.atoms.index
 
     def select(self, string, returnbA=False):
         if '~' in string or '>' in string or '<' in string:

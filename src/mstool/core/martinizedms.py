@@ -83,6 +83,9 @@ class MartinizeDMS:
         ### virtual_sites3
         self.updateVirtualSites3()
 
+        ### virtual_siten
+        self.updateVirtualSitesN()
+
         ### LJ
         t1 = time.time()
         self.updateLJ()
@@ -327,7 +330,66 @@ class MartinizeDMS:
                         self.cursor.execute(sql_insert_vout3_term.format(i1, i2, i3, i4, out3_index))
                         self.cursor.execute(sql_insert_vout3_param.format(a, b, c, out3_index))
                         out3_index += 1
+
+
+    def updateVirtualSitesN(self):
+        resnames = []
+        for resname in self.resnames:
+            if resname not in self.martini.martini['molecules'].keys(): continue
+            vsites = self.martini.martini['molecules'][resname]['virtual_sitesn']
+            if len(vsites) > 0:
+                resnames.append(resname)
+
+        if len(resnames) == 0:
+            return
+
+        # 1. Create a table
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS virtual_n_particle_term (
+                id INTEGER PRIMARY KEY,
+                v_idx INTEGER,      
+                func INTEGER,       
+                parents TEXT        
+            )
+        """)
+
+        for resname in resnames:
+            vsites = self.martini.martini['molecules'][resname]['virtual_sitesn']
+            for vsite in vsites:
+                cname = vsite[0]
+                func  = int(vsite[1]) # Ensure this is an int
+                #names = vsite[2:5]
+                names = vsite[2:]
                 
+                # Logic to filter indices
+                bA   = self.u.atoms.resname == resname
+                bAc  = self.u.atoms.name    == cname
+                self.u.atoms.loc[bA & bAc, 'mass'] = 0.0
+                for v_idx in self.u.atoms.loc[bA & bAc].index:
+                    self.cursor.execute("""
+                        UPDATE particle SET mass=0.0 WHERE id=?
+                    """, (v_idx,))
+                
+                # Get indices for the virtual site and all parents
+                # v_indices will be an array of all atom indices for this name/resname combo
+                v_indices = self.u.atoms[bA & bAc].index.to_numpy()
+                parent_indices_list = [self.u.atoms[bA & (self.u.atoms.name == n)].index.to_numpy() for n in names]
+
+                # Transpose to iterate over each specific residue instance
+                # All arrays in parent_indices_list must have the same length as v_indices
+                all_sets = np.vstack([v_indices] + parent_indices_list).T
+
+                for index_set in all_sets:
+                    v_idx = int(index_set[0])
+                    # Create the comma-separated string for the parents
+                    parents_str = ','.join([str(int(i)) for i in index_set[1:]])
+                    
+                    # Corrected the column name from 'idx' to 'id' (or omit id to let SQLite auto-increment)
+                    self.cursor.execute("""
+                        INSERT INTO virtual_n_particle_term (v_idx, func, parents) 
+                        VALUES (?, ?, ?)
+                    """, (v_idx, func, parents_str))
+
 
 
     def updateDihedrals(self):

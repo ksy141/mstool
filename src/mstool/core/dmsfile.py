@@ -39,6 +39,8 @@ import math
 import numpy as np
 
 import openmm as mm
+import itertools
+from math import comb
 from openmm     import MonteCarloBarostat, MonteCarloMembraneBarostat
 from openmm.app import forcefield as ff
 from openmm.app import Element, Topology, PDBFile, Simulation
@@ -1441,7 +1443,59 @@ class DMSFile(object):
             if 'virtual_fdat3_term' in tables:
                 raise NotImplementedError('OpenMM does not currently support '
                                           'fdat3-style virtual sites')
+            
+        for (fcounter,conn,tables,offset) in self._localVars():
+            if not go[fcounter]:
+                continue
+            if 'virtual_n_particle_term' in tables:
+                q = """SELECT v_idx, func, parents FROM virtual_n_particle_term"""
+                for v_idx, func, parents in conn.execute(q):
+                    parent_indices = [int(i) for i in parents.split(',')]
 
+                    if func == 1: # COG
+                        weights = [1.0/len(parent_indices)] * len(parent_indices)
+                    elif func == 2: # COM
+                        # You must fetch masses from the 'particle' table in the DMS
+                        masses = []
+                        for p_idx in parent_indices:
+                            masses.append(conn.execute(f"SELECT mass FROM particle WHERE id={p_idx}").fetchall()[0][0])
+                        total_mass = sum(masses)
+                        weights = [m/total_mass for m in masses]
+
+                    # Create the OpenMM Virtual Site
+                    if len(parent_indices) == 2:
+                        vsite = mm.TwoParticleAverageSite(parent_indices[0], parent_indices[1], weights[0], weights[1])
+                    elif len(parent_indices) == 3:
+                        vsite = mm.ThreeParticleAverageSite(parent_indices[0], parent_indices[1], parent_indices[2], weights[0], weights[1], weights[2])
+                    else:
+                        # len(parent_indices) is N
+                        N = len(parent_indices)
+
+                        # origin_weights should already be length N from your previous logic
+                        origin_weights = [float(w) for w in weights]
+
+                        # xWeights and yWeights MUST also be length N
+                        # We use indices 0, 1, and 2 as the basis for the local axes
+                        x_weights = [0.0] * N
+                        x_weights[0], x_weights[1] = -1.0, 1.0
+
+                        y_weights = [0.0] * N
+                        y_weights[0], y_weights[2] = -1.0, 1.0
+
+                        # localPosition must be a single Vec3-like object (length 3)
+                        local_pos = mm.Vec3(0.0, 0.0, 0.0)
+
+                        vsite = mm.LocalCoordinatesSite(
+                            parent_indices, 
+                            origin_weights, 
+                            x_weights, 
+                            y_weights, 
+                            local_pos
+                        )
+
+                    sys.setVirtualSite(v_idx, vsite)
+
+                       
     def _addPositionalHarmonicRestraints(self, sys):
 
         go = []
