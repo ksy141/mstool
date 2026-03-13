@@ -1,8 +1,7 @@
 from   ..core.universe import Universe
 
 def generate_list(group):
-    index = group.groupby('resn').cumcount()
-    return [f"{'H' if group['name'].iloc[i][0] == 'H' else 'C'}{index.iloc[i]}" for i in range(len(group))]
+    return [f"{'H' if group['name'].iloc[i][0] == 'H' else 'C'}{i}" for i in range(len(group))]
 
 def get_resname(group, uniques):
     resname = 'ROCK' + ''.join(group['name'])
